@@ -368,9 +368,18 @@ INPUT Chapters\Chapter3.tex
 INPUT Chapters\Chapter3.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\courier\pcrb7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrb8r.tfm
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
+INPUT Chapters\Introduction.tex
+INPUT Chapters\Introduction.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmti10.tfm
+INPUT Chapters\Related.tex
+INPUT Chapters\Related.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\jknappen\ec\tcrm1000.tfm
+INPUT Chapters\Proposition.tex
+INPUT Chapters\Proposition.tex
+INPUT Chapters\Evaluation.tex
+INPUT Chapters\Evaluation.tex
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
 INPUT Back\AppendixA.tex
 INPUT Back\AppendixA.tex
 INPUT Back\wissensch_Redlichkeit_E_Aug_21.pdf
@@ -400,13 +409,19 @@ OUTPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\the
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.aux
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT C:\Users\i01002626\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\jknappen\ec\dpi600\tcrm1000.pk
+INPUT C:\Users\i01002626\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\jknappen\ec\dpi600\tcrm1000.pk
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\enc\dvips\base\8r.enc
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbx10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbx10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi10.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi7.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi7.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr10.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr5.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr5.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr6.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr6.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr7.pfb
