@@ -374,10 +374,14 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\c
 INPUT Chapters\Related.tex
 INPUT Chapters\Related.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\jknappen\ec\tcrm1000.tfm
+INPUT Chapters\Architecture.tex
+INPUT Chapters\Architecture.tex
 INPUT Chapters\Proposition.tex
 INPUT Chapters\Proposition.tex
 INPUT Chapters\Evaluation.tex
 INPUT Chapters\Evaluation.tex
+INPUT Chapters\Conclussion.tex
+INPUT Chapters\Conclussion.tex
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
 INPUT Back\AppendixA.tex
