@@ -1,0 +1,21 @@
+* Chapter for data freshness - requirement
+  * What is formally needed to achieve freshness
+  * Query tolerance
+  * eager and lazy* eventual consistency
+
+* Chapter for replication - requirement
+  * explaining eager
+  * lazy
+  * and their pros and cons
+
+* in Concepts
+  * talk about the: "choice of isolation levels" https://docs.oracle.com/cd/B19306_01/server.102/b14220/consist.htm
+  Application designers and developers should choose an isolation level based on application performance and consistency needs as well as application coding requirements.
+  * which different isolation levels will be supported and for which use case.
+
+
+* Build on explanation of Data Freshness and replication
+  * And explain how we want to implement logically
+
+
+* Implementation based on the described architecture

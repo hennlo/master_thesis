@@ -4,7 +4,8 @@
 \label{c:related}
 
 This chapter aims to provide a background for the given topics as well as talking about the related and recent research activities for the respective sections.
-
+It is separated into ... sections, which are characteristic for Data Freshness.
+The definition of Data Freshness ($\rightarrow section \ref{sec:definition}$)
 
 To ensure the overall consistency of a system, current approaches in cloud environments use well-established protocols with unified blocking behaviours. 
 This includes Strict two phase locking (S2PL) for correct serializability treatment as well as two-phase commit (2PC) for global atomicity in a distributed database 
@@ -27,6 +28,7 @@ offers a great trade off between latency and access time for freshness and enabl
 
 
 \section{Data Freshness}
+\label{sec:definition}
 The idea of freshness is a widely used concept among distributed data integration systems and intuitively introduces the idea of how old or stale data is.
 However, several notions and interpretations how to characterize and measure data freshness exist.
 In 1999 Naumann et al. \cite{naumann:1999} already stated that although the idea of data quality and freshness has no commonly agreed definition and varies
@@ -94,7 +96,11 @@ Here the \textbf{Absolute Freshness} of a data item \textbf{d} is characterized 
 of the most recent committed update transaction that has updated the item \textbf{d}.
 These timestamps can be used by the client to individually define their freshness requirements. The younger a timestamp the fresher the data.
 Additionally they use \textbf{Delay Freshness} to define how old and outdated requested data objects $t(d)$ are compared to the commit time of the current value $t(d_0)$.
-Defining their freshness function as $f(d) = \frac{t(d)}{t(d_0)}, with f(d) \in [0,1]$ resulting in a \emph{freshness index}.
+Defining their freshness function as 
+\begin{equation}
+    f(d) = \frac{t(d)}{t(d_0)}, with f(d) \in [0,1]
+\end{equation} 
+resulting in a \emph{freshness index}.
 Röhm et al. \cite{rohm:2002} state that such an index consequently reflects how much the data has deviated from its up-to-date version.
 An index of 1 intuitively means that the data is at its most recent state, while an index of 0 is defined as infinitely outdated.
 
@@ -176,7 +182,10 @@ sufficiently fresh data with respect of the users requirements. Any outdated nod
 of such requirements.
 
 Wei et al. \cite{wei:2004} follow a slightly different approach by analyzing the \emph{Access Update Ratio} (AUR) for any data object \textbf{d} which is given as: 
-$AUR(d) = \frac{AccessFrequency(d)}{UpdateFrequency(d)}$. Consequently any item above an AUR of 1 is considered to be accessed at least as frequently as it is updated
+\begin{equation}
+AUR(d) = \frac{AccessFrequency(d)}{UpdateFrequency(d)}
+\end{equation}. 
+Consequently any item above an AUR of 1 is considered to be accessed at least as frequently as it is updated
 and is considered as hot and shall be updated as soon as possible for applications to receive the real-time value. 
 Whereas a ratio below this threshold refers to cold data and takes into account that this is accessed rather infrequently and thus needs no immediate refresh. 
 
