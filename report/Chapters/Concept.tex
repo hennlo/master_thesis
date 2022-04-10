@@ -2,6 +2,8 @@
 \chapter{Concept}
 \label{c:concept}
 
+\todo{As described in chapter... we differentiate freshness in x parts ... This leads us to the following tasks to address and find solutions}
+
 This chapter is separated into several sections were each represents a necessary building block to provide the notion of data fresh in Polypheny-DB.
 These blocks are compared and discussed to the implementations presented in \ref{c:related} to propose approaches how such techniques could be applied to polystore
 systems. Essentially we have to think about how we want to express freshness, find a suitable metric to measure it and provide users a possibility to formulate 
@@ -10,7 +12,7 @@ be refreshed while ensuring the consistency of the system and how to enable the 
 
 
 
-\section{ How to express freshness}
+\section{How to express freshness}
 \label{express}
 
 As discussed in \ref{r:express_freshness}, freshness can be expressed via several indications.
@@ -38,8 +40,11 @@ In such a way a user can not only steer its desire but is also informed whether 
 
 
 
-\section{ Replication Roles }
-\label{roles}
+\section{Replication}
+\label{sec:replication}
+
+\subsection{Replication States}
+\label{sec:state}
 
 As already discussed in the implementations in \ref{r:strategies} it is crucial to define and assign roles to loosen the locking situation on nodes
 to minimize update times over all. The related work clearly separated between primary-update nodes and read-only nodes, where 
@@ -58,11 +63,8 @@ intuitively have placements at different freshness levels resulting in tertiary 
 
 
 
-
-
-
-\section{Replication}
-\label{replication}
+\subsection{Replication Strategies}
+\label{sec:replication_strategy}
 Since data freshness occurs as a side effect of using lazy replication and can therefore already
 be used as a consequence of saving workload when not needing to update every replica eagerly.
 As suggested in \ref{r:replication} there exist several techniques how outdated nodes can be updated lazyily in the context of freshness.
@@ -144,7 +146,7 @@ to calculate the freshness index.
 
 As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
 necessary when switching the outdated with a refreshed view.
-Allthough, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
+Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
 inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
 
 
@@ -182,7 +184,7 @@ Although such refresh-transactions can be executed on any placement, it will hav
 
 
 
-\subsection{ Identify stale data }
+\subsection{Identify stale data}
 \label{stale}
 
 A prerequisite for the automatic execution of propagtion transactions is the identification of stale and outdated placements.
@@ -206,7 +208,7 @@ So countermeasures have to be defined to minimize errors or downtimes.
 
 
 
-\section{ Transactional guarantees }
+\section{Transactional guarantees}
 \label{consistency}
 
 To support the overall consistency of the system we have to ensure that all updates are correctly serialized and applied to the system.
@@ -242,7 +244,7 @@ Otherwise, we might need to define complex countermeasures to undo certain refre
 
 
 
-\section{ Freshness-aware Read Access }
+\section{Freshness-aware Read Access}
 
 With the description of \ref{express} how to explicitly express freshness, users have the ability to hint or even guide the routing process to select placements 
 based on their desired freshness.\\
@@ -275,9 +277,7 @@ We therefore only have to validate that no refresh-lock is currently in place.
 
 
 
-
-
-\section{ Policies }
+%\section{Policies}
 
 According to the idea, to generally relax consistency or allow a fine grained way of letting data owners decide what kind of consistency shall be desired for their object. 
 Since freshness can be considered a trade-off between availability and consistency it is only fair to let users decide which level of consistency to enforce and 
@@ -314,7 +314,7 @@ general notion of freshness that is valid for all applications. Some might consi
 However, with policies these can all be implemented.\\
 
 
-\subsection{Policy usage}
+%\subsection{Policy usage}
 
 Since applications that are being served by polystores are very different to each other, they might have different requirements. 
 Therefore, different object types shall be supported.
