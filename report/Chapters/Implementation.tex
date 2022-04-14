@@ -8,6 +8,9 @@ This chapter describes the implementation of .. . The component and modules of t
 \todo{Talk about each implementation step for the building blocks in general, but if there are deviations e.g. in languages briefly differentiate them with bullet points
 and add them to the appendix }
 
+
+\section{Locking - Isolation Level}
+
 \section{Refresh Operation}
 
 \subsection{Replication State}
@@ -16,15 +19,33 @@ and add them to the appendix }
 
 \subsection{Replication Algorithm}
 
+\todoMissing{Since the replication or refresh propagation is done operation-wise we actually loosened the heavy SS2PL 
+constraints that we require on the primary updates. Since we already have a serializable schedule after execution we also 
+    know per entity and each partition placement the correct execution order that we have to apply the data changes on. So it is not necessary to free the resources 
+    after the entire transaction has been replicated but right after each operation. However since Polypheny-DB currently only supports a SS2PL approach we can mimic this behaviour by scheduling refresh transaction contianing only one update or even a subset of the operations.}
+
+\todoMissing{Explain potential optimization steps  that we can analyze the queue and can aggregate certain steps or avoid 
+certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
+
 \subsection{Manual Refresh Operations}
 
 \section{Freshness Query}
 
 \subsection{Freshness Query Specification}
 
+\todo{Which possibilities do we have to select a query with freshness}
+
+\todo{How does the freshness respresentation look like for SQL.}
+
+
+
 \subsection{Freshness Filtering}
+
 
 \subsection{Freshness Selection}
 
+
 \todo{Maybe not an entire section. Rather discussed internally}
 \subsection{Referential Integrity}
+
+

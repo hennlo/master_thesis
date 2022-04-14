@@ -3,13 +3,18 @@
 \label{c:concept}
 
 \todo{As described in chapter... we differentiate freshness in x parts ... This leads us to the following tasks to address and find solutions}
+Ee propose a concept for freshness-aware data management along with all necessary requirements to establish the concept.\\
 
-This chapter is separated into several sections were each represents a necessary building block to provide the notion of data fresh in Polypheny-DB.
+This chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness in Polypheny-DB.
 These blocks are compared and discussed to the implementations presented in \ref{c:related} to propose approaches how such techniques could be applied to polystore
 systems. Essentially we have to think about how we want to express freshness, find a suitable metric to measure it and provide users a possibility to formulate 
 an acceptable level of freshness. Based on these fundamentals we need to consider how update transactions can be decoupled and deferred, how replicas will
 be refreshed while ensuring the consistency of the system and how to enable the routing to identify freshness levels to speed up read-only operations. 
 
+In this chapter we will describe the functional requirements needed to establish a form of freshness-aware data management within Polypheny-DB.
+
+\section{Functional Requirements}
+\todoMissing{List what building blocks are necessary to compose a freshness concept. Check if needed as separate section}
 
 
 \section{How to express freshness}
@@ -208,7 +213,7 @@ So countermeasures have to be defined to minimize errors or downtimes.
 
 
 
-\section{Transactional guarantees}
+\section{Transactional guarantees - Locking - Isolation Level}
 \label{consistency}
 
 To support the overall consistency of the system we have to ensure that all updates are correctly serialized and applied to the system.
@@ -278,6 +283,7 @@ We therefore only have to validate that no refresh-lock is currently in place.
 
 
 %\section{Policies}
+\label{sec:polcies}
 
 According to the idea, to generally relax consistency or allow a fine grained way of letting data owners decide what kind of consistency shall be desired for their object. 
 Since freshness can be considered a trade-off between availability and consistency it is only fair to let users decide which level of consistency to enforce and 
@@ -343,3 +349,44 @@ DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name;
 To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
 The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
 
+
+\section{Freshness Metrics}
+As described in section \ref{sec:definition}, there is no unified definition of data freshness or common freshness metrics.
+These rather depend on specific use cases and system requirements.
+\subsection{Time-based constraints}
+\subsubsection{Absolute Timestamp}
+\subsubsection{Absolute-Delay - From Current Time}
+Both reconstruct a timestamp that enacts as a lower bound of acceptable placements.
+This can be used as a filter to check for each candidate placement that it is fresher or respectively has received a state where its commit time is newer 
+than the lower bound. If not the placement is removed from the possibly candidates. 
+
+
+\subsection{Replica-deviations}
+
+\subsubsection{Relative-Delay - Deviation From Eager Replica}
+Although also based on a time difference it checks relative to the specified time delay on teh eager  replica how far away is the lazy replcia.
+
+\subsection{Data Accuracy - Modification - Deviation From Eager Replica}
+This can also be used in referential integrity when joining multiple table entities.
+We can use the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
+
+
+\subsubsection{Data Accuracy - Time -  Deviation From Eager Replica}
+
+Both construct an index or percentage of "hit ratio"
+
+\subsubsection{Access-Update Ratio - AUR}
+
+
+
+\section{Query Plan - Planning phase?}
+
+\section{Consistency}
+Move from Strong consistency to eventual consistency 
+have a loose form of consistency constraints that we need to comply with, in order to still provide response times while sacrificing consistency.
+
+
+\todoMissing{Introduce constraints on freshness and DML operations within the same transaction}
+
+\todoMissing{Add this to requirements when talking about what is needed to provide freshness-aware data management}
+This is certainly we still have to comply with the acid properties. 

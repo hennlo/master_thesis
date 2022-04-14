@@ -15,12 +15,20 @@ Or if it is just marginally lower than before. Also compare this to the overall 
 
 \section{Correctness}
 
+The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly.
+And if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
+a replication update. Rather we compare on a high level the metadata 
+(i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node) of two replicas. 
+
+The second part of the validation process focuses on the retrieval of outdated nodes. Although we always have a fall back to the primary placements as described in section \ref{sec:freshness_selection},
+we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.
+
 \section{Benchmarks}
 
 \todo{Explain why it is necessary to verify the solution with different combinations}
 
 \subsection{Evaluation Environment}
-\todo{Ellaborate and throughly explain why the environment was chosen and how the test was executed for the sake of repoducibility}
+\todo{Elaborate and thoroughly explain why the environment was chosen and how the test was executed for the sake of rerpoducibility}
 
 
 \subsection{Evaluation Procedure}
@@ -31,6 +39,7 @@ The following steps outline the procedure for benchmarking data freshness within
 \todo{ Talk about implementation of freshness characteristic in many query languages}
 
 
+\subsection{Results}
 
 \section{Discussion}
 \label{sec:discussion}

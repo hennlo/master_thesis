@@ -11,9 +11,12 @@ To ensure the overall consistency of a system, current approaches in cloud envir
 This includes Strict two phase locking (S2PL) for correct serializability treatment as well as two-phase commit (2PC) for global atomicity in a distributed database 
 setup. Such mechanisms are mainly utilized when updates and changes to the system are replicated eagerly to every available replica to maintain a consistent state
 while complying with the common ACID properties \cite{tamer:2005}.
-However, these  directly impact and ultimately mitigate the availability and response time agreements of most service providers.
-Hence, different approaches were created which aim to relax the strict ACID properties towards the rather loose BASE ones.
-BASE in this context stands for \textbf{B}asically \textbf{A}vailable \textbf{S}oft State and \textbf{E}ventual Consistency\cite{shapiro:2011}.
+However, these  directly impact and ultimately mitigate the availability and response time 
+agreements of most service providers.
+Hence, different approaches were introduced which aim to relax the strict \textit{ACID} properties towards 
+a \textit{BASE} assumption.
+\textit{BASE} in this context stands for \textbf{B}asically \textbf{A}vailable \textbf{S}oft 
+State and \textbf{E}ventual Consistency \cite{shapiro:2011}.
 To implement this concept, updates on data items do not need to be executed immediately on every participating node.
 It is sufficient to apply the change only on a few nodes and deferring the data replication to a point in time when the workload on the system is low and 
 resources are not occupied by client requests. This form of lazily replication can drastically increase the performance while also reducing the costs of maintaining

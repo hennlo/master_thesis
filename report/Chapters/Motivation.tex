@@ -6,9 +6,30 @@ Explain scenario and why especially necessary on polystore systems
 transactional UPTODATE workload on postgres and 
 Analytical in in-memory order column-oriented DB. 
 
+(Imagine a distributed system)
 
 COnsider locking in a distributed setup. Why this is limited by the slwoest performing node.
 (maybe cite) Amdahls law .
 
 \todo{This might not be suitable in Motivational Scenario}
 We can now harvest the benefits of a polystore system with their distinct replication engines
+
+Imagine an \emph{Enterprise Resource Planning} (ERP) system, containing several different customers.
+This comprehensive system is able to provide purchasing, accounting, inventory stocking and warehouse management within one system.
+Since these systems are inherently used to reproduce an entire supply chain, they can be easily be used to report on different sales metrics
+or run analytical queries to aggregate certain multidimensional results. This is certainly desirable to analyze the current state of the company as well as adequately adapt 
+to new trends or opportunities. However, even in we imagine that we have a distributed system \\
+If our system however only supports strong consistency by eagerly replicating all incoming updates to every available node, 
+we are limited by the slowest performing node in this setup. During these write operations no could
+
+Explain that this system in this scenario does not allow concurrent writes and reads. Since reads do not alter that data, we can provide multiple 
+
+
+
+
+However, since ERP \todoMissing{Cite this} are strong transactional systems receiving write-heavy workload the write speed is essentially bound by the lowest performing
+
+This does not only limit locking situations but also increases the databases' response time. Furthermore, this enables this system even in a distributed setup to work 
+with several nodes. Even if not all nodes are directly notifying the system that they have succesfully finished the operation we could continue with the operation.
+Depending on the tolerated level of consistency we give in on consistency to improve availability. This can of course also be tuned to wait until a majority or defined number of nodes 
+have comited the transaction.

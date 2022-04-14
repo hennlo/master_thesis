@@ -2,43 +2,42 @@
 \chapter{Introduction}
 \label{c:intro}
 
-Over the last decade, cloud computing has become a crucial and central part in the industry \cite{claremont:2005}.
-This technological advancement in infrastructure layouts allows companies to rent software as well as hardware resources to
-build and compose their entire data center virtually in the cloud,
-without having to invest in expensive hardware and location to maintain their compute resources
-solely on premise. These providers usually maintain different distributed data centers 
-across the globe and provide private or shared access on their available resources according
-to their Service Level Agreement (SLA). Such guarantees in quality-of-service (QoS) usually 
-include elastic up- and down-scaling of rented resources and a high degree of availability 
-which is achieved by replicating data across different regions \cite{terry:2013}. 
+For the past decade, cloud computing has become a crucial and central part in the industry \cite{claremont:2005}.
+This technological advancement in infrastructure provisioning allows companies to obtain 
+software as well as hardware resources to compose their entire data center virtually in the cloud.
+Without having to invest in expensive hardware and real estate they can now avoid maintaining 
+their computing resources solely on premise. These providers usually manage different distributed data centers 
+across the globe and provide private or shared access on resources according to their 
+Service Level Agreement (SLA). Such guarantees in quality-of-service (QoS) usually 
+include elastic up- and down-scaling of resources and a high degree of availability,
+which is achieved by replicating data throughout different regions \cite{brinkmann:2015} \cite{terry:2013}. 
 
 Ever since the rise of the \emph{Big Data} era, these providers are faced with continuous
 and rapidly growing heterogeneous datasets. These are accompanied by widely varying requirements 
 and characteristics for data driven applications. This increased the need to leverage custom-tailored 
 database systems to gain meaningful insights on their data as quickly as possible.
-
 To efficiently process and extract relevant information out of these data silos new systems
-have emerged, which exactly aim to provide a solution for these new 
-demands on varying workloads and ever-growing data sources.
-
-Such novel Polystore systems aim to combine several physical data engines to enable various
-new possibilities, to provide the best response times for each use case by exploiting
-the key benefits of each engine \cite{stonebraker:2005}. Although these data management systems are inherently
+have emerged. These aim to provide a solution for the new demands on varying workloads 
+and ever-growing data sources.
+Such novel Polystore systems combine several distributed physical data engines to enable various
+new possibilities and provide the best response time for every use case by exploiting
+the key benefits of each engine \cite{stonebraker:2005} \cite{polypheny2020}. Although these data management systems are inherently
 built to process heterogeneous data with high throughput, the amount of produced data
-still continues to grow.
-Therefore, the importance of accessing the right data efficiently is crucial
+still grows continuously.
+Therefore, the importance to efficiently access the right data is crucial
 for organizations to stay economical and competitive. Cloud providers which offer such systems consequently 
-need reliable functionality to manage these large volumes of data to not waste useful computations and time when users
-try to retrieve relevant data \cite{levandowski2013}.
+need reliable functionality to manage these large volumes of data. Otherwise, they would waste useful 
+computations and time when users try to retrieve relevant data items\cite{levandowski2013}.
 To comply with their QoS requirements and sufficiently provide acceptable access times for their services, 
-they have come up with data freshness strategies as an important part of data management in a
+they have come up with data freshness strategies as an essential part of data management in a
 distributed setup. 
-The freshness in such a case reflects how current and up-to-date a data item is.
-Since not all applications pursue the same goals, they often depend on different levels of freshness which can be used to identify a well-suited location
-to retrieve the data. This ultimately mitigates the need to always update every existing data replica to the most recent state and defer changes until
-it is processable by the underlying system.
-Such delayed updates allow for much higher throughput and increased performance, in use cases were also slightly outdated data 
-is acceptable.
+The freshness in such cases reflects how current and up-to-date a specific data item is.
+Since not all applications pursue similar goals, they often require different levels of freshness.
+These levels can be used to identify a well-suited location to retrieve the desired data object. 
+This consequently mitigates the need to always update every existing data replica to the most recent state.
+Changes can now rather be deferred, until they are processable by the underlying system again.
+Such delayed updates now allow for a much higher throughput and increased performance in scenarios were also slightly 
+outdated data is acceptable.
 
 \section{Goal?}
 

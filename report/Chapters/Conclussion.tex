@@ -1,3 +1,19 @@
 % !TEX root = ../Thesis.tex
 \chapter{Conclusion}
 \label{c:conclusion}
+
+\section{Outlook}
+
+\subsection{Tuneable Consistency}
+The introduced implementation sketched in section \ref{c:implementation} reduces the overall consistency of the primary transaction,
+to improve the overall response time of the system.\\ 
+But since this tradeoff between availability and consistency certainly depends on the use case orservice requirements, it would be beneficial.
+Hence, an extension to the described model could easily allow to adjust the required consistency as needed. 
+This could be either done by the mentioned usage of policies, described in section \ref{sec:polcies} or with..
+
+\subsection{Locking}
+Reduce locking to a physical partition level  (partition placement)
+
+\tocless\section{Unified transaction model for semantically rich operations}
+Intorduce semantically rich operations inside polypheny? 
+Maybe not on the scope of an application level but to encompass the underlying transactions

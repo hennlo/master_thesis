@@ -2,8 +2,40 @@
 \chapter{System Architecture}
 \label{c:architecture}
 
+In this chapter we briefly describe and illustrate a simplified version of Polyphenys current architecture.\\
 
-\section{Freshness Metrics}
-\subsection{Timebased constraints}
-\subsection{Data Accuracy}
-\subsection{Access-Update Ratio - AUR}
+\todoMissing{Polypheny multi-model teherfore tables are considered entities }
+
+\section{Polypheny-DB}
+PolyDBMS \cite{polypheny2021}
+\todo{Add PolyDBMS cite Love Marriage or Marriage of convenience}
+
+\textit{Polypheny-DB} is an Open-Source project\footnote{https://polypheny.org/} developed by 
+the \textit{Database and Information Systems} (DBIS) group of the University of Basel.\\
+
+Polypheny-DB is a self-adaptive polystore that provides cost- and workload aware access to heterogeneous data\cite{poly2020}.
+
+Compared to other systems like \textit{C-Store}\cite{cstore_2005} or \textit{SAP HANA} \cite{hana_2012}, 
+Polypheny-DB does not provide its own set of different storage engines to support 
+different workload demands.\\
+Instead, it acts as a higher-order DBMS which provides a single-entry point to 
+a variety of possible databases like 
+\textit{Cassandra}\footnote{https://cassandra.apache.org/}, 
+\textit{PostgreSQL}\footnote{https://www.postgresql.org/} 
+and \textit{MonetDB}\footnote{https://www.monetdb.org/}. 
+These can be integrated, attached and managed by Polypheny-DB which will incorporate the underlying 
+heterogenous data storage engines with their different data structures. It is 
+desigend to abstract applications from the physical execution engine while profiting from 
+performance improvements through cross-engine executions. 
+\\
+For incoming queries Polypheny-DB's routing engine will automatically analyze the query and decide 
+which store will provide the best response. The query is then explicitly routed to these data stores. 
+This approach can be characterized as a dynamically optimizing data management layer for different workloads.
+
+\subsection{Data Placements}
+\subsubsection{Vertical Placements}
+\subsubsection{Data Placements}
+
+\subsection{Query Routing}
+
+

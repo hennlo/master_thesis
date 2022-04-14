@@ -3,21 +3,85 @@
 \label{c:Foundation}
 
 This chapter describes concepts and general foundations, which are necessary to supplement 
-the content of this thesis. 
+the content of this thesis. These foundations are mainly associated with the topics of distributed data management.
+\todoMissing{Based on the topics of  Distributed Data Management}
 
 \section{Polystores}
 
-\subsection{Polypheny-DB}
+The decision which data structure to use and built upon is a crucial step for the overall performance of a systems design, as suggested by
+H.Plattner and B.Leukert\cite{plattner2015}.\\
+While row-oriented data stores might be useful and preferred for write-heavy transactional 
+workloads they are rather insufficient for purely analytical workload which would rather benefit from a
+column-oriented data store with less write operations\cite{sigmond2008}.\\
+
+Despite the fact that nowadays there exist a variety of Database Management Systems (DBMS) which were originally created with an intention to
+support specific scenarios,
+applications are getting more complex relying on various requirements and characteristics 
+to serve multiple use cases at once.
+That is why modern day applications can not solely rely on one storage technology alone. 
+Consequently Multi- and Polystore systems have emerged. \\
+\\
+While multistore database systems aim to combine and manage data across heterogeneous data stores,
+polystore systems are essentially based on the idea of combining multistores with
+\textit{polyglot persistence}\cite{polypheny2020}.
+Polyglot persistence is a term which refers to a practice originated from the concept 
+of \textit{polyglot programming} or microservice architectures, to utilize different 
+programming languages for different task requirements following a best-fit approach\cite{fowler2011}. \\
+Along this paradigm, polystores want to utilize multiple data storage technologies to
+fulfill different needs for different application components in order to cope
+with mixed and varying workloads.
+
+\subsection{PolyDBMS}
+
 
 \section{Data Partitioning}
+\label{sec:part}
+
+Beside the utilization of several data storage engines, the data model and structure 
+will have an enormous impact on the overall performance. Depending on the query or 
+how data is accessed ,data partitioning can be used to increase the efficiency and 
+maintainability of the system\cite{Agrawal_2004}.\\
+The process of data partitioning refers to splitting the data into logically and sometimes even
+physically seperated fragments.
+
+In general data partitioning can be distinguished between two variations.
+
+\begin{description}
+    \item [Vertical Partitioning] is usually applied during the design of a data model inside a 
+    database. This involves the creation of tables with fewer columns and therefore using additional 
+    tables to store the remainder of columns.\cite{vertical_1984}. This approach is often used in the 
+    context of Normalization of a data model\cite{normalization_2012}. 
+    \item [Horizontal Partitioning] refers to the partitioning of objects like tables 
+    into a disjoint set of rows that can be stored and accessed separetely\cite{horizontal_1982}.
+    To support this explicit form of partitioning there exist several partition algorithms.
+    The most common ones are List, Range and Hash partitioning. These algorithms can be applied to a
+    table based on an arbitary column which results in a fragmentation of the table 
+    based on the data values of the selected column.
+\end{description}
+
+Data partitioning generally enables a system to process data concurrently and 
+to some extent even in parallel. Considering that access to data can be 
+efficiently load balanced and therefore enhances the throughput per query.\\
+
+Altough data partitioning is often associated with the improvement of query performance.
+It can be also be used to simplify the operating of a DBMS cluster and therefore help 
+to increase the overall availability.
+Through the replication of partition fragments, the data resilience of the system
+can be improved. Even if part of the data storage nodes are temporarily not 
+reachable, your system still might be fully operational and available due to the 
+replication and distribution of data fragments, which is still one of the main 
+pursuits of current cloud providers\cite{dbre2017}.
 
 \subsection{Vertical Partitioning}
 \subsection{Horizontal Partitioning}
 
-\section{Temperature-aware data management}
+\todo{Or rather an entire chapter with Properties of Distributed Systems/ Data Management}
+\section{Temperature-aware Data Management}
 
 \section{Data Replication}
 In distributed setups...
+Cloud providers often tend to use data partitioning to improve the query performance
+by replicating certain partitions of data to where it is actually needed\cite{cloudpart_2012}.\\
 
 \subsection{Eager Replication}
 \todoMissing{Insert}
@@ -26,6 +90,10 @@ In distributed setups...
 Automatically results in \emph{Eventual Consistency}. Lazy replication therefore already have the characteristic of outdated nodes that leave several versions behind.
 \todoMissing{Insert}
 
+\section{Concurrency Coontrol}
+\subsection{(SS)2PL}
+\subsection{MVCC}
+\subsection{Discussion}
 
 \section{CAP Theorem}
 

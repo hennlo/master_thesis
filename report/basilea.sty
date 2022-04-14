@@ -234,6 +234,10 @@
 % rename here, e.g. \crefname{listing}{Algorithm}{Algorithm}  
 
 
+%CUSTOM HENNLO
+\newcommand{\nocontentsline}[3]{}
+\newcommand{\tocless}[2]{\bgroup\let\addcontentsline=\nocontentsline#1{#2}\egroup}
+
 
 % todos
 \usepackage[colorinlistoftodos, textwidth=4cm]{todonotes} % add ",disable" in [] to remove all todos, missing figures and the todo list
