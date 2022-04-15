@@ -1,0 +1,29 @@
+% !TEX root = ../Thesis.tex
+\chapter{Conclusion}
+\label{c:conclusion}
+
+
+With this implementation Polypheny-DB now provides functionalities to adjsut itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
+To let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
+Due to this asynchronicity it now efficiently supports hybrid workload. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Outlook}
+
+\subsection{Tuneable Consistency}
+The introduced implementation sketched in section \ref{c:implementation} reduces the overall consistency of the primary transaction,
+to improve the overall response time of the system.\\ 
+But since this trade-off between availability and consistency certainly depends on the use case or service requirements, it would be beneficial.
+Hence, an extension to the described model could easily allow to adjust the required consistency as needed. 
+This could be either done by the mentioned usage of policies, described in section \ref{sec:polcies} or with.
+
+\subsection{Locking}
+Reduce locking to a physical partition level  (partition placement)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tocless\section{Unified transaction model for semantically rich operations}
+Introduce semantically rich operations inside polypheny? 
+Maybe not on the scope of an application level but to encompass the underlying transactions

@@ -14,7 +14,7 @@ while complying with the common ACID properties \cite{tamer:2005}.
 However, these  directly impact and ultimately mitigate the availability and response time 
 agreements of most service providers.
 Hence, different approaches were introduced which aim to relax the strict \textit{ACID} properties towards 
-a \textit{BASE} assumption.
+a \textit{BASE} assumption \cite{base2008}.
 \textit{BASE} in this context stands for \textbf{B}asically \textbf{A}vailable \textbf{S}oft 
 State and \textbf{E}ventual Consistency \cite{shapiro:2011}.
 To implement this concept, updates on data items do not need to be executed immediately on every participating node.
@@ -29,6 +29,8 @@ This notion of or recency can then be utilized to ease the selection of correct 
 For cloud providers this combination of eager and lazy replication together with the resulting different stages of freshness 
 offers a great trade off between latency and access time for freshness and enables efficient usage of available resources.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Data Freshness}
 \label{sec:definition}
@@ -55,6 +57,8 @@ while the source data might have already been updated after it has initially bee
 The second factor corresponds to the \emph{timeliness} of data. It essentially states how old data is and captures the gap between the last update and delivery.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Freshness analysis and metrics}
 \label{r:freshness_metrics}
 A metric is a specific figure which can be used to evaluate given quality factors.
@@ -74,6 +78,8 @@ While \cite{bedewy:2016} and \cite{zhong:2018} define the notion of freshness by
 the timestamp of the transactions which has updated the value has as well as the age-of-synchronization (AoS) which corresponds to the time when the value was updated.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \subsection{How to express freshness}
 \label{r:express_freshness}
@@ -87,7 +93,7 @@ suggest an accepted level of freshness.
     be mutually consistent if the values do not diverge more than a certain amount.
 
     \item \textbf{Drift constraints on multiple data items}: Relevant for transactions which read multiple data items. It is acceptable for users if the update timestamps 
-    of all data items are all within the same specified interval. Additionally for aggregations, as long as a particular aggregate computation 
+    of all data items are all within the same specified interval. Additionally, for aggregations, as long as a particular aggregate computation 
     is within a tolerable range it can be accepted. Even if some individual values of the data items are more out of sync than the compound operation.
 
 \end{itemize}
@@ -108,10 +114,11 @@ Röhm et al. \cite{rohm:2002} state that such an index consequently reflects how
 An index of 1 intuitively means that the data is at its most recent state, while an index of 0 is defined as infinitely outdated.
 
 While \cite{xiang:2008} and \cite{fekete:2018} both consider the delay-based staleness in the time domain as well they also consider constraints on 
-an acceptable value-based divergence $\delta$. This aims to to measure the difference between two numerical values by anlyzing their similarity on basis of their 
+an acceptable value-based divergence $\delta$. This aims to measure the difference between two numerical values by analyzing their similarity on basis of their 
 absolute value $|d_0 - d| < \delta $. Low values between base and replicated data reflects a more up-to-date replica for a given object.
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{Update propagation - Replication}
@@ -162,7 +169,7 @@ to its deviations over time. This as well corresponds to a multilayer replicatio
 
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \subsection{Refresh strategies}
@@ -195,7 +202,7 @@ Whereas a ratio below this threshold refers to cold data and takes into account 
 
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{Consistency}
@@ -226,7 +233,7 @@ Although this would indeed improve update times and would support referential in
 Finally, the authors of \cite{akal:2005} propose freshness locks which are applied to the stores which have been selected to fulfil the read requests. 
 These locks aim to provide fast response times for OLAP workload and ensure that data is not refreshed when beeing read within one transaction.
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Freshness-aware Read Access}
 \label{r:read}

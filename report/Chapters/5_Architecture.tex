@@ -3,8 +3,14 @@
 \label{c:architecture}
 
 In this chapter we briefly describe and illustrate a simplified version of Polyphenys current architecture.\\
+This extends the foundations laid out in Chapter \ref{c:Foundation} and sets them in context of the existing system model.
 
 \todoMissing{Polypheny multi-model teherfore tables are considered entities }
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 \section{Polypheny-DB}
 PolyDBMS \cite{polypheny2021}
@@ -18,7 +24,7 @@ Polypheny-DB is a self-adaptive polystore that provides cost- and workload aware
 Compared to other systems like \textit{C-Store}\cite{cstore_2005} or \textit{SAP HANA} \cite{hana_2012}, 
 Polypheny-DB does not provide its own set of different storage engines to support 
 different workload demands.\\
-Instead, it acts as a higher-order DBMS which provides a single-entry point to 
+Instead, it acts as a higher-order DBMS which provides a single-point of entry to 
 a variety of possible databases like 
 \textit{Cassandra}\footnote{https://cassandra.apache.org/}, 
 \textit{PostgreSQL}\footnote{https://www.postgresql.org/} 
@@ -32,10 +38,13 @@ For incoming queries Polypheny-DB's routing engine will automatically analyze th
 which store will provide the best response. The query is then explicitly routed to these data stores. 
 This approach can be characterized as a dynamically optimizing data management layer for different workloads.
 
+
 \subsection{Data Placements}
-\subsubsection{Vertical Placements}
+\subsubsection{Vertical Placements} 
 \subsubsection{Data Placements}
 
 \subsection{Query Routing}
+
+\subsection{Concurrency Control}
 
 

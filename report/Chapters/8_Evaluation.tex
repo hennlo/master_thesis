@@ -13,6 +13,9 @@ These include the correct execution of lazy replication, the possibility to refr
 Impact of the replication engine on the underlying performance, if freshness indeed increases the overall parallel writes on the system.
 Or if it is just marginally lower than before. Also compare this to the overall introduced overhead. And if the change was wort it
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Correctness}
 
 The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly.
@@ -22,6 +25,9 @@ a replication update. Rather we compare on a high level the metadata
 
 The second part of the validation process focuses on the retrieval of outdated nodes. Although we always have a fall back to the primary placements as described in section \ref{sec:freshness_selection},
 we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Benchmarks}
 
@@ -41,6 +47,10 @@ The following steps outline the procedure for benchmarking data freshness within
 
 \subsection{Results}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 \section{Discussion}
 \label{sec:discussion}
-The result generally show
+The result generally shows
