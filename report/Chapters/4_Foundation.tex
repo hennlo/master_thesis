@@ -9,10 +9,10 @@ the contents of this thesis. These foundations are mainly associated with topics
 \section{Polystores}
 
 The decision which data structure to use and built upon is a crucial step for the overall performance of a systems design, as suggested by
-H.Plattner and B.Leukert\cite{plattner2015}.\\
+H.Plattner and B.Leukert ~\cite{plattner2015}.\\
 While row-oriented data stores might be useful and preferred for write-heavy transactional 
 workloads they are rather insufficient for purely analytical workload which would rather benefit from a
-column-oriented data store with less write operations\cite{sigmond2008}.\\
+column-oriented data store with less write operations ~\cite{sigmond2008}.\\
 
 Despite the fact that nowadays there exist a variety of Database Management Systems (DBMS) which were originally created with an intention to
 support specific scenarios,
@@ -23,10 +23,10 @@ Consequently Multi- and Polystore systems have emerged. \\
 \\
 While multistore database systems aim to combine and manage data across heterogeneous data stores,
 polystore systems are essentially based on the idea of combining multistores with
-\textit{polyglot persistence}\cite{polypheny2020}.
+\textit{polyglot persistence} ~\cite{polypheny2020}.
 Polyglot persistence is a term which refers to a practice originated from the concept 
 of \textit{polyglot programming} or microservice architectures, to utilize different 
-programming languages for different task requirements following a best-fit approach\cite{fowler2011}. \\
+programming languages for different task requirements following a best-fit approach ~\cite{fowler2011}. \\
 Along this paradigm, polystores want to utilize multiple data storage technologies to
 fulfill different needs for different application components in order to cope
 with mixed and varying workloads.
@@ -40,22 +40,26 @@ with mixed and varying workloads.
 Beside the utilization of several data storage engines, the data model and structure 
 will have an enormous impact on the overall performance. Depending on the query or 
 how data is accessed, data partitioning can be used to increase the efficiency and 
-maintainability of the system\cite{Agrawal_2004}.\\
+maintainability of the system ~\cite{Agrawal_2004}.\\
 The process of data partitioning refers to splitting the data into logically and sometimes even
 physically separated fragments.
 
 In general data partitioning can be distinguished between two variations.
+Both of these forms split the data into multiple parts.
+It is therefore often called fragmentation \todoMissing{Cite}. 
 
 \begin{description}
     \item [Vertical Partitioning] is usually applied during the design of a data model inside a 
     database. This involves the creation of tables with fewer columns and therefore using additional 
-    tables to store the remainder of columns.\cite{vertical_1984}. This approach is often used in the 
-    context of Normalization of a data model\cite{normalization_2012}. 
+    tables to store the remainder of columns ~\cite{vertical_1984}. This approach is often used in the 
+    context of normalization of a data model ~\cite{normalization_2012}. In order to combine and reconstruct 
+    these vertical partitions again there needs to be some sort of redundantly stored data like the primary key.
+    Which uniquely identifies individual items. 
     \item [Horizontal Partitioning] refers to the partitioning of objects like tables 
-    into a disjoint set of rows that can be stored and accessed separetely\cite{horizontal_1982}.
+    into a disjoint set of rows that can be stored and accessed separately ~\cite{horizontal_1982}.
     To support this explicit form of partitioning there exist several partition algorithms.
     The most common ones are List, Range and Hash partitioning. These algorithms can be applied to a
-    table based on an arbitary column which results in a fragmentation of the table 
+    table based on an arbitrary column which results in a fragmentation of the table 
     based on the data values of the selected column.
 \end{description}
 
@@ -70,12 +74,11 @@ Through the replication of partition fragments, the data resilience of the syste
 can be improved. Even if part of the data storage nodes are temporarily not 
 reachable, your system still might be fully operational and available due to the 
 replication and distribution of data fragments, which is still one of the main 
-pursuits of current cloud providers\cite{dbre2017}.
+pursuits of current data management solutions ~\cite{dbre2017}.
 
-\subsection{Vertical Partitioning}
-\subsection{Horizontal Partitioning}
 
-\todo{Or rather an entire chapter with Properties of Distributed Systems/ Data Management}
+
+
 \section{Temperature-aware Data Management}
 
 
@@ -85,19 +88,17 @@ pursuits of current cloud providers\cite{dbre2017}.
 \section{CAP Theorem}
 \label{sec:cap}
 An essential part of distributed systems is the handling of failures or outages of participating components. 
-The \emph{CAP theorem} \cite{brewer:2000} introduced by E. Brewer discusses these scenarios and states, that it is not possible 
-to keep the system available while providing global data consistency at the same time \cite{cap2002}. 
-
-
-Although CAP was essentially introduced to support primarly the differentiation between \emph{Availability} and \emph{Consistency} it only considers the failure scenario.
-Therefore, an extension was introduced for the non failure case.
-\\
-Although the CAP theorem introduced by E. Brewer ... it only captures the aspects in case of a failure.
-However, since this should rather be the exception PACELC was introduced \todoMissing{cite} as an extension and an alternative to CAP. While the first 3 letters are merely a permutation of CAP
-the new suffix stands for \emph{Else Latency vs. Consistency} and essentially focuses on the non-failure case and to choose between.
-This states if the system can be partition tolerant, then we need to choose between availability or consistency. However, if the system cannot
-work normally when partitioned then we need to decide on building a consistent system or as system with a lower latency that provides a better average response time \cite{abadi2012}.
-
+The \emph{CAP theorem} ~\cite{cap2002} introduced by E. Brewer ~\cite{brewer:2000} discusses these scenarios and states, that it is not possible 
+to keep the system available while providing global data consistency at the same time.
+This problem is driven by the claim that a node within a clustered system cannot identify whether another node or the 
+network connection in between has failed (network partitioning).\\
+Although this theorem was primarly introduced to support the differentiation between \emph{Availability} and \emph{Consistency}, 
+it only formulates the trade-off in case of a failure.
+Since this should rather be the exception, Abadi ~\cite{abadi2012} generalized the concepts of Brewer by introducing \emph{PACELC} as an extension to the CAP theorem.
+This essentially adds the more common non-failure case to the definition.
+He claims that it is not sufficient to reduce the decision on the occurrence of the failure alone. 
+Because even in high-available environments the data needs to be replicated to ensure availability and thus latency. 
+Therefore, the possibility of failure alone, even in the absence of a failure, implies that the availability depends to some degree also on the data replication.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -105,47 +106,55 @@ work normally when partitioned then we need to decide on building a consistent s
 
 
 \section{Data Replication}
-In distributed setups...
-Cloud providers often tend to use data partitioning to improve the query performance
-by replicating certain partitions of data to where it is actually needed\cite{cloudpart_2012}.\\
 
-The different nuances inherently result in the mentioned tradeoffs between availability and consistency as described in section \ref{sec:cap}
+In distributed setups the utilization of data replication is crucial to improve the query performance
+by replicating certain partitions of data to where it is actually needed ~\cite{cloudpart_2012}.\\
+Furthermore, replication also increases the availability of the system and protects it against outages or performance mitigations,
+by allowing workload redirection and load balancing to healthy replicas in the cluster ~\cite{quorums:2003}.
+However, maintaining the consistency of all available replicas, results in scalability problems.\\
+The author of ~\cite{abadi2012} summarizes "three alternatives for implementing data replication".
+He states that these different nuances inherently result in the aformentioned trade-offs between availability and consistency described in \ref{sec:cap}.
+
+The system can either choose to send the updates to all replicas at once, send updates to a predefined replica first or to a single arbitrary node.
+ While the first approach can by directly applied to a system, the second and the third require the node that has received the initial modification to trigger an additional update operation.
+\\
+Generally the data replication approaches can be ultimately distinguished into two approaches ~\cite{gray:1996}.
+
+\textbf{Eager Replication} provides a strong consistency among all replicas. Each modification will first be applied on all nodes
+before the update transaction is considered to be successful. Hence, no stale data retrieval is possible, and users can choose to query any of the available nodes.
+Because the update is however applied synchronously, the transaction blocks until the last replica has finished the write-operation. 
+Since this is done within one global transaction, specifically in heterogeneous environments, the performance of an update is bound by the slowest performing node.\\
+
+In contrast to its strict counterpart, \textbf{Lazy Replication} decouples the primary update transaction from the update propagation to secondary nodes.
+In its basic form it only supports weak consistency. Since updates only need to be acknowledged and executed by one store, 
+the update propagation to the remaining nodes is executed asynchronously ~\cite{fekete:2018}.
+Although, this improves parallel processing and increases the availability because only one node is blocked during the update. All other nodes can still serve incoming requests,
+which especially in increases the popularity for OLAP-based applications ~\cite{daudjee:2006}
+However, during the convergence period, until all changes have been replicated, the system is exposed to an inconsistent state.
+As pointed out by ~\cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
+This could result in retrieving outdated data, if the client contacts one of the outdated nodes.
+\\
+Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency}.
+Although not considered strong, this form of weak consistency guarantees, that if no further updates are made 
+during convergence, all accesses to these replicas will eventually see the same value and become uptodate. ~\cite{quorums:2003}
+
 
 \subsection{Eager Replication}
-Provides strong consistency among the replicas.
-Each update forces all replicas to be updated - synchronous
-But you have to give in on availability
-since  your transaction only commits after the last replica has finished its write operation. Limiting the performance of this approach to 
-the performance of the slowest performing store.
-\todoMissing{Insert description}
-
 \subsection{Lazy Replication}
-In ints core form only Offers only a weak consistency.
-Updates only need to be acknowledged and executed by one store. get lazily replicated to the remaining nodes - asynchronous  
-Parallel processing and increased availability because only one node is blocked
-However during the convergence period, until all changes have been replicated to all secondary replicas, we are opposed to an inconsistent system state.
-This could result in retrieving outdated data, if the client contacts one of the outdated nodes.
-hence,  has to be handled with car.
-
-A common extension \todoMissing{cite eventual consistency} is the usage of \emph{Eventual Consistency}
-or the decision to adjust the desired level of consistency to increase the availability. 
-Eventual consistency is commonly supported within cloud environements and guarantee, if no further updates are made 
-during convergence that all accesses to eas replica will evenbtually see the same value and will all be uptodate. 
-Multiple nuances exist like quorum ROWA, ROWAA,ect \todoMissing{cite}
-\\
-Automatically results in \emph{Eventual Consistency}. Lazy replication therefore already have the characteristic of outdated nodes that leave several versions behind.
-\todoMissing{Insert}
-
-As pointed out by \cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also to stale data.  
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{Concurrency Control}
-As describes in Section \ref{sec:cap}, PACELC deals with the trade-off of latency and consistency in non-failure scenarios.
-In this context a major and also extensively studied problem  of distributed database systems is concurrency control\todoMissing{Cite}.
+ 
+
+A major topic in the context of distributed database systems is \emph{concurrency control}~ \cite{bernstein:1981}.
+
+concurrency control ~\cite{bernstein:1987} 
+
+As described in Section \ref{sec:cap}, PACELC deals with the trade-off of latency and consistency in non-failure scenarios.
+In this context a major and also extensively studied problem of distributed database systems is concurrency control \todoMissing{Cite}.
 
 - Discuss downsides of SS2PL because eagerly  replicated and not allowing much performance but ensuring high consistency.
 
@@ -155,7 +164,12 @@ In this context a major and also extensively studied problem  of distributed dat
 Established for multi-version databases that extend the concept of shadow pages by keeping the complete history or at least multiple versions of each object \cite{bernstein:1982}.
 MVCC was introduced by \cite{bernstein:1983}
 
+Snapshot Isolation \cite{daudjee:2006} snapshot isolation in lazy replicated systems is difficult
+
+Snapshot Isolation provides weaker consistency guarantees as \emph{one copy serializability} (1SR) and can therefore increase concurrency by relaxing the isolation requirements.
+Snapshot Isolation was introduced in by Berenson et al. ~\cite{berenson:1995}
+
 \subsection{Discussion}
-Although, there now exist some work that provides serializable versions of multi-version concurrency control \cite{faleiro:2015}.
+Although, there now exist some work that provides serializable versions of multi-version concurrency control~\cite{faleiro:2015}.
 
-
+There exists  to make SI serializable as sumamrized by the authors of ~\cite{fekete:2005}

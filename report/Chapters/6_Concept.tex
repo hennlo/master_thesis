@@ -3,7 +3,7 @@
 \label{c:concept}
 
 \todo{As described in chapter... we differentiate freshness in x parts ... This leads us to the following tasks to address and find solutions}
-Ee propose a concept for freshness-aware data management along with all necessary requirements to establish the concept.\\
+We propose a concept for freshness-aware data management along with all necessary requirements to establish the concept.\\
 
 This chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness in Polypheny-DB.
 These blocks are compared and discussed to the implementations presented in \ref{c:related} to propose approaches how such techniques could be applied to polystore
@@ -16,8 +16,14 @@ In this chapter we will describe the functional requirements needed to establish
 \section{Functional Requirements}
 \todoMissing{List what building blocks are necessary to compose a freshness concept. Check if needed as separate section}
 
+as described in Section \ref{sec:part}, since read-only queries typically benefit directly from data partitioning, they are suitable candidates to base our freshness awareness on.
+Therefore, we propose to define outdatedness on the state of a specific partition placement.
+Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
+these partitions could already be up-to-date again, while others still remain outdated.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \section{Locking}
 
@@ -59,6 +65,9 @@ In such a way a user can not only steer its desire but is also informed whether 
 \section{Replication}
 \label{sec:replication}
 
+\todoMissing{Fil}
+The system can implement each of these cases in various ways; however, each implementation comes with a consistency/latency trade-off.
+
 \subsection{Replication States}
 \label{sec:state}
 
@@ -68,7 +77,7 @@ read-only nodes cannot be directly updated by the user and will only receive ref
 Therefore, these are the only nodes used for read-operations. 
 However, we want to include primary nodes for reads as well and therefore propose the naming-convention in respect of the desired state as \emph{up-to-date nodes} for primaries
 and \emph{outdated-nodes} referring to any secondary node. \\
-With the introduced changes to internal partitioning described in \cite{hennemann_2021}, we now have the possibility to utilize the notion of \emph{Partition Groups}
+With the introduced changes to internal partitioning described in ~\cite{hennemann_2021}, we now have the possibility to utilize the notion of \emph{Partition Groups}
 to label stores with desired state respectively their roles.  
 When deciding to use freshness on an object, administrators should be able to define how many replication tiers they want to have in a particular setup.
 The minimum requirement is always a complete primary up-to-date node, either as a full placement or composed out of several vertical partitions and one outdated node.  
@@ -404,3 +413,5 @@ have a loose form of consistency constraints that we need to comply with, in ord
 
 \todoMissing{Add this to requirements when talking about what is needed to provide freshness-aware data management}
 This is certainly we still have to comply with the acid properties. 
+
+\section{Placement constraints}

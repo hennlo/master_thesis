@@ -17,8 +17,20 @@ and add them to the appendix }
 
 \section{Refresh Operation}
 
-\subsection{Replication State}
 \subsection{Replication Strategy}
+Can be used to selectiviely 
+
+
+
+
+
+\subsection{Replication State}
+\begin{description}
+    \item [UPTODATE]
+    \item [REFRESHABLE]
+    \item [INFINITELY-OUTDATED]
+\end{description}
+
 
 
 \subsection{Replication Algorithm}
@@ -44,6 +56,8 @@ certain operations if we execute batch wise and one UPDATE operation e.g. update
 
 \todo{How does the freshness respresentation look like for SQL.}
 
+\todo{WITH FRESHNESS}
+This can be used if a user does not require a minimum level of freshness. This can be easily supported  
 
 
 \subsection{Freshness Filtering}

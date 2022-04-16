@@ -3,9 +3,35 @@
 \label{c:conclusion}
 
 
-With this implementation Polypheny-DB now provides functionalities to adjsut itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
+With this implementation Polypheny-DB now provides functionalities to adjust itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
 To let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
-Due to this asynchronicity it now efficiently supports hybrid workload. 
+Due to this asynchrony it now efficiently supports hybrid workload. 
+
+
+With this implementation we have introduced a possibility to allow system administrators or operators in general to define their replication requirements as needed. 
+With the introduced replication strategies and states we can define on a table-level basis how updates are propagated within the system and can therefore directly influence 
+the availability and consistency per object.\\
+This immediately enables us to use possibly outdated nodes containing stale data to be used during retrieval to support analytical queries even in the presence of transactional load.
+This does not only improve parallel processing but also allows the efficient usage of all available stores.
+
+
+
+
+
+When partial replication is used, several of the underlying stores may qualify
+for the execution of these queries. In order to avoid that single stores are overloaded, query processing and optimization
+can effectively consider version selection and load balance the access among relevant replicas.
+
+Although this work has shown in \ref{sec:benchmark} that is greatly improves the throughput of this inherently distributed system, the usage should still be considered with care.
+Despite that we established certain counter measures 
+
+
+At the end this work introduced several nuances of freshness to support varying use cases and requirements.
+Albeit not being able to support Serialiazable Snapshot Isolation, the implementation still offers 
+
+Since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
+Even the freshness specification without any determined tolerated level, promises a certain level of freshness by design.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -18,6 +44,10 @@ But since this trade-off between availability and consistency certainly depends 
 Hence, an extension to the described model could easily allow to adjust the required consistency as needed. 
 This could be either done by the mentioned usage of policies, described in section \ref{sec:polcies} or with.
 
+Instead of labeling fixed data placements to receive updates eagerly, we could allow a more flexible approach that ts is sufficient if already placement 
+shall receive the update, disregarding its role. The predefined replication state can be therefore omitted. 
+Such approaches can then be easily combined with tuneable consistency to allow self adjusting data placements  adapting to individual use cases.
+
 \subsection{Locking}
 Reduce locking to a physical partition level  (partition placement)
 
@@ -27,3 +57,13 @@ Reduce locking to a physical partition level  (partition placement)
 \tocless\section{Unified transaction model for semantically rich operations}
 Introduce semantically rich operations inside polypheny? 
 Maybe not on the scope of an application level but to encompass the underlying transactions
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\tocless\section{Global Replication Strategies}
+This implementation has only introduced the specification of table-level entities like entire data placements to be defined as eagerly or lazily replicated.
+Although this introduces a high degree of flexibility, it still might be desirable to define certain policies that entire schemas or even databases automatically 
+receive a lazy replication, while still ensuring the overall placement constraints.\\
+This concept could be intended even further by applying it to a distributed setup of Polypheny, that replicates data autonomously to certain regions based on the given 
+This extension could leverage the introduced freshness-awareness to consider off-site locations for even more parallel workload.

@@ -47,4 +47,7 @@ This approach can be characterized as a dynamically optimizing data management l
 
 \subsection{Concurrency Control}
 
+Given Polyphenys current architecture all incoming queries has to be delivered through the poly-layer, acting as a central instance.
+Since we assume that there is no direct interaction with the underlying systems there is no immediate risk of inconsistencies. 
+This allows the utilization of SS2PL to handle concurrency control only within Polypheny-DB for correct isolation treatment.
 
