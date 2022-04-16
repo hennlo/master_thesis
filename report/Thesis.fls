@@ -272,6 +272,12 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\refcount\re
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\refcount\refcount.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\gettitlestring\gettitlestring.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\gettitlestring\gettitlestring.sty
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
 OUTPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.out
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Template\logo-en.pdf
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Template\logo-en.pdf
@@ -294,23 +300,9 @@ INPUT Front\Abstract.tex
 INPUT Front\Abstract.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvb7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8r.tfm
-INPUT Chapters\1_Introduction.tex
-INPUT Chapters\1_Introduction.tex
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\t1phv.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\t1phv.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8t.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8t.tfm
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.toc
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.toc
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx10.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmti10.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvb8t.vf
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8r.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr7t.tfm
-INPUT Chapters\2_Motivation.tex
-INPUT Chapters\2_Motivation.tex
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
-INPUT Chapters\3_Related.tex
-INPUT Chapters\3_Related.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\cmextra\cmex7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\cmextra\cmex7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd
@@ -323,14 +315,29 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\amsfonts\um
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm5.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx7.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx5.tfm
+INPUT Chapters\1_Introduction.tex
+INPUT Chapters\1_Introduction.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\t1phv.fd
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\t1phv.fd
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8t.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8t.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmti10.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvb8t.vf
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvb8r.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr7t.tfm
+INPUT Chapters\2_Motivation.tex
+INPUT Chapters\2_Motivation.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
+INPUT Chapters\3_Related.tex
+INPUT Chapters\3_Related.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\jknappen\ec\tcrm1000.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr7t.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
 INPUT Chapters\4_Foundation.tex
 INPUT Chapters\4_Foundation.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbxti10.tfm
 INPUT Chapters\5_Architecture.tex
 INPUT Chapters\5_Architecture.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmr6.tfm
@@ -359,6 +366,8 @@ INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\9_Conclussion.tex
 INPUT Chapters\9_Conclussion.tex
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Thesis.bbl
 INPUT Back\AppendixQuery.tex
 INPUT Back\AppendixQuery.tex
 INPUT Back\AppendixBenchmark.tex
@@ -397,8 +406,12 @@ INPUT C:\Users\i01002626\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\jknappen\ec\dp
 INPUT C:\Users\i01002626\AppData\Local\MiKTeX\2.9\fonts\pk\ljfour\jknappen\ec\dpi600\tcrm1000.pk
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbx10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbx10.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbxti10.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmbxti10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi10.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi7.pfb
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmmi7.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr10.pfb
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\type1\public\amsfonts\cm\cmr6.pfb

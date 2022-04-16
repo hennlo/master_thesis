@@ -44,6 +44,8 @@ constraints that we require on the primary updates. Since we already have a seri
 certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
 
 \subsection{Manual Refresh Operations}
+\todoMissing{Not specifically in manual, altering or inhernetly modifying a data placement with DDLs leaves them as INFINITELY OUTDATED }
+\todoMissing{ Or is this automatically detected since we centrally store the replication object and can apply it to arbitrary placements disregarding their local columns or partitions.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

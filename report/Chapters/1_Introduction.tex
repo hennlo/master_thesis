@@ -27,7 +27,7 @@ still grows continuously.
 Therefore, the importance to efficiently access the right data is crucial
 for organizations to stay economical and competitive. Cloud providers which offer such systems consequently 
 need reliable functionality to manage these large volumes of data. Otherwise, they would waste useful 
-computations and time when users try to retrieve relevant data items\cite{levandowski2013}.
+computations and time when users try to retrieve relevant data items ~\cite{levandowski2013}.
 To comply with their QoS requirements and sufficiently provide acceptable access times for their services, 
 they have come up with data freshness strategies as an essential part of data management in a
 distributed setup. 
@@ -41,6 +41,8 @@ outdated data is acceptable.
 
 
 \todoMissing{TCO because even if highly replicated systems we might only use the secondary nodes in case of failure situations.}
+
+\todoMissing{with Polyphenys lazy replication we could limit the primary update to fast OLTP driven stores and lazily updating other stores}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

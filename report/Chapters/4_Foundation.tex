@@ -3,7 +3,8 @@
 \label{c:Foundation}
 
 This chapter describes concepts and general foundations, which are necessary to supplement 
-the contents of this thesis. These foundations are mainly associated with topics on distributed data management.
+the contents of this thesis. These foundations are mainly associated with topics on distributed data management
+and the different challenges that need to be considered.
 
 
 \section{Polystores}
@@ -116,7 +117,7 @@ The author of ~\cite{abadi2012} summarizes "three alternatives for implementing 
 He states that these different nuances inherently result in the aformentioned trade-offs between availability and consistency described in \ref{sec:cap}.
 
 The system can either choose to send the updates to all replicas at once, send updates to a predefined replica first or to a single arbitrary node.
- While the first approach can by directly applied to a system, the second and the third require the node that has received the initial modification to trigger an additional update operation.
+ While the first approach can be directly applied to a system, the second and the third require the node that has received the initial modification to trigger an additional update operation.
 \\
 Generally the data replication approaches can be ultimately distinguished into two approaches ~\cite{gray:1996}.
 
@@ -148,28 +149,61 @@ during convergence, all accesses to these replicas will eventually see the same 
 
 \section{Concurrency Control}
  
+A major topic in the context of distributed database systems is \emph{concurrency control} ~\cite{bernstein:1981}.
+It is directly associated with the \emph{Isolation} criteria of the transactional \emph{ACID} properties.
+With associated locks of data items, it ensures the correct results and treatment of interleaving operations in a database system ~\cite{bernstein:1986}.
+\\
+As illustrated by the authors of \cite{} not solely the data replication will impact the trade-offs between latency and consistency \ref{sec:cap},
+but so does the concurrency control.\\
 
-A major topic in the context of distributed database systems is \emph{concurrency control}~ \cite{bernstein:1981}.
+Despite the fact that there exists multiple protocols that handle concurrency control differently we will discuss two of the most common ones: 
+\emph{two-phase locking} (2PL) and multiversion concurrency protocol (MVCC).
 
-concurrency control ~\cite{bernstein:1987} 
 
-As described in Section \ref{sec:cap}, PACELC deals with the trade-off of latency and consistency in non-failure scenarios.
-In this context a major and also extensively studied problem of distributed database systems is concurrency control \todoMissing{Cite}.
 
-- Discuss downsides of SS2PL because eagerly  replicated and not allowing much performance but ensuring high consistency.
 
-\todoMissing{COnvert to bullet points}
+\todoMissing{Cnvert to bullet points}
 \subsection{(SS)2PL}
+
+As the name suggest the protocol itself is divided into two distinct phases. An \emph{expansion phase}, where locks on required objects are gradually acquired, 
+and no locks are released, and a \emph{shrinking phase} where locks are released, and no locks are acquired anymore.
+In summary no lock can be acquired as soon as some locks have already been released.
+
+The basic approach differentiates between exclusive locks, that can only be acquired by a single transaction at a time and shared locks that 
+can be acquired by multiple transactions. While write modifications lead to an acquisition of a new lock, reads can attach itself to an existing shared lock 
+instead of acquiring a new lock. \\
+This however can lead to the starvation of write operations, since shared locks can be more easily extended with new transactions, leaving write transactions on wait until 
+there are no more transactions in the list of the shared lock. 
+
+Although this protocol is most commonly referred to as 2PL, it provides additional extensions and variants that are used in practice. 
+These variations only differ on the time when the second phase starts releasing the locks. 
+While \emph{2PL} releases locks once the operation has finished, this can lead to dirty 
+reads ~\cite{} since the transaction has not been committed yet and could still be rolled back.
+The more strict case \emph{strict two-phase locking} only releases the locks of write-operation as soon as the transaction ends.
+Shared-locks on the other hand are releases early.
+The most rigorous version is the \emph{strong strict two-phase locking} which releases all locks when the transaction has ended.
+This is either at commit time or when the transaction is aborted.
+Although, This form of 2PL is effective to achieve distributed and global serializability and provides automatic deadlock detection and resolution.
+Due to its rather pessimistic blocking behaviour it negatively impacts the performance of the system.
+
+
+
 \subsection{MVCC}
-Established for multi-version databases that extend the concept of shadow pages by keeping the complete history or at least multiple versions of each object \cite{bernstein:1982}.
-MVCC was introduced by \cite{bernstein:1983}
+While \emph{SS2PL} suffers from lock contentions between long-running analytical reads and update transactions, it cannot support parallel writes and reads. 
+To solve this problem \emph{\textbf{MVCC}} \cite{bernstein:1981} was introduced by keeping multiple data copies per object and generally omitting locks.
+It was originally established for multi-version databases that tried to extend the concept of shadow pages by keeping the complete history or at least multiple versions 
+of each object \cite{bernstein:1982, bernstein:1983}.\\
+The idea is that every new write of an object \emph{x}, by transaction $T^k$ creates a new version $x_k$ for this object $x$.
 
-Snapshot Isolation \cite{daudjee:2006} snapshot isolation in lazy replicated systems is difficult
+Most commonly MVCC provides \emph{snapshot isolation} which was introduced by Berenson et al. ~\cite{berenson:1995}.
+This enables each transaction to see the state of the data at the time when the transaction has started.\\
 
-Snapshot Isolation provides weaker consistency guarantees as \emph{one copy serializability} (1SR) and can therefore increase concurrency by relaxing the isolation requirements.
-Snapshot Isolation was introduced in by Berenson et al. ~\cite{berenson:1995}
+Since snapshot isolation provides weaker consistency guarantees as \emph{one-copy serializability} (1SR) it can increase the concurrency by relaxing 
+the isolation requirements ~\todoMissing{cite}.
+Despite the existence of multiple versions on several replicas that provide more flexibility for the scheduler, it 
+is more difficult to find a corresponding serializable schedule in accordance with 1SR according to ~\cite{daudjee:2006}.\\
+Although, there exists some work that aims to provide serializable versions of multi-version concurrency control ~\cite{fekete:2005, faleiro:2015}.
+\todoMissing{Add Write Skew anomaly?}
 
-\subsection{Discussion}
-Although, there now exist some work that provides serializable versions of multi-version concurrency control~\cite{faleiro:2015}.
-
-There exists  to make SI serializable as sumamrized by the authors of ~\cite{fekete:2005}
+Moreover, MVCC protocols are challenged with the decision how many version to retain and when to old ones become obsolete and can be removed. 
+Generally this leads to a larger data footprint since objects are inherently stored redundantly. 
