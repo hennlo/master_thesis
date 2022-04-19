@@ -37,7 +37,7 @@ These levels can be used to identify a well-suited location to retrieve the desi
 This consequently mitigates the need to always update every existing data replica to the most recent state.
 Changes can now rather be deferred, until they are processable by the underlying system again.
 Such delayed updates now allow for a much higher throughput and increased performance in scenarios were also slightly 
-outdated data is acceptable.
+outdated data is acceptable. 
 
 
 \todoMissing{TCO because even if highly replicated systems we might only use the secondary nodes in case of failure situations.}
@@ -47,13 +47,14 @@ outdated data is acceptable.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Goal?}
+The system therefore needs to be able to allow transactional as well as analytical workload in parallel. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Contribution}
 The contribution of this thesis is fivefold. First, we identify and define necessary requirements to establish freshness-awareness in general.
-Second, we outline and propose various possibilities to enable freshness-awareness. Foruth, we introduce a query extension to allow the specification
+Second, we outline and propose various possibilities to enable freshness-awareness. Forth, we introduce a query extension to allow the specification
 of tolerated and desirable freshness levels on various metrics. Fifth, 
 
 To identify necessary requirements to implemented and design possible 
@@ -68,10 +69,9 @@ Chapter \ref{c:motivation} motivates and illustrates the benefits of a freshness
 In Chapter \ref{c:related} the foundations and concepts of data freshness characteristics and requirements are presented.
 We give an overview over the current state of research in the field of data freshness. 
 Chapter \ref{c:Foundation} illustrates existing fundamental concepts in the context of distributed data management systems. 
-The system architecture of the polystore: Polypheny-DB is described in Chapter \ref{c:architecture}.
-Chapter \ref{c:concept} describes the necessary functional requirements, necessary to introduce the notion of freshness inside a polystore system. Additionally, 
-it proposes and discusses possible approaches how to implement them in Polypheny-DB. 
-The implementation of the freshness notion as well as coexisting building blocks are described in Chapter \ref{c:implementation}.
+Chapter \ref{c:concept} describes the functional requirements, necessary to introduce the notion of freshness inside a polystore system. Additionally, 
+it proposes and discusses possible approaches how to implement them in a polystore system. 
+In Chapter \ref{c:implementation} these concepts including all requirements and building blocks will be applied to Polypheny-DB, a specific polystore system.
 While Chapter \ref{c:evaluation} focuses on possibilities how to ensure correctness and measure the performance of an implementation, including all necessary prerequisites.
 Finally, Chapter \ref{c:conclusion} concludes the thesis by summarizing the individual contributions according to the proposed
 implementations and gives an outlook to future work and possible extensions.

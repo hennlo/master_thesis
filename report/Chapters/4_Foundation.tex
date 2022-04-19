@@ -1,5 +1,5 @@
 % !TEX root = ../Thesis.tex
-\chapter{Foundations}
+\chapter{Foundations on Distributed Data Management}
 \label{c:Foundation}
 
 This chapter describes concepts and general foundations, which are necessary to supplement 
@@ -80,8 +80,6 @@ pursuits of current data management solutions ~\cite{dbre2017}.
 
 
 
-\section{Temperature-aware Data Management}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -148,7 +146,8 @@ during convergence, all accesses to these replicas will eventually see the same 
 
 
 \section{Concurrency Control}
- 
+\label{sec:concurrency_control}
+
 A major topic in the context of distributed database systems is \emph{concurrency control} ~\cite{bernstein:1981}.
 It is directly associated with the \emph{Isolation} criteria of the transactional \emph{ACID} properties.
 With associated locks of data items, it ensures the correct results and treatment of interleaving operations in a database system ~\cite{bernstein:1986}.

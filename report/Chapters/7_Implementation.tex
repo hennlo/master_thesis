@@ -2,11 +2,193 @@
 \chapter{Implementation}
 \label{c:implementation}
 
-This chapter describes the implementation of .. . The component and modules of these systems are described in Chapter \ref{c:architecture}
+This chapter describes an implementation in correspondence to the concepts elaborated in chapter \ref{c:concept}. 
+These concepts are applied to Polypheny-DB, a particular polystore system.\\
+First the current architecture and all relevant components and modules of this system are described as a foundation to put the implementations in place ($\rightarrow section \ref{sec:architecture}$).
+
+After this brief introduction the corresponding building blocks, necessary to establish the concept of freshness-awareness are described.
+
+Change Data Capture ($\rightarrow section \ref{sec:}$)
+Replication Algorithm($\rightarrow section \ref{sec:}$)
+Freshness specifications($\rightarrow section \ref{sec:}$)
+Freshness evaluation($\rightarrow section \ref{sec:}$)
+Freshness constraints($\rightarrow section \ref{sec:}$)
 
 
 \todo{Talk about each implementation step for the building blocks in general, but if there are deviations e.g. in languages briefly differentiate them with bullet points
 and add them to the appendix }
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\section{Polypheny-DB}
+\label{sec:architecture}
+
+
+The implementation is based on the polystore system Polypheny-DB\footnote{https://github.com/polypheny/Polypheny-DB}.
+In this chapter we briefly describe and illustrate a simplified version of Polypheny-DBs current architecture.\\
+This extends the foundations laid out in Chapter \ref{c:Foundation} and sets them in context of the existing system model.
+
+
+PolyDBMS \cite{polypheny2021}
+\todo{Add PolyDBMS cite Love Marriage or Marriage of convenience}
+
+\textit{Polypheny-DB} is an Open-Source project\footnote{https://polypheny.org/} developed by 
+the \textit{Database and Information Systems} (DBIS) group of the University of Basel.\\
+
+Polypheny-DB is a self-adaptive polystore that provides cost- and workload aware access to heterogeneous data\cite{poly2020}.
+
+Compared to other systems like \textit{C-Store}\cite{cstore_2005} or \textit{SAP HANA} \cite{hana_2012}, 
+Polypheny-DB does not provide its own set of different storage engines to support 
+different workload demands.\\
+Instead, it acts as a higher-order DBMS which provides a single-point of entry to 
+a variety of possible databases like 
+\textit{MongoDB}\footnote{https://www.mongodb.com/}, 
+\textit{Neo4j}\footnote{https://neo4j.com/},
+\textit{PostgreSQL}\footnote{https://www.postgresql.org/} 
+and \textit{MonetDB}\footnote{https://www.monetdb.org/}. 
+These can be integrated, attached and managed by Polypheny-DB which will incorporate the underlying 
+heterogenous data storage engines with their different data structures. 
+It is desigend to abstract applications from the physical execution engine while profiting from 
+performance improvements through cross-engine executions. 
+\\
+For incoming queries Polypheny-DB's routing engine will automatically analyze the query and decide 
+which store will provide the best response. The query is then explicitly routed to these data stores. 
+This approach can be characterized as a dynamically optimizing data management layer for different workloads.
+
+\todoMissing{polypheny support multi-model databsaes for relational, document, graph in memroy ...}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Placements}
+Placements are considered to be Polyphenys virtual representation of physical entities.
+They act as an abstraction between the polystore layer and the physical representation of an entity. 
+Mostly used within the PolyDBMS itself they help to assist the logical routing process of Polypheny-DB.
+
+
+
+\subsection{Data Placements}
+
+A Data Placement is essentially a virtual representation of the physical entity residing on a given store.
+A store in Polypheny is an underlying physical data storage which is 
+attached to Polypheny-DB.
+All attached stores can be used to hold several fragments of data. 
+During routing decisions stores are automatically taken into consideration if they are designated for the associated data 
+
+It contains information on available columns ($\rightarrow$ Column Placements), partitions ($\rightarrow$ Partition Placements)
+as well as properties unique to this store.
+
+A table can therefore contain several Data Placements with different capabilities and properties. \todoMissing{Image}
+
+are used along the idea of Column Placement. A Data Placement 
+    is a representation of table with all placed columns on a specific physical store.
+
+    When a table is created on Polypheny-DB it is an ordinary structure placed onto 
+    one store. Such a table consists of one to \textit{n}-columns.
+    In the context of vertical partitioning a subset of these \textit{n}-columns can now 
+    be placed onto another store in form of a \textit{Data Placement}.
+    This can either be done by evenly distributing the columns onto these stores 
+    or by simply replicating the subset to the second store.\\
+
+    
+
+
+\subsection{Column Placements} 
+\todoMissing{Image}
+are needed to fulfill the intended flexibility of Polypheny-DB. 
+    Column Placements are instances of a column placed on a specific store.
+    These placements are the result of the extended vertical partitoning of a table.
+    
+Column Placements are instances of a column placed on a specific store.
+These placements are the result of the extended vertical partitioning of a table.
+They are considered unique per column on a cluster.
+
+\todoMissing{Maybe summarize this under Data Placement}
+As already discussed in \ref{sec:part}, vertical partitioning refers to the logical 
+separation of the data structure by columns to obtain logically connected objects throughout 
+the database. 
+Polypheny-DB extends this functionality to vertically partition tables
+column wise, which allows a table itself to be split further into a disjoint 
+set of columns. This extension provides the functionality to place columns 
+rather freely on a store without replicating the complete table. 
+Although these columns are logically bound to a table there is no need 
+to replicate the complete structure to a desired store. In some cases 
+this does not only result in an optimized access of the data part but 
+also saves data overhead on the specific store.\\
+This functionality enables Polypheny-DB to adapt the data structure to continuously 
+varying use cases.\\
+
+
+
+\subsection{Partition Placements}
+Due to the partition function NONE every table entity inside Polypheny-DB is considered to be partitioned.  Hence consisting only of one partition.
+Additioanlly, Polypheny suppports the most common partition algorithms like HASH (), range or list(). 
+
+A Partition Placement is 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Catalog}
+
+
+\subsection{Query Routing}
+
+Routing or cache plan optimizat execute
+
+\todoMissing{Image}
+Since every query has to go through the abstraction layer to guarantee correctness 
+and consistency, Polypheny-DB can consult the systems \textit{Catalog} to retrieve the
+location of all relevant data. This is done by gathering all 
+\textit{Column placements} needed by the query.\\ 
+If the requested data indeed happens to be distributed
+on several stores. The central routing engine will join all relevant and distinct 
+placements to construct the result set. Hence, the query is always routed to stores which 
+hold relevant data.
+
+
+Since partitions are mere logical identifiers there main usage is to locate data fragments or the location where a query should route a statement to.
+One physical table can therefore hold several partitions.
+During routing if a partition has been identified it is checked for every store involved whether it contains and associated partition placement.
+Although, this routing method is quite fast there are several problems concerning the separability of data.
+This imposes for one the difficulty to retrieve data belonging to exactly one partition out of a table which contains several partitions and secondly difficult 
+to migrate data from individual partitions to another store.\\
+Since it is rather complex to extract all relevant partitions needed for a specific query especially when combining vertical and horizontal partitioning
+the concept of \textit{Worst case Routing} was introduced.\\
+This routing mechanism aims to improve performance, when the process of identifying the correct partitions for a query would be too complicated and 
+therefore also reduce the overall performance.   
+This is the reason why currently, a \textit{Full Placement} has to be enforced for all three Partition Managers to support the functionality of worst case routing.
+A Full Placement in that sense refers to a placement on a store which contains all partitions of a specific table and can therefore be used as a fallback scenario.
+
+However, due to the adjustments to partitioning including the new Partition Placements which are represented by their own individual physical tables, the constraint imposed by logical 
+partitions and therefore the necessity of a full placement per table can be removed.\\
+Queries are  now able to flexibly combine vertical and horizontal partitioning to truly leverage the power of Polypheny-DB.
+The routing for SELECT-queries is now simplified since it aims to find for each partition all requested columns by 
+joining Column Placements per partition first and then applying a UNION over all accessed partitions to build the required result set.
+
+
+
+
+\subsection{Concurrency Control}
+
+Given Polyphenys current architecture all incoming queries has to be delivered through the poly-layer, acting as a central instance.
+Since we assume that there is no direct interaction with the underlying systems there is no immediate risk of inconsistencies. 
+This allows the utilization of SS2PL to handle concurrency control only within Polypheny-DB for correct isolation treatment.
+
+
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -15,25 +197,44 @@ and add them to the appendix }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Refresh Operation}
+
+\section{Lazy Replication}
 
 \subsection{Replication Strategy}
-Can be used to selectiviely 
+Can be used to selectively define which data placement shall be updated lazily.
+\todoMissing{Statement} 
+\begin{verbatim}
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION LAZY;
+\end{verbatim}
+
+This replication strategy is added as part of the newly added data placement properties. Since Data Placements inherently carry the information, what column and partitions reside
+on a given store, they were extended to now also hold information on data placement specific properties.
 
 
 
 
 
 \subsection{Replication State}
+
+Since the replication strategy is bound to an independent Data Placement we still need the possibility to define how the actual Partition Placements, that hold the data 
+
+
 \begin{description}
     \item [UPTODATE]
     \item [REFRESHABLE]
     \item [INFINITELY-OUTDATED]
 \end{description}
 
+Furthermore each Partition Placement is enriched with the most recent update information to support various freshness metrics.
+This update information contains insights such as the id of the last comitted update transaction, the corresponding commit and update timestamp as well as the number of 
+modifications that 
 
 
-\subsection{Replication Algorithm}
+\subsection{Replication Engine}
+Core functionality that transforms capture objects into distinct replication Objects and pipes them to specific execution engines.
+
+
+\subsection{Automatic Replication Algorithm}
 
 \todoMissing{Since the replication or refresh propagation is done operation-wise we actually loosened the heavy SS2PL 
 constraints that we require on the primary updates. Since we already have a serializable schedule after execution we also 
@@ -47,6 +248,7 @@ certain operations if we execute batch wise and one UPDATE operation e.g. update
 \todoMissing{Not specifically in manual, altering or inhernetly modifying a data placement with DDLs leaves them as INFINITELY OUTDATED }
 \todoMissing{ Or is this automatically detected since we centrally store the replication object and can apply it to arbitrary placements disregarding their local columns or partitions.}
 
+\todoMissing{LazyWorkerThreads - were each worker is responsbile for carrying out one replication or requeing it after it has failed}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -69,6 +271,6 @@ This can be used if a user does not require a minimum level of freshness. This c
 
 
 \todo{Maybe not an entire section. Rather discussed internally}
-\subsection{Referential Integrity}
+\tocless\subsection{Referential Integrity}
 
 

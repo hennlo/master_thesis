@@ -2,19 +2,21 @@
 \chapter{Concept}
 \label{c:concept}
 
-\todo{As described in chapter... we differentiate freshness in x parts ... This leads us to the following tasks to address and find solutions}
-We propose a concept for freshness-aware data management along with all necessary requirements to establish the concept.\\
+\todoMissing{Check that concept is not bound to any implementation}
 
-This chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness in Polypheny-DB.
-These blocks are compared and discussed to the implementations presented in \ref{c:related} to propose approaches how such techniques could be applied to polystore
-systems. Essentially we have to think about how we want to express freshness, find a suitable metric to measure it and provide users a possibility to formulate 
-an acceptable level of freshness. Based on these fundamentals we need to consider how update transactions can be decoupled and deferred, how replicas will
-be refreshed while ensuring the consistency of the system and how to enable the routing to identify freshness levels to speed up read-only operations. 
+In this chapter we will define all functional requirements, necessary to establish freshness-aware data management.
+We will therefore discuss the contents of \ref{c:related} and propose concrete solutions how these approaches and techniques can be applied to polystore system.
+Hence, this chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness in Polypheny-DB.
 
-In this chapter we will describe the functional requirements needed to establish a form of freshness-aware data management within Polypheny-DB.
 
 \section{Functional Requirements}
-\todoMissing{List what building blocks are necessary to compose a freshness concept. Check if needed as separate section}
+Except the obvious existence of multiple versions per data object (see \ref{sec:data_replicas}), there are several prerequisites and requirements to establish freshness-awareness. 
+
+Essentially we have to think about how we want to express freshness(see \ref{express}), find a suitable metric to measure it (see \ref{sec:metric})
+and provide users a possibility to formulate an acceptable level of freshness. Based on these fundamentals we need to consider how update transactions 
+can be decoupled and deferred, how replicas will
+be refreshed \ref{sec:replication_strategy} while ensuring the consistency \ref{consistency_concept} of the system and how to enable the routing to identify freshness levels to speed up read-only operations. 
+
 
 as described in Section \ref{sec:part}, since read-only queries typically benefit directly from data partitioning, they are suitable candidates to base our freshness awareness on.
 Therefore, we propose to define outdatedness on the state of a specific partition placement.
@@ -22,31 +24,81 @@ Although the entire data placement, could be labeled as outdated or rather recei
 these partitions could already be up-to-date again, while others still remain outdated.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Locking}
-
-\todoMissing{List what building blocks are necessary to compose a freshness concept. Check if needed as separate section}
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Data Replicas}
+\label{sec:data_replicas}
 
-\section{How to express freshness}
+One of the main requirements of data freshness is the necessity and existence of different versions that can receive outdated data. 
+Only with these versions we are even able to compare their state and define a freshness for a given replica.
+
+As the name suggests a multi-version database would be ideal and the obvious choice for such an approach.
+These databases will automatically generate a new version for a data object on each modification.
+Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as older and newer versions.
+This would directly allow us to utilize these versions on freshness-related queries. But, it would also imply the utilization of MVCC.
+However, Polypheny-DB currently only supports SS2PL for its concurrency control. 
+
+Additionally, there are a lot of trade-offs to consider when using MVCC as previously stated in \ref{sec:concurrency_control}.
+For one, it has a large data footprint which is already inherently larger in a polystore system, given the redundant data storage.
+Furthermore, since all transactions are handled within the polystore layer we need a correct and serializable execution order on all stores. Hence, we need to provide
+a more rigorous and uniform schedule on all stores, which is not directly provided by MVCC.
+That is why we stick with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
+
+However, since we are in a polystore environment and want to reduce locking situations by decoupling primary updates from secondary transactions,
+we can use lazy replication, which by definition creates multiple versions when deferring the update propagation to secondaries.
+This approach is discussed in more detail in section \ref{sec:replication}.\\
+ 
+
+
+\todoMissing{However, we want to include primary nodes for reads as well }
+
+
+
+As already discussed in \ref{r:strategies} it is crucial to define and assign roles to loosen the locking situation on nodes
+to minimize update times over all.
+The related work clearly separated between primary-update nodes and read-only nodes, where 
+read-only nodes cannot be directly updated by the user and will only receive refresh updates internally by the primary nodes.
+
+Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date node. 
+This replica should contain relevant information to illustrate the deviation from another possibly outdated replica.
+To achieve this we need to be able to classify existing Data Placements into specific groups or roles.
+Naively these could be \emph{up-to-date} and \emph{outdated}.\\
+On the basis of these roles we are then able to decide which replicas to consider for which use case.
+Alongside the idea of a polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
+based on the provided use case. E.g. label Data Placements as up-to-date that support highly transactional workload and will therefore be considered for every update.
+And configure replicas as outdated, when they are rather suitable for analytical queries.
+This immediately harvests the benefits of the encompassed stores. \\
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Data Freshness}
 \label{express}
 
 As discussed in \ref{r:express_freshness}, freshness can be expressed via several indications.
-Although we have described a number of domains only the time-bound constraints will be pursuit further. 
-While freshness extractions on value-based divergence is only really suitable for numerical values
+While freshness extractions on value-based divergence is only really suitable for numerical values,
 to calculate the percentage of deviations from the base item, time-based freshness can be applied to arbitrary types and can therefore be used 
 in a more general notion. 
-Such time-bound constraints allow to utilize timestamps as well as the usage of freshness indexes when referring to a desired level of freshness. 
+Such time-bound constraints allow utilizing timestamps as well as the usage of freshness indexes when referring to a desired level of freshness. 
 Although a timestamp can be used more intuitively, an index is abstract and can therefore be generally applied without having to specify an absolute time dependency.
+Because the perception of freshness is rather subjective and depends on the use case, the time-based constraints are often not sufficient for very frequently updated replicas.
+The accuracy would differ greatly when, it has received an update within the last minute and might be considered fresh, but the entire table could have been 
+changed by now. This would rather reduce the freshness to a simple version comparison and allow questions such as, "if it exists, how did the entity look like roughly one minute ago".
+Admitting that this might be desirable for some use cases we want to extend this notion by allowing to consider deviations from the primary copy as well. 
 
-Hence, we propose that users can specify their tolerated level of freshness in a variety of ways. For one we want to provide the possibility to let users 
-request their accepted level of freshness as an attachment to the query language. This can be achieved by extending the query functionality of Polypheny-DB.
+Hence, we propose that users can specify their tolerated level of freshness in a variety of ways. These constraints can be roughly differentiated into
+timeliness and deviations from the primary copy. 
+
+We therefore want to provide the possibility to let users request their accepted level of freshness as an attachment to the query language. 
+This can be achieved by extending the query functionality of Polypheny-DB.
+
 Such constraints can either be formulated by providing a timestamp to implicitly give an accepted lower bound on an absolute time.
 Additionally, time delays such as \textit{"Last 30 minutes"} can be specified to request a relative freshness level.
 Finally, by directly requesting a desired level of freshness defined as a percentage value, meaning a value of 70\% would tolerate data objects
@@ -54,36 +106,61 @@ with a flexible accuracy of 30\% outdated data corresponding to the time since t
 However, internally all specifications are converted into freshness indexes since they are independent of any time window and can be constructed, compared and applied 
 without any restrictive dependencies.\\
 
-Moreover, to improve the user experience we consider to enrich the query tree paths to specify which level of freshness was requested and with which level it was 
+Moreover, to improve the user experience the query tree paths should be extended to specify which level of freshness was requested and with which level it was 
 ultimately fulfilled. Furthermore, for successfully executed queries that considered some kind of freshness it shall be added in the SQL response that is has been 
 executed by means of a specific freshness level.
 In such a way a user can not only steer its desire but is also informed whether the request could be fulfilled.
 
+Whereas the modification deviation is the delta of operations that still need to be applied to a secondary node in order to become up-to-date in regard to the primary. 
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Freshness Metrics}
+\label{sec:metric}
+
+
+
+As described in section \ref{sec:definition}, there is no unified definition of data freshness or common freshness metrics.
+These rather depend on specific use cases and system requirements.
+\tocless\subsection{Time-based constraints}
+\subsection{Absolute Timestamp}
+\subsection{Absolute-Delay - From Current Time}
+Both reconstruct a timestamp that enacts as a lower bound of acceptable placements.
+This can be used as a filter to check for each candidate placement that it is fresher or respectively has received a state where its commit time is newer 
+than the lower bound. If not the placement is removed from the possibly candidates. 
+
+
+\tocless\subsection{Replica-deviations}
+
+\subsection{Relative-Delay - Deviation From Eager Replica}
+Although also based on a time difference it checks relative to the specified time delay on the eager  replica how far away is the lazy replica.
+
+\subsection{Data Accuracy - Modification - Deviation From Eager Replica}
+This can also be used in referential integrity when joining multiple table entities.
+We can use the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
+
+
+\subsection{Data Accuracy - Time -  Deviation From Eager Replica}
+
+Both construct an index or percentage of "hit ratio"
+
+
+\begin{description}
+    \item [Absolute Timestamp]  fr
+    \item [Dela] fd
+\end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Replication}
 \label{sec:replication}
 
-\todoMissing{Fil}
+\todoMissing{Fill}
 The system can implement each of these cases in various ways; however, each implementation comes with a consistency/latency trade-off.
-
-\subsection{Replication States}
-\label{sec:state}
-
-As already discussed in the implementations in \ref{r:strategies} it is crucial to define and assign roles to loosen the locking situation on nodes
-to minimize update times over all. The related work clearly separated between primary-update nodes and read-only nodes, where 
-read-only nodes cannot be directly updated by the user and will only receive refresh updates internally by the primary nodes.
-Therefore, these are the only nodes used for read-operations. 
-However, we want to include primary nodes for reads as well and therefore propose the naming-convention in respect of the desired state as \emph{up-to-date nodes} for primaries
-and \emph{outdated-nodes} referring to any secondary node. \\
-With the introduced changes to internal partitioning described in ~\cite{hennemann_2021}, we now have the possibility to utilize the notion of \emph{Partition Groups}
-to label stores with desired state respectively their roles.  
-When deciding to use freshness on an object, administrators should be able to define how many replication tiers they want to have in a particular setup.
-The minimum requirement is always a complete primary up-to-date node, either as a full placement or composed out of several vertical partitions and one outdated node.  
-However, to support a multi-tier approach as \cite{voicu:2010}, outdated nodes can occur multiple times and can hold different levels of freshness with any number of vertically partitioned
-placements. Therefore, a suitable mechanism has to be introduced which enables the definition of replication orders and paths. This could then be used to 
-intuitively have placements at different freshness levels resulting in tertiary adapters only being updated by secondaries.\\
 
 
 
@@ -225,7 +302,7 @@ again and can directly utilize the pre-gathered metrics and choose to execute th
 Another approach to identify and update stale placements would be the idea to use update-on-read. Everytime a node flaged as outdated is used to serve a 
 read-operation the level of freshness can be checked. If identified as outdated this could then trigger any of the propagation transactions proposed in 
 \ref{r:strategies}. This would completely omit periodic background scheduling and would shorten processing time.\\
- 
+
 However, for both cases in terms of the resulting refresh rate we still have to consider if the change data becomes too large the refreshes tend to take longer.
 So countermeasures have to be defined to minimize errors or downtimes.
 
@@ -267,6 +344,12 @@ The serialization order of the updates to be executed is the commit order of the
 These can also be refreshed and updated independently which not only again reduces the total update time but also eases rollback scenarios.
 Otherwise, we might need to define complex countermeasures to undo certain refreshes if one store was already refreshed but another has failed.
 
+\todoMissing{List what building blocks are necessary to compose a freshness concept. Check if needed as separate section}
+
+\todo{Resort}
+The locking is done logically within the polystore layer and locks the entire table.
+Since we want to establish the freshness comparison ob objects based on the Data Placement respectively each individual partition placement, the locking mechanism
+needs to be adapted to allow locking not only on table-level but rather on a partition level. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -323,7 +406,7 @@ Such policies can be defined as:\\
 
 \textbf{Consistency Policies}\\
 Provide a notion of tuneable consistency, where users should be able to decide which levels to fulfill.
-In such a case an adminsitrator could choose to define how many primary replicas an object should always contain.
+In such a case an administrator could choose to define how many primary replicas an object should always contain.
 This would directly impact the constraints on the table restricting users to remove more placements than defined by that policy.\\
 
 
@@ -334,7 +417,7 @@ Additionally, we could use these types of policies to let object owners define h
 In such a way the system would stay customizable and would allow any methods discussed in \ref{stale} to be used dependent on the use case.
 Considering how refreshes are triggered one policy for example might has chosen to defer a propagation transaction entirely hence it won't try again and
 essentially waits for another chance when a new update-transaction is being executed and will trigger the service again. Another policy could suit other use cases better 
-and assist by constantly querying the storages perfromance metrics to decide if an update should be executed.\\
+and assist by constantly querying the storage's performance metrics to decide if an update should be executed.\\
 
 Due to the inherent heterogenous nature of the polystore systems itself, use cases may widely vary. Hence, in gerneal there is no need to impose a 
 general notion of freshness that is valid for all applications. Some might consider using CDC, while other prefer a partition approach or materialized views.
@@ -370,43 +453,20 @@ DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name;
 To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
 The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-\section{Freshness Metrics}
-As described in section \ref{sec:definition}, there is no unified definition of data freshness or common freshness metrics.
-These rather depend on specific use cases and system requirements.
-\subsection{Time-based constraints}
-\subsubsection{Absolute Timestamp}
-\subsubsection{Absolute-Delay - From Current Time}
-Both reconstruct a timestamp that enacts as a lower bound of acceptable placements.
-This can be used as a filter to check for each candidate placement that it is fresher or respectively has received a state where its commit time is newer 
-than the lower bound. If not the placement is removed from the possibly candidates. 
-
-
-\subsection{Replica-deviations}
-
-\subsubsection{Relative-Delay - Deviation From Eager Replica}
-Although also based on a time difference it checks relative to the specified time delay on teh eager  replica how far away is the lazy replcia.
-
-\subsection{Data Accuracy - Modification - Deviation From Eager Replica}
-This can also be used in referential integrity when joining multiple table entities.
-We can use the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
-
-
-\subsubsection{Data Accuracy - Time -  Deviation From Eager Replica}
-
-Both construct an index or percentage of "hit ratio"
-
-\subsubsection{Access-Update Ratio - AUR}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \section{Consistency}
+\label{sec:consistency_concept}
 Move from Strong consistency to eventual consistency 
 have a loose form of consistency constraints that we need to comply with, in order to still provide response times while sacrificing consistency.
+
+In general two requirements can be defined that have to be fulfilled to
+guarantee correctness in respect of freshness. For one, transactions that refresh stores need to be executed on all read-only nodes in the same serialization order as the 
+original update transaction. Secondly all queries of a read transaction must access data with the same freshness. \todo{Cite}
 
 
 \todoMissing{Introduce constraints on freshness and DML operations within the same transaction}
