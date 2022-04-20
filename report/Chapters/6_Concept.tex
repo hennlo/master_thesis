@@ -17,6 +17,7 @@ Hence, this chapter is separated into several sections were each represents a ne
 * Freshness Comparison -> How to compare the freshness
 * Update Propagation -> 
 * Refresh Strategies
+* Consistency -> Updates/Operations need to be applied in same order as primary copy
 * Freshness Read
  (extension to a query languages to specify a tolerated level of freshness)
 
@@ -178,12 +179,16 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
             f(d) = \frac{m(d)}{m(d_{primary})},  with f(d) \in [0,1]
         \end{equation}
         
+        Generally this describes how far behind an outdated replica is compared to the primary version.
+        It can also be used during when multiple tables are \emph{JOIN}ed.
+        We can use the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
 
         Since it also might be desirable to specify a freshness index but to consider a time deviation as described in ~\cite{voicu:2010,hennemann_sw_2021}
         the freshness function can be adjusted as needed to also compare the effective commit timestamps as a \textbf{Commit Time Deviation}.
         Since we ensure that the commit timestamp of a primary replica will never be greater than its eager counterpart. We can define the time deviations as an index that is 
         generated with $t(d_{primary})$ being the commit timestamp of the up-to-date replica and $t(d)$ the timestamp of the possibly outdated replica.
-    
+
+
         \begin{equation}
             f(d) = \frac{t(d)}{t(d_{primary})},  with f(d) \in [0,1]
         \end{equation}
@@ -199,57 +204,78 @@ The Data Freshness shall always be evaluated within the polystore layer and is t
 (see \ref{r:read}).
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-
-
-
-\tocless\subsection{Time-based constraints}
-\subsection{Absolute Timestamp}
-\subsection{Absolute-Delay - From Current Time}
-
-
-\tocless\subsection{Replica-deviations}
-
-\subsection{Relative-Delay - Deviation From Eager Replica}
-Although also based on a time difference it checks relative to the specified time delay on the eager  replica how far away is the lazy replica.
-
-\subsection{Data Accuracy - Modification - Deviation From Eager Replica}
-This can also be used in referential integrity when joining multiple table entities.
-We can use the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
-
-
-\subsection{Data Accuracy - Time -  Deviation From Eager Replica}
-
-Both construct an index or percentage of "hit ratio"
 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Replication}
-\label{sec:replication}
+\section{Update Propagation}
+\label{sec:propagation}
 
-\todoMissing{Fill}
-The system can implement each of these cases in various ways; however, each implementation comes with a consistency/latency trade-off.
+To generally allow a system to handle transactional and analytical workload in parallel, we need to reduce occurring locking situations,
+such that write and read operations do not drastically interfere with each other.
+A simple approach would be to refrain from updating every replica eagerly.
+Given the multiple versions described in section \ref{sec:data_replicas} we could decouple primary transactions from 
+secondary transactions. In that sense any modification to an object will now only target and lock its primary copies which are labeled as \emph{up-to-date}.
+The secondary nodes could then be read without any further locking by the user transaction. 
+Nonetheless, we need an approach how these outdated stores can converge their state towards a state of a primary copy.
+Otherwise, we would have entirely outdated stores that would remain in their current state and users using these store for querying might read stale data.
+ 
 
 
 
-\todoMissing{asyncronous immediate, adhoc, load-aware}
+\subsection{Refresh Strategies}
+\label{sec:refresh_strategies}
 
-\subsection{Replication Strategies}
-\label{sec:replication_strategy}
-Since data freshness occurs as a side effect of using lazy replication and can therefore already
-be used as a consequence of saving workload when not needing to update every replica eagerly.
+Since we have no longer access to an eager replication we need the possibility to apply the changes lazily to any outdated replica.
+Depending on the use case there might be different approaches needed to fulfil certain requirements.
+
+We therefore propose the following strategies to update the outdated nodes.
+
+\begin{description}
+    \item[Immediate Execution] This approach mainly pursues the decoupling of one single eagerly applied transaction, to two subsequent transactions.
+    While the eagerly applied modification is executed synchronously it is bound by the slowest performing node in a setup.
+    That is why with a lazy update propagation we only have to wait for the up-to-date replicas to finish the transaction.
+    Since these can be strategically placed on stores that are suitable for transactional workload they are assumed to apply the operation faster.
+    After this primary transaction has then committed and the locks are released, an asynchronously executed secondary update transaction can be executed, 
+    applying the updates to the outdated nodes.\\
+    Since these secondary transactions are merely executed with a small processing delay and assuming that the update queue might not be very large and 
+    updates can be applied right away, the outdated nodes intuitively will not deviate much from its primary partner.
+
+    \item[On-demand Refresh] Since a regular queue will not consider priorities, and we still have to obey the execution constraints of the primary transaction (see \ref{sec:consistency_concept})
+    we need to preserve the execution order of the primary transaction. Depending on the size of the update propagation-queue some replicas might stay outdated longer than others.
+    That is why an on-demand approach is necessary to refresh outdated nodes immediately and bring them up-to-date.
+    Applying such an approach, the queue has to remove all pending updates for that specific replica, that the updates are not applied twice. 
+    
+    \item[Load-aware] Although an automatically scheduled execution and a manual execution might serve most use cases, it might not be desirable to do so.
+    Neither an immediate execution after a primary transaction nor an on-demand triggered refresh, take the system load into account.
+    Since polystore consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
+    So while most of the underlying stores could apply the pending changes immediately, some might currently not be capable on handling the additional load and have to 
+    be deferred yet again. Despite that this approach might slow down the convergence speed of the updated nodes, 
+    it will observe underlying stores and artificially limit the load on the system introduced through the propagation of updates hence keeping the system stable and available.
+
+    \item[Update on Read] So far all proposed solutions suffer either from additional evaluation overhead or from manual interference. This will limit the overall 
+    performance of the system. We could therefore again introduce a decoupled operation that is automatically triggered as soon as an outdated replica has been part of any query. 
+    During the freshness-related retrieval we obviously identify that this is indeed an outdated node and can then schedule an update propagation for it. This propagation is then
+    executed asynchronously after the initial read-operation has finished. This would reduce the additional caching, and avoid storing 
+    information as which updates need to be applied on which node.\\
+    However, the downside of this approach is in highly transactional environments with heavy write- and read-operations, that the outdated node would always be marked as 
+    needing an update. This would schedule an update, although it was might have already been scheduled by another strategy. 
+    To mitigate this, the approach could be enhanced even further by allowing a centrally defined configuration threshold. This would state if an outdated replica has been read
+    and is above the centrally configured threshold, that no update propagation will be automatically scheduled.
+    This will avoid permanent scheduling of an update for every freshness-related read access.
+
+\end{description}
+
+
+
+
 As suggested in \ref{r:replication} there exist several techniques how outdated nodes can be updated lazyily in the context of freshness.
 Most of these presented distributed architectures follow a primary-copy approach for master-driven replication to all their secondary replicas.
-This eases the the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly
+This eases the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly
 with Polypheny-DB we always have a single point of entry which can vaguely be compared as the poly-layer acting as a master node
-when distributing or even routing queries. Hence Polypheny acts as the master anyway. However since any requests have to pass through the poly-layer
+when distributing or even routing queries. Hence, Polypheny acts as the master anyway. However since any requests have to pass through the poly-layer
 we have full control how and where queries need to be routed to allowing us to selectively route read-operations to outdated and up-to-date stores alike.
 This enables Polypheny-DB to take full control how different levels of data freshness are being accessed.
 
@@ -272,7 +298,18 @@ These changes will also have an impact on the partition distribution constraints
 entities this means that all constraints on the number of available column-placements can only be considered for primary update stores. Otherwise, this could harm
 the consistency of the system. For nodes labeled as outdated any variation is possible.
 
-\subsection{Update Propagation}
+
+\subsection{Refresh Operations}
+
+Disregarding the described Refresh Strategies from section \ref{sec:refresh_strategies} we need to converge the outdated replicas towards their 
+primary copies.
+There are several possibilities to achieve this and a system can choose to implement each of these cases in various ways, however, each implementation comes with a
+consistency-latency trade-off.
+
+The Update Propagation generally refers to the refresh operation that transforms possibly outdated objects towards an up-to-date state.
+
+\todoMissing{}
+
 We have several possibilities how to handle and propagate the updates.
 Since every write-operation needs to go through Polypheny, we can easily keep track which operations have been applied to the primary server and when 
 they need to be applied to the secondaries. Essentially every possible solution needs some form of queue to store updates that still need to be executed 
@@ -302,7 +339,7 @@ Another propositions would be the usage of background processing together with p
 use case they are internally configured to represent a physical table. Partitions could be extended to be used as general system internals
 which are accompanied by an update-timestamp that represents the last time the partition has been updated, this could include the Age-of-Information as well as 
 the Age-of-Synchronization. Furthermore, since partitions logically belong to partition groups described in \ref{express} we can easily identify which partitions are considered to be 
-outdated or should always be up-to-date. With these information we could even use the existing capabilities of the \emph{Partition Manager} which uses the notion of 
+outdated or should always be up-to-date. With this information we could even use the existing capabilities of the \emph{Partition Manager} which uses the notion of 
 partition-qualifiers to identify required levels of freshness.
 
 For every update-transaction the eager replication is loosend to only consider the primary partitions for updates.
@@ -330,56 +367,6 @@ inherently distributed and would otherwise store the entire content of the table
 
 
 
-
-
-
-\subsection{Refresh strategies}
-As already stated above, there are essentially three ways to update a secondary node. 
-For the automatic execution of propagation transactions a periodic execution has several downsides hence we propose to schedule
-refreshment on the basis of the load on the outdated placements. Therefore, we will extend the adapter of the underlying stores to gather metrics on current workload
-average response times in order to enable the poly-layer to decide based on this metrics when it is suitable to carry out a propagation-transaction.
-
-
-Since it might be possible that a user may consider refreshing a placement manually, we have proposed refresh transactions. With this a user has the possibility to refresh
-any replicas which are classified as outdated to a specific freshness level.
-\begin{verbatim}
-ALTER TABLE dummy REFRESH PLACEMENT ON STORE outdated_store 
-UNTIL <TIMESTAMP>;
-\end{verbatim}
-Without any specification the placements shall be updated to the most recent state of the up-to-date version:
-\begin{verbatim}
-ALTER TABLE dummy REFRESH PLACEMENT ON STORE outdated_store;
-\end{verbatim}
-
-For this operation only freshness levels greater than the current local freshness level can be considered.
-Furthermore, this should also provide the possibility to refresh all placements of an object.
-\begin{verbatim}
-ALTER TABLE dummy REFRESH ALL PLACEMENTS;
-\end{verbatim}
-
-Although such refresh-transactions can be executed on any placement, it will have no effect on primaries and simply omit their execution. 
-
-
-
-
-\subsection{Identify stale data}
-\label{stale}
-
-A prerequisite for the automatic execution of propagtion transactions is the identification of stale and outdated placements.
-Although a trivial option would be to use the roles described in \ref{roles} and periodically gather all labeled placements, this would not scale much
-considering a large amount of tables with at least one additional replica per table.\\
-
-One proposition would be after every update transaction has commited to immediately inform dedicated notification services which will instantly trigger 
-a load analysis on stores to be replicated. A sligthly different approach would be a central gossiping service as an adapter extension that gathers store metrics 
-and declares them as idle, or loaded. With such a mechanism the notification service which received the information to update stores would not start querying a server
-again and can directly utilize the pre-gathered metrics and choose to execute the update or defer it again.\\
-
-Another approach to identify and update stale placements would be the idea to use update-on-read. Everytime a node flaged as outdated is used to serve a 
-read-operation the level of freshness can be checked. If identified as outdated this could then trigger any of the propagation transactions proposed in 
-\ref{r:strategies}. This would completely omit periodic background scheduling and would shorten processing time.\\
-
-However, for both cases in terms of the resulting refresh rate we still have to consider if the change data becomes too large the refreshes tend to take longer.
-So countermeasures have to be defined to minimize errors or downtimes.
 
 
 
@@ -479,8 +466,12 @@ In general two requirements can be defined that have to be fulfilled to
 guarantee correctness in respect of freshness. For one, transactions that refresh stores need to be executed on all read-only nodes in the same serialization order as the 
 original update transaction. Secondly all queries of a read transaction must access data with the same freshness. \todo{Cite}
 
+\todoMissing{Several possibilities to lock, only on master, on frshenss no lock at  all but all dirty reads lock primaries that they do not get refreshed but therefore stay consistent at their freshness}
 
 \todoMissing{Introduce constraints on freshness and DML operations within the same transaction}
+
+\todoMissing{When a refresh transaction  is executed no more locks on secondary nodes can be applied, if there is still a shared lock on that outdated node
+they will first be commited before the refresh takes place  (avoid deadlock) if we do not hinder the system to build more shared locks refresh operations might starve}
 
 \todoMissing{Add this to requirements when talking about what is needed to provide freshness-aware data management}
 This is certainly we still have to comply with the acid properties. 

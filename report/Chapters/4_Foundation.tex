@@ -138,10 +138,6 @@ Although not considered strong, this form of weak consistency guarantees, that i
 during convergence, all accesses to these replicas will eventually see the same value and become uptodate. ~\cite{quorums:2003}
 
 
-\subsection{Eager Replication}
-\subsection{Lazy Replication}
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -161,8 +157,7 @@ Despite the fact that there exists multiple protocols that handle concurrency co
 
 
 
-\todoMissing{Cnvert to bullet points}
-\subsection{(SS)2PL}
+\subsection{SS2PL}
 
 As the name suggest the protocol itself is divided into two distinct phases. An \emph{expansion phase}, where locks on required objects are gradually acquired, 
 and no locks are released, and a \emph{shrinking phase} where locks are released, and no locks are acquired anymore.

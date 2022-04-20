@@ -254,6 +254,9 @@ Core functionality that transforms capture objects into distinct replication Obj
 
 \subsection{Automatic Replication Algorithm}
 
+\todoMissing{In regards to CDC, if we observe that the number of pending update operations exceed a certain threshold for example 50\% of the total number of modifications of the master
+we can directly remove all pending updates and execute a primary snapshot copy because this is faster then reexecuting the operation again. }
+
 \todoMissing{Since the replication or refresh propagation is done operation-wise we actually loosened the heavy SS2PL 
 constraints that we require on the primary updates. Since we already have a serializable schedule after execution we also 
     know per entity and each partition placement the correct execution order that we have to apply the data changes on. So it is not necessary to free the resources 
@@ -267,6 +270,35 @@ certain operations if we execute batch wise and one UPDATE operation e.g. update
 \todoMissing{ Or is this automatically detected since we centrally store the replication object and can apply it to arbitrary placements disregarding their local columns or partitions.}
 
 \todoMissing{LazyWorkerThreads - were each worker is responsbile for carrying out one replication or requeing it after it has failed}
+
+
+
+\subsection{Refresh strategies}
+As already stated above, there are essentially three ways to update a secondary node. 
+For the automatic execution of propagation transactions a periodic execution has several downsides hence we propose to schedule
+refreshment on the basis of the load on the outdated placements. Therefore, we will extend the adapter of the underlying stores to gather metrics on current workload
+average response times in order to enable the poly-layer to decide based on this metrics when it is suitable to carry out a propagation-transaction.
+
+
+Since it might be possible that a user may consider refreshing a placement manually, we have proposed refresh transactions. With this a user has the possibility to refresh
+any replicas which are classified as outdated to a specific freshness level.
+\begin{verbatim}
+ALTER TABLE dummy REFRESH PLACEMENT ON STORE outdated_store 
+UNTIL <TIMESTAMP>;
+\end{verbatim}
+Without any specification the placements shall be updated to the most recent state of the up-to-date version:
+\begin{verbatim}
+ALTER TABLE dummy REFRESH PLACEMENT ON STORE outdated_store;
+\end{verbatim}
+
+For this operation only freshness levels greater than the current local freshness level can be considered.
+Furthermore, this should also provide the possibility to refresh all placements of an object.
+\begin{verbatim}
+ALTER TABLE dummy REFRESH ALL PLACEMENTS;
+\end{verbatim}
+
+Although such refresh-transactions can be executed on any placement, it will have no effect on primaries and simply omit their execution. 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
