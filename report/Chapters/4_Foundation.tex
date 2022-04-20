@@ -196,7 +196,7 @@ The idea is that every new write of an object \emph{x}, by transaction $T^k$ cre
 
 Most commonly MVCC provides \emph{snapshot isolation} which was introduced by Berenson et al. ~\cite{berenson:1995}.
 This enables each transaction to see the state of the data at the time when the transaction has started.\\
-
+\todoMissing{Remove Correctness Guarantees}
 Since snapshot isolation provides weaker consistency guarantees as \emph{one-copy serializability} (1SR) it can increase the concurrency by relaxing 
 the isolation requirements ~\todoMissing{cite}.
 Despite the existence of multiple versions on several replicas that provide more flexibility for the scheduler, it 

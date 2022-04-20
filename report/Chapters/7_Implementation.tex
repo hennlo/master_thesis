@@ -62,7 +62,12 @@ performance improvements through cross-engine executions.
 \\
 For incoming queries Polypheny-DB's routing engine will automatically analyze the query and decide 
 which store will provide the best response. The query is then explicitly routed to these data stores. 
-This approach can be characterized as a dynamically optimizing data management layer for different workloads.
+This approach can be characterized as a dynamically optimizing data management layer for different workloads.\\
+Due to its inherent architecture and the possibility to replicate data across different homogenous as well as heterogeneous stores, it is also able to cluster, specific stores 
+on a table entity level, although the underlying stores might not support this natively. 
+This leverages Polypheny-DB to a data orchestration platform. 
+
+
 
 \todoMissing{polypheny support multi-model databsaes for relational, document, graph in memroy ...}
 
@@ -74,65 +79,59 @@ They act as an abstraction between the polystore layer and the physical represen
 Mostly used within the PolyDBMS itself they help to assist the logical routing process of Polypheny-DB.
 
 
-
-\subsection{Data Placements}
-
-A Data Placement is essentially a virtual representation of the physical entity residing on a given store.
-A store in Polypheny is an underlying physical data storage which is 
-attached to Polypheny-DB.
-All attached stores can be used to hold several fragments of data. 
-During routing decisions stores are automatically taken into consideration if they are designated for the associated data 
-
-It contains information on available columns ($\rightarrow$ Column Placements), partitions ($\rightarrow$ Partition Placements)
-as well as properties unique to this store.
-
-A table can therefore contain several Data Placements with different capabilities and properties. \todoMissing{Image}
-
-are used along the idea of Column Placement. A Data Placement 
-    is a representation of table with all placed columns on a specific physical store.
-
-    When a table is created on Polypheny-DB it is an ordinary structure placed onto 
-    one store. Such a table consists of one to \textit{n}-columns.
-    In the context of vertical partitioning a subset of these \textit{n}-columns can now 
-    be placed onto another store in form of a \textit{Data Placement}.
-    This can either be done by evenly distributing the columns onto these stores 
-    or by simply replicating the subset to the second store.\\
-
+\begin{description}
+    \item [Data Placements] A Data Placement is essentially a virtual representation of the physical entity residing on a given store.
+    A store in Polypheny is an underlying physical data storage which is 
+    attached to Polypheny-DB.
+    All attached stores can be used to hold several fragments of data. 
+    During routing decisions stores are automatically taken into consideration if they are designated for the associated data 
     
+    It contains information on available columns ($\rightarrow$ Column Placements), partitions ($\rightarrow$ Partition Placements)
+    as well as properties unique to this store.
+    
+    A table can therefore contain several Data Placements with different capabilities and properties. \todoMissing{Image}
+    
+    are used along the idea of Column Placement. A Data Placement 
+        is a representation of table with all placed columns on a specific physical store.
+    
+        When a table is created on Polypheny-DB it is an ordinary structure placed onto 
+        one store. Such a table consists of one to \textit{n}-columns.
+        In the context of vertical partitioning a subset of these \textit{n}-columns can now 
+        be placed onto another store in form of a \textit{Data Placement}.
+        This can either be done by evenly distributing the columns onto these stores 
+        or by simply replicating the subset to the second store.\\
 
-
-\subsection{Column Placements} 
-\todoMissing{Image}
-are needed to fulfill the intended flexibility of Polypheny-DB. 
+    \item [Column Placements] \todoMissing{Image}
+    are needed to fulfill the intended flexibility of Polypheny-DB. 
+        Column Placements are instances of a column placed on a specific store.
+        These placements are the result of the extended vertical partitoning of a table.
+        
     Column Placements are instances of a column placed on a specific store.
-    These placements are the result of the extended vertical partitoning of a table.
+    These placements are the result of the extended vertical partitioning of a table.
+    They are considered unique per column on a cluster.
     
-Column Placements are instances of a column placed on a specific store.
-These placements are the result of the extended vertical partitioning of a table.
-They are considered unique per column on a cluster.
+    \todoMissing{Maybe summarize this under Data Placement}
+    As already discussed in \ref{sec:part}, vertical partitioning refers to the logical 
+    separation of the data structure by columns to obtain logically connected objects throughout 
+    the database. 
+    Polypheny-DB extends this functionality to vertically partition tables
+    column wise, which allows a table itself to be split further into a disjoint 
+    set of columns. This extension provides the functionality to place columns 
+    rather freely on a store without replicating the complete table. 
+    Although these columns are logically bound to a table there is no need 
+    to replicate the complete structure to a desired store. In some cases 
+    this does not only result in an optimized access of the data part but 
+    also saves data overhead on the specific store.\\
+    This functionality enables Polypheny-DB to adapt the data structure to continuously 
+    varying use cases.\\
 
-\todoMissing{Maybe summarize this under Data Placement}
-As already discussed in \ref{sec:part}, vertical partitioning refers to the logical 
-separation of the data structure by columns to obtain logically connected objects throughout 
-the database. 
-Polypheny-DB extends this functionality to vertically partition tables
-column wise, which allows a table itself to be split further into a disjoint 
-set of columns. This extension provides the functionality to place columns 
-rather freely on a store without replicating the complete table. 
-Although these columns are logically bound to a table there is no need 
-to replicate the complete structure to a desired store. In some cases 
-this does not only result in an optimized access of the data part but 
-also saves data overhead on the specific store.\\
-This functionality enables Polypheny-DB to adapt the data structure to continuously 
-varying use cases.\\
+    \item [Partition Placements] Due to the partition function NONE every table entity inside Polypheny-DB is considered to be partitioned.  Hence consisting only of one partition.
+    Additioanlly, Polypheny suppports the most common partition algorithms like HASH (), range or list(). 
+    
+    A Partition Placement is 
+\end{description}
 
 
-
-\subsection{Partition Placements}
-Due to the partition function NONE every table entity inside Polypheny-DB is considered to be partitioned.  Hence consisting only of one partition.
-Additioanlly, Polypheny suppports the most common partition algorithms like HASH (), range or list(). 
-
-A Partition Placement is 
 
 
 
@@ -186,7 +185,13 @@ This allows the utilization of SS2PL to handle concurrency control only within P
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Multiple Versions}
 
+as described in Section \ref{sec:part}, since read-only queries typically benefit directly from data partitioning, they are suitable candidates to base our freshness awareness on.
+Therefore, we propose to define outdatedness on the state of a specific partition placement.
+Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
+these partitions could already be up-to-date again, while others still remain outdated.
 
 
 
@@ -211,6 +216,19 @@ This replication strategy is added as part of the newly added data placement pro
 on a given store, they were extended to now also hold information on data placement specific properties.
 
 
+\subsection{MultipleVersions}
+\todoMissing{Link to concept}
+As the name suggests a multi-version database would be ideal and the obvious choice for such an approach.
+These databases will automatically generate a new version for a data object on each modification.
+Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as older and newer versions.
+This would directly allow us to utilize these versions on freshness-related queries. But, it would also imply the utilization of MVCC.
+However, Polypheny-DB currently only supports SS2PL for its concurrency control. 
+
+Additionally, there are a lot of trade-offs to consider when using MVCC as previously stated in \ref{sec:concurrency_control}.
+For one, it has a large data footprint which is already inherently larger in a polystore system, given the redundant data storage.
+Furthermore, since all transactions are handled within the polystore layer we need a correct and serializable execution order on all stores \todoMissing{Remove Correctness Guarantees}. 
+Hence, we need to provide a more rigorous and uniform schedule on all stores, which is not directly provided by MVCC.
+That is why we stick with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
 
 
 
@@ -253,8 +271,16 @@ certain operations if we execute batch wise and one UPDATE operation e.g. update
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Freshness Query}
+This can be achieved by extending the query functionality of Polypheny-DB.
+
+Moreover, to improve the user experience the query tree paths should be extended to specify which level of freshness was requested and with which level it was 
+ultimately fulfilled. Furthermore, for successfully executed queries that considered some kind of freshness it shall be added in the SQL response that is has been 
+executed by means of a specific freshness level.
+In such a way a user can not only steer its desire but is also informed whether the request could be fulfilled.
 
 \subsection{Freshness Query Specification}
+
+\section{Freshness Detection and extraction}
 
 \todo{Which possibilities do we have to select a query with freshness}
 

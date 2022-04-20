@@ -4,12 +4,23 @@
 
 \todoMissing{Check that concept is not bound to any implementation}
 
-In this chapter we will define all functional requirements, necessary to establish freshness-aware data management.
-We will therefore discuss the contents of \ref{c:related} and propose concrete solutions how these approaches and techniques can be applied to polystore system.
-Hence, this chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness in Polypheny-DB.
+In this chapter we will define all functional requirements, necessary to establish freshness-aware data management in general.
+We will therefore discuss the contents of section \ref{c:related} and propose solutions how these approaches and techniques can be applied to polystore systems.
+Hence, this chapter is separated into several sections were each represents a necessary building block to provide the notion of data freshness.
 
 
 \section{Functional Requirements}
+
+* Multiple Versions -> Data Replicas
+(* Express/Specify Freshness - Query extension) Implementation
+* Different Freshness Metrics -> Freshness Metrics 
+* Freshness Comparison -> How to compare the freshness
+* Update Propagation -> 
+* Refresh Strategies
+* Freshness Read
+ (extension to a query languages to specify a tolerated level of freshness)
+
+
 Except the obvious existence of multiple versions per data object (see \ref{sec:data_replicas}), there are several prerequisites and requirements to establish freshness-awareness. 
 
 Essentially we have to think about how we want to express freshness(see \ref{express}), find a suitable metric to measure it (see \ref{sec:metric})
@@ -18,10 +29,6 @@ can be decoupled and deferred, how replicas will
 be refreshed \ref{sec:replication_strategy} while ensuring the consistency \ref{consistency_concept} of the system and how to enable the routing to identify freshness levels to speed up read-only operations. 
 
 
-as described in Section \ref{sec:part}, since read-only queries typically benefit directly from data partitioning, they are suitable candidates to base our freshness awareness on.
-Therefore, we propose to define outdatedness on the state of a specific partition placement.
-Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
-these partitions could already be up-to-date again, while others still remain outdated.
 
 
 
@@ -31,107 +38,178 @@ these partitions could already be up-to-date again, while others still remain ou
 \label{sec:data_replicas}
 
 One of the main requirements of data freshness is the necessity and existence of different versions that can receive outdated data. 
-Only with these versions we are even able to compare their state and define a freshness for a given replica.
+Only with these versions we are even able to compare their state and define freshness for a given replica.
 
-As the name suggests a multi-version database would be ideal and the obvious choice for such an approach.
-These databases will automatically generate a new version for a data object on each modification.
-Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as older and newer versions.
-This would directly allow us to utilize these versions on freshness-related queries. But, it would also imply the utilization of MVCC.
-However, Polypheny-DB currently only supports SS2PL for its concurrency control. 
+As already discussed in \ref{r:strategies} it is crucial to define and assign roles to loosen locking situation on nodes
+and minimizing update times over all.
+The related work clearly distinguished between primary-update nodes and read-only nodes, where 
+read-only nodes cannot be directly updated by the user and will only receive refresh updates internally from the primary nodes.
 
-Additionally, there are a lot of trade-offs to consider when using MVCC as previously stated in \ref{sec:concurrency_control}.
-For one, it has a large data footprint which is already inherently larger in a polystore system, given the redundant data storage.
-Furthermore, since all transactions are handled within the polystore layer we need a correct and serializable execution order on all stores. Hence, we need to provide
-a more rigorous and uniform schedule on all stores, which is not directly provided by MVCC.
-That is why we stick with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
-
-However, since we are in a polystore environment and want to reduce locking situations by decoupling primary updates from secondary transactions,
-we can use lazy replication, which by definition creates multiple versions when deferring the update propagation to secondaries.
-This approach is discussed in more detail in section \ref{sec:replication}.\\
- 
+Since polystores inherently replicate or distribute their data across multiple stores we already have multiple replicas containing the data. 
+Because we aim to reduce locking situations by decoupling primary updates from secondary transactions,
+we can simply use a lazy replication approach to propagate the updates asynchronously. 
+By definition this solution automatically creates multiple versions by deferring the update propagation to secondaries.
+This immediately leverages the nature of polystore systems in such a way that no additional replicas have to be artificially created in order 
+to support multiple version for each data object, which will eventually converge. 
+This replication approach is discussed in more detail in section \ref{sec:replication}.\\
 
 
-\todoMissing{However, we want to include primary nodes for reads as well }
-
-
-
-As already discussed in \ref{r:strategies} it is crucial to define and assign roles to loosen the locking situation on nodes
-to minimize update times over all.
-The related work clearly separated between primary-update nodes and read-only nodes, where 
-read-only nodes cannot be directly updated by the user and will only receive refresh updates internally by the primary nodes.
-
-Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date node. 
-This replica should contain relevant information to illustrate the deviation from another possibly outdated replica.
-To achieve this we need to be able to classify existing Data Placements into specific groups or roles.
+Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date replica. 
+This replica should contain relevant information to illustrate the deviation from another possibly outdated version on a different node.
+To achieve this in a polystore environment we need to be able to classify existing stores into specific groups or roles.
 Naively these could be \emph{up-to-date} and \emph{outdated}.\\
 On the basis of these roles we are then able to decide which replicas to consider for which use case.
 Alongside the idea of a polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
-based on the provided use case. E.g. label Data Placements as up-to-date that support highly transactional workload and will therefore be considered for every update.
-And configure replicas as outdated, when they are rather suitable for analytical queries.
-This immediately harvests the benefits of the encompassed stores. \\
+based on the provided use case. E.g. label those stores as up-to-date that support highly transactional workload and will therefore be considered for every update.
+And configure replicas as outdated, when they are rather suitable for analytical queries which implicitly harvests the benefits of the encompassed stores. \\
 
+In order to consequently compare those replicas they need to be equipped with metadata of at least two timestamps. 
+One is the update timestamp when the replica has been last modified,
+the other is the commit timestamp of the original transaction which has modified the replica.
+This differentiation is important since it allows us to compare replicas based on their commit timestamp. This timestamp is always directly associated with the primary transaction.
+It means that even if the update propagation for secondaries has been deferred to a later point in time, as soon as they converge they will have the same commit timestamp 
+as their primary counterpart.
+Otherwise, it would not be possible to compare replicas based on their timestamp, since individual commit timestamps per replica would not allow a direct timestamp comparison 
+to determine the freshness of an object.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Data Freshness \& Accuracy}
+\label{sec:fresh}
+
+As discussed in \ref{r:express_freshness}, freshness can be considered with several indications and nuances.
+There is no unified definition of data freshness or common freshness metrics.
+These rather depend on specific use cases and system requirements
+While freshness extractions on value-based divergence are only really suitable for numerical values,
+to measure the deviation from a base item, time-based freshness on the other hand can be applied to arbitrary data types and can therefore be used 
+in a more general notion.\\
+Because the perception of freshness is rather subjective and depends on the use case, the time-based constraints are often still not sufficient for very frequently
+updated replicas.
+The accuracy would differ greatly when one node has received an update within the last minute and might be considered fresh, but this one particular 
+update might have changed the entire table. 
+This would then rather reduce the freshness to a simple version-comparison and allow questions such as, "if it exists, how did the data item look like roughly one minute ago".
+Admitting that this might be desirable for some use cases we want to extend this notion by considering deviations from the primary copy as well.\\
+
+Hence, we propose that users can specify their tolerated level of freshness in a variety of ways. 
+All proposed metrics will apply filters based on the abstract equation in \ref{eq:abstract_freshness}. 
+Which essentially validates per replica whether it can be used for the tolerated freshness-level $\delta$ in regard to a given data object $d$.
+Where $\delta$ can be associated with any metric described in the following definitions.
+
+\begin{equation} \label{eq:abstract_freshness}
+    F(d, \delta)=
+        \begin{cases}
+            \text{true } & \text{if } f(d) \geq \delta\\
+            \text{false } & \text{otherwise }
+        \end{cases}
+\end{equation}
+
+
+
+Given that the freshness filter function $F(d, \delta)$ is valid for all described metrics, the concrete freshness determination individually defined as $f(d)$, 
+varies among the use cases.
+In general this function is defined to return a specific level of freshness for a particular data object $d$. 
+Where the object $d$ is available on all replicas and can vary in terms of freshness, due to different update times.
+While the individual freshness function returns a calculated freshness the filter function will remove any replica that does not meet the designated freshness-level $\delta$. 
+We only require that $\delta$ and the return value of $f(d)$ are of comparable types.
+
+
+\begin{description} \label{desc}
+    \item [Absolute Timestamp]  A timestamp can be directly specified as a lower bound threshold, during replica comparison. Identifying all replicas that have been updated 
+    more recently than the specified timestamp, to be considered during the selection process.\\
+    The greater a timestamp the younger it is, respectively also the higher a timestamp is the fresher it is.
+    With this function the freshness of a data item $d$ is directly returned as the commit timestamp when this object has been written.
+    As mentioned in \ref{sec:data_replicas}, the commit timestamp $t(d)$ can be referred to as the current state of this replica and is associated with the commit time 
+    of the transaction within this operation has been applied to the corresponding primary copy.
+
+    \begin{equation} \label{eq:timestamp_freshness}
+        f(d) = t(d)
+    \end{equation}
+
+    In this case $\delta$ is a user specified timestamp $t_{timestamp}$ and consequently compared against $t(d)$ to verify the if the freshness-constraints are met.
+
+
+    \item [Absolute Time Delay] Any delay can be useful to intuitively specify the accepted level of freshness without explicitly specifying a timestamp as a lower bound.
+    This function rather allows to specify a time delay based on the current time $t_{now}$. 
+    This metric therefore allows specifying freshness in respect to the current time. Resulting in recently updated replicas considered to be fresher than others. 
+    Although not directly specified as a timestamp, an absolute time delay will still generate a timestamp for comparison to be used in $\delta$.
+    The delay is simply subtracted from $t_{now}$ to again generate $\delta$ as a lower bound timestamp used for comparison.
+    The freshness evaluation is therefore equal to the equation \ref{eq:timestamp_freshness} and provides a different approach to specify the tolerated freshness.
+    Both construct a timestamp that enacts as a lower bound of acceptable placements.
+    This can be used as a filter to check for each candidate placement that it is fresher or respectively has received a state where its commit time is newer 
+    than the lower bound. If not, the placement is removed from the list of possible candidates. 
+
+
+
+    \item [Relative Time Delay] 
+    Although, an absolute time delay is useful in some cases by defining its freshness based on the current point in time, 
+    it might lose some detail and could filter some replicas that in some scenarios are actually useful.
+    If e.g. an object has not been modified for a few hours and although the replicas might already be up-to-date, they will not be considered when specifying 
+    an absolute time freshness that accepts the last hour.
+    This is also true if the secondary replica is not up-to-date yet and is still in the process of convergence.
+    Disregarding its state it will be avoided since its current commit timestamp is out of bound of the specified time delay.
+    Although intuitively these replicas are considered rather fresh in respect to its primary copy.\\
+    Therefore, if we merely want to observe how much a secondary might deviate from the primary in terms of the update timestamp we need new metric.
+    We therefore also need to specify the accepted level of freshness on the basis of divergence from its eagerly replicated counterpart and therefore provide a relative time delay
+    used during comparison.\\
+    With this metric the specified relative time delay can directly be used as $\delta$. The freshness function $f(d)$ described in \ref{eq:relative_freshness}
+    will essentially compare the current commit timestamp $t(d)$ against its primary replica $t(d_{primary})$.
+        \begin{equation} \label{eq:relative_freshness}
+            f(d) = t(d_{primary}) - t(d)
+        \end{equation}
+
+    Again if the calculated deviation from the up-to-date node is within bound of the specified delay in $delta$, this replica is accepted.
+
+    \item [Replica Deviation] Although the first three metrics already provide some granularity to consider different nuances of freshness, we 
+        do not yet involve the number pf pending updates to any replica or can differ between the number of modifications each replica has received yet.
+        For objects with a comparably high update frequency the notion of timeliness can hardly be utilized to make an assumption on the freshness.
+        Therefore, we again want to provide another possibility to allow the specification, based on the divergence between primary and secondary.
+
+        This freshness can be specified by a freshness index as proposed by \cite{rohm:2002}.
+        This ratio can be evaluated and consequently generated based on the number of modifications the primary and 
+        secondary copy deviate from one another. Where $m(d)$ is defined by the number of modifications a data object $d$ has ultimately received on a given replica
+        and $m(d_{primary})$ as the corresponding up-to-date copy to compare against. 
+
+        Although a freshness index does not intuitively provide an observable threshold at first glance, it indicates how accurate a 
+        given replica $d$ is in respect to the number of modifications of an up-to-date version $d_{primary}$.
+
+        This \textbf{Modification Deviation} is defined in \ref{eq:modification-deviation}.
+        \begin{equation} \label{eq:modification-deviation}
+            f(d) = \frac{m(d)}{m(d_{primary})},  with f(d) \in [0,1]
+        \end{equation}
+        
+
+        Since it also might be desirable to specify a freshness index but to consider a time deviation as described in ~\cite{voicu:2010,hennemann_sw_2021}
+        the freshness function can be adjusted as needed to also compare the effective commit timestamps as a \textbf{Commit Time Deviation}.
+        Since we ensure that the commit timestamp of a primary replica will never be greater than its eager counterpart. We can define the time deviations as an index that is 
+        generated with $t(d_{primary})$ being the commit timestamp of the up-to-date replica and $t(d)$ the timestamp of the possibly outdated replica.
+    
+        \begin{equation}
+            f(d) = \frac{t(d)}{t(d_{primary})},  with f(d) \in [0,1]
+        \end{equation}
+
+\end{description}
+
+All the mentioned freshness metrics can be used to compare different replicas that contain a data object $d$ and filtering them based on the provided function $F(d, \delta)$.
+This allows to specify the tolerated level of freshness $\delta$ from a type $\tau \in \{TIMESTAMP, TIME-DELAY, INDEX\}$ to be used within the query specification.
+
+Although as mentioned in section \ref{sec:data_replicas} some engines within a polystore might be more suitable for up-to-date replicas than others,
+we don't limit the possibility of different freshness metrics to a subset of stores. Hence, every store is able to uniformly work with all levels of freshness.
+The Data Freshness shall always be evaluated within the polystore layer and is then used to compare the tolerated value against possible candidates that might fulfil such a request 
+(see \ref{r:read}).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Data Freshness}
-\label{express}
-
-As discussed in \ref{r:express_freshness}, freshness can be expressed via several indications.
-While freshness extractions on value-based divergence is only really suitable for numerical values,
-to calculate the percentage of deviations from the base item, time-based freshness can be applied to arbitrary types and can therefore be used 
-in a more general notion. 
-Such time-bound constraints allow utilizing timestamps as well as the usage of freshness indexes when referring to a desired level of freshness. 
-Although a timestamp can be used more intuitively, an index is abstract and can therefore be generally applied without having to specify an absolute time dependency.
-Because the perception of freshness is rather subjective and depends on the use case, the time-based constraints are often not sufficient for very frequently updated replicas.
-The accuracy would differ greatly when, it has received an update within the last minute and might be considered fresh, but the entire table could have been 
-changed by now. This would rather reduce the freshness to a simple version comparison and allow questions such as, "if it exists, how did the entity look like roughly one minute ago".
-Admitting that this might be desirable for some use cases we want to extend this notion by allowing to consider deviations from the primary copy as well. 
-
-Hence, we propose that users can specify their tolerated level of freshness in a variety of ways. These constraints can be roughly differentiated into
-timeliness and deviations from the primary copy. 
-
-We therefore want to provide the possibility to let users request their accepted level of freshness as an attachment to the query language. 
-This can be achieved by extending the query functionality of Polypheny-DB.
-
-Such constraints can either be formulated by providing a timestamp to implicitly give an accepted lower bound on an absolute time.
-Additionally, time delays such as \textit{"Last 30 minutes"} can be specified to request a relative freshness level.
-Finally, by directly requesting a desired level of freshness defined as a percentage value, meaning a value of 70\% would tolerate data objects
-with a flexible accuracy of 30\% outdated data corresponding to the time since the primary copy has been updated.
-However, internally all specifications are converted into freshness indexes since they are independent of any time window and can be constructed, compared and applied 
-without any restrictive dependencies.\\
-
-Moreover, to improve the user experience the query tree paths should be extended to specify which level of freshness was requested and with which level it was 
-ultimately fulfilled. Furthermore, for successfully executed queries that considered some kind of freshness it shall be added in the SQL response that is has been 
-executed by means of a specific freshness level.
-In such a way a user can not only steer its desire but is also informed whether the request could be fulfilled.
-
-Whereas the modification deviation is the delta of operations that still need to be applied to a secondary node in order to become up-to-date in regard to the primary. 
 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Freshness Metrics}
-\label{sec:metric}
-
-
-
-As described in section \ref{sec:definition}, there is no unified definition of data freshness or common freshness metrics.
-These rather depend on specific use cases and system requirements.
 \tocless\subsection{Time-based constraints}
 \subsection{Absolute Timestamp}
 \subsection{Absolute-Delay - From Current Time}
-Both reconstruct a timestamp that enacts as a lower bound of acceptable placements.
-This can be used as a filter to check for each candidate placement that it is fresher or respectively has received a state where its commit time is newer 
-than the lower bound. If not the placement is removed from the possibly candidates. 
 
 
 \tocless\subsection{Replica-deviations}
@@ -149,10 +227,7 @@ We can use the joint number of modifications and compare it against the current 
 Both construct an index or percentage of "hit ratio"
 
 
-\begin{description}
-    \item [Absolute Timestamp]  fr
-    \item [Dela] fd
-\end{description}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -190,7 +265,7 @@ to allow deferred refreshments of objects.
     \item \textbf{Refresh transaction}: A propagation transaction which is manually triggered by a user to refresh the data on an arbitrary outdated node.
 \end{itemize}
 
-Allthough, logically being used differently they are technically executed with the same capabilities and only really separate in terms of locking.
+Although, logically being used differently they are technically executed with the same capabilities and only really separate in terms of locking.
 They are rather used as a clear indication on which part of the process is referred.
 
 These changes will also have an impact on the partition distribution constraints. For vertically and horizontally partitioned 
@@ -354,6 +429,9 @@ needs to be adapted to allow locking not only on table-level but rather on a par
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Freshness-aware Read Access}
+\todoMissing{with the Read semantics -  we are now able to}
+
+\todoMissing{However, we want to include primary nodes for reads as well }
 
 With the description of \ref{express} how to explicitly express freshness, users have the ability to hint or even guide the routing process to select placements 
 based on their desired freshness.\\
@@ -385,75 +463,8 @@ We therefore only have to validate that no refresh-lock is currently in place.
 
 
 
-
-%\section{Policies}
-\label{sec:polcies}
-
-According to the idea, to generally relax consistency or allow a fine grained way of letting data owners decide what kind of consistency shall be desired for their object. 
-Since freshness can be considered a trade-off between availability and consistency it is only fair to let users decide which level of consistency to enforce and 
-how the freshness should be handled. We therefore propose the notion of policies to guide the system.
-Policies are essentially intentions and desired states how the system should behave in various situations. 
-The system can apply them when manual or automatic system maintenance is performed.
-They shall therefore be introduced for any kind of configurable behaviour to allow any custom tailored behaviour. \\
-
-Policies can be inherented and applied to any kind of object. When applied to a schema all entities inherent that polcies.
-However, a different kind of policy with the same type can be applied to an entity overriding the one inherented by the parent.
-Policies are about background processing how metadata and constraints on different objects are enforced. 
-They provide a lightweight version of UDFs (User-Defined-Functions) to build custom-tailored behaviours into the system.
-Other than the central configuration which is used to define core system behaviours. 
-Such policies can be defined as:\\
-
-
-\textbf{Consistency Policies}\\
-Provide a notion of tuneable consistency, where users should be able to decide which levels to fulfill.
-In such a case an administrator could choose to define how many primary replicas an object should always contain.
-This would directly impact the constraints on the table restricting users to remove more placements than defined by that policy.\\
-
-
-\textbf{Freshness Policies}\\
-Can be utilized to define behaviour on freshness related actions. As \cite{fekete:2018} stated it is crucial to define how far a replica can diverge from the true
-and up-to-date value before a refresh transaction has to be critically executed.
-Additionally, we could use these types of policies to let object owners define how their data shall be identified and consequently updates are propagated.
-In such a way the system would stay customizable and would allow any methods discussed in \ref{stale} to be used dependent on the use case.
-Considering how refreshes are triggered one policy for example might has chosen to defer a propagation transaction entirely hence it won't try again and
-essentially waits for another chance when a new update-transaction is being executed and will trigger the service again. Another policy could suit other use cases better 
-and assist by constantly querying the storage's performance metrics to decide if an update should be executed.\\
-
-Due to the inherent heterogenous nature of the polystore systems itself, use cases may widely vary. Hence, in gerneal there is no need to impose a 
-general notion of freshness that is valid for all applications. Some might consider using CDC, while other prefer a partition approach or materialized views.
-However, with policies these can all be implemented.\\
-
-
-%\subsection{Policy usage}
-
-Since applications that are being served by polystores are very different to each other, they might have different requirements. 
-Therefore, different object types shall be supported.
-
-A policy shall generally be created inside a database.
-\begin{verbatim}
-CREATE POLICY policy_name as <configuration>;
-\end{verbatim}
-
-These policies can then be added to any object.
-\begin{verbatim}
-ALTER TABLE dummy ADD POLICY policy_name;
-\end{verbatim}
-
-Users should always be able to list information on all applied policies on any object.
-\begin{verbatim}
-SHOW POLICIES ON (DATABASE | SCHEMA | TABLE ) object_name;
-\end{verbatim}
-
-
-Furthermore they should be able to view the content of any policy: 
-\begin{verbatim}
-DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name; 
-\end{verbatim}
-
-To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
-The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
-
-
+\todoMissing{Describe Process, Replicate Data to receive several version, reduce locking and decouple primary transactions, during query processing extract the required level of freshness
+and filter on all nodes that can fulfil this freshness. Then pick a suitable one to provide the query.}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -475,3 +486,4 @@ original update transaction. Secondly all queries of a read transaction must acc
 This is certainly we still have to comply with the acid properties. 
 
 \section{Placement constraints}
+\todoMissing{What happens for data DDL operations, to they neglect the freshness}

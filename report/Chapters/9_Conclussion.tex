@@ -27,7 +27,7 @@ Despite that we established certain counter measures
 
 
 At the end this work introduced several nuances of freshness to support varying use cases and requirements.
-Albeit not being able to support Serialiazable Snapshot Isolation, the implementation still offers 
+Albeit not being able to support Serializable Snapshot Isolation, the implementation still offers 
 
 Since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
 Even the freshness specification without any determined tolerated level, promises a certain level of freshness by design.
@@ -62,3 +62,74 @@ Although this introduces a high degree of flexibility, it still might be desirab
 receive a lazy replication, while still ensuring the overall placement constraints.\\
 This concept could be intended even further by applying it to a distributed setup of Polypheny, that replicates data autonomously to certain regions based on the given 
 This extension could leverage the introduced freshness-awareness to consider off-site locations for even more parallel workload.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Policies}
+\label{sec:polcies}
+
+According to the idea, to generally relax consistency or allow a fine grained way of letting data owners decide what kind of consistency shall be desired for their object. 
+Since freshness can be considered a trade-off between availability and consistency it is only fair to let users decide which level of consistency to enforce and 
+how the freshness should be handled. We therefore propose the notion of policies to guide the system.
+Policies are essentially intentions and desired states how the system should behave in various situations. 
+The system can apply them when manual or automatic system maintenance is performed.
+They shall therefore be introduced for any kind of configurable behaviour to allow any custom tailored behaviour. \\
+
+Policies can be inherented and applied to any kind of object. When applied to a schema all entities inherent that polcies.
+However, a different kind of policy with the same type can be applied to an entity overriding the one inherented by the parent.
+Policies are about background processing how metadata and constraints on different objects are enforced. 
+They provide a lightweight version of UDFs (User-Defined-Functions) to build custom-tailored behaviours into the system.
+Other than the central configuration which is used to define core system behaviours. 
+Such policies can be defined as:\\
+
+
+\textbf{Consistency Policies}\\
+Provide a notion of tuneable consistency, where users should be able to decide which levels to fulfill.
+In such a case an administrator could choose to define how many primary replicas an object should always contain.
+This would directly impact the constraints on the table restricting users to remove more placements than defined by that policy.\\
+
+
+\textbf{Freshness Policies}\\
+Can be utilized to define behaviour on freshness related actions. As \cite{fekete:2018} stated it is crucial to define how far a replica can diverge from the true
+and up-to-date value before a refresh transaction has to be critically executed.
+Additionally, we could use these types of policies to let object owners define how their data shall be identified and consequently updates are propagated.
+In such a way the system would stay customizable and would allow any methods discussed in \ref{stale} to be used dependent on the use case.
+Considering how refreshes are triggered one policy for example might has chosen to defer a propagation transaction entirely hence it won't try again and
+essentially waits for another chance when a new update-transaction is being executed and will trigger the service again. Another policy could suit other use cases better 
+and assist by constantly querying the storage's performance metrics to decide if an update should be executed.\\
+
+Due to the inherent heterogenous nature of the polystore systems itself, use cases may widely vary. Hence, in gerneal there is no need to impose a 
+general notion of freshness that is valid for all applications. Some might consider using CDC, while other prefer a partition approach or materialized views.
+However, with policies these can all be implemented.\\
+
+
+%\subsection{Policy usage}
+
+Since applications that are being served by polystores are very different to each other, they might have different requirements. 
+Therefore, different object types shall be supported.
+
+A policy shall generally be created inside a database.
+\begin{verbatim}
+CREATE POLICY policy_name as <configuration>;
+\end{verbatim}
+
+These policies can then be added to any object.
+\begin{verbatim}
+ALTER TABLE dummy ADD POLICY policy_name;
+\end{verbatim}
+
+Users should always be able to list information on all applied policies on any object.
+\begin{verbatim}
+SHOW POLICIES ON (DATABASE | SCHEMA | TABLE ) object_name;
+\end{verbatim}
+
+
+Furthermore they should be able to view the content of any policy: 
+\begin{verbatim}
+DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name; 
+\end{verbatim}
+
+To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
+The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
+
