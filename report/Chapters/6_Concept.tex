@@ -2,7 +2,6 @@
 \chapter{Concept}
 \label{c:concept}
 
-\todoMissing{Check that concept is not bound to any implementation}
 
 In this chapter we will define all functional requirements, necessary to establish freshness-aware data management in general.
 We will therefore discuss the contents of section \ref{c:related} and propose solutions how these approaches and techniques can be applied to polystore systems.
@@ -11,26 +10,41 @@ Hence, this chapter is separated into several sections were each represents a ne
 
 \section{Functional Requirements}
 
-* Multiple Versions -> Data Replicas
-(* Express/Specify Freshness - Query extension) Implementation
-* Different Freshness Metrics -> Freshness Metrics 
-* Freshness Comparison -> How to compare the freshness
-* Update Propagation -> 
-* Refresh Strategies
-* Consistency -> Updates/Operations need to be applied in same order as primary copy
-* Freshness Read
- (extension to a query languages to specify a tolerated level of freshness)
+Based on the provided discussion in Chapter \ref{c:related} we have established six \todoMissing{fill} fundamenetal functional
+requirements, which are necessary in order to provide the notion of freshness within a system.
+These prerequisites are however not unique to polystore systems and can be applied to any database system. 
+
+\begin{enumerate}[(i)]
+    \item Versioning -                      \textit{The exsitence of multiple versions per data object is necessary to distribute the workload 
+                                            and reduce the overall latency.}
+
+    \item Metrics -                         \textit{Freshness Metrics are needed when comparing different versions against each other.
+                                            They are used to define the outdatedness per replica and help to analyze how much it deviates from an up-to-date version.}
+
+    \item Data Replication -                \textit{How the data is replicated across the system to refresh a replica and how is a refresh operation triggered.}
+
+    \item Version Consistency -             \textit{Ensure the consistency of participating stores. Regardless of the role, each version always needs 
+                                            to be consistent in reagrds to its primary. Even if the state of the versions defer, 
+                                            a given version must always be equivalent to the version the priamry had at this time.}
+                                            
+    \item Freshness-aware Read-operation -  \textit{How can freshness be expressed and how may it be specified to retrieve certain information.}
+    
+    \item Isolate Freshness -               \textit{Since freshness operations can not directly impact or interfere with the system, 
+                                            we need additional transactional semantics to shield them against regular operations.}                                    
+
+\end{enumerate}
+
+Since there might be several possible approaches to fulfil the requirements listed above, 
+we will define and conceptualize several possibilities in the subsequent sections tailored to be solved by polystore systems. 
 
 
-Except the obvious existence of multiple versions per data object (see \ref{sec:data_replicas}), there are several prerequisites and requirements to establish freshness-awareness. 
-
-Essentially we have to think about how we want to express freshness(see \ref{express}), find a suitable metric to measure it (see \ref{sec:metric})
-and provide users a possibility to formulate an acceptable level of freshness. Based on these fundamentals we need to consider how update transactions 
-can be decoupled and deferred, how replicas will
-be refreshed \ref{sec:replication_strategy} while ensuring the consistency \ref{consistency_concept} of the system and how to enable the routing to identify freshness levels to speed up read-only operations. 
-
-
-
+Except the obvious existence of multiple replicas per data object ($\rightarrow$ \ref{sec:data_replicas}), 
+there are several prerequisites and requirements to establish freshness-awareness. 
+we essentially have to consider how to express freshness and find suitable metrics to measure it ($\rightarrow$ \ref{sec:freshne_metrics})
+and further provide users with a possibility to formulate an acceptable level of freshness ($\rightarrow$ \ref{sec:read_access}). 
+Based on these fundamentals we need to consider how update transactions can be decoupled and deferred, how replicas will be 
+refreshed ($\rightarrow$ \ref{sec:propagation}) while ensuring the consistency of the entire system ($\rightarrow$ \ref{sec:consistency_concept}) and 
+how to enable the routing to identify freshness levels to speed up read-only operations. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -51,8 +65,8 @@ Because we aim to reduce locking situations by decoupling primary updates from s
 we can simply use a lazy replication approach to propagate the updates asynchronously. 
 By definition this solution automatically creates multiple versions by deferring the update propagation to secondaries.
 This immediately leverages the nature of polystore systems in such a way that no additional replicas have to be artificially created in order 
-to support multiple version for each data object, which will eventually converge. 
-This replication approach is discussed in more detail in section \ref{sec:refresh_operations}.\\
+to support multiple version for each data object \textit{(i)}, which will eventually converge. 
+The replication approaches itself are discussed in more detail in section \ref{sec:refresh_operations}.\\
 
 
 Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date replica. 
@@ -98,14 +112,14 @@ Which essentially validates per replica whether it can be used for the tolerated
 Where $\delta$ can be associated with any metric described in the following definitions.
 
 \begin{equation} \label{eq:abstract_freshness}
-    F(d, \delta)=
+    F(d, \delta) :=
         \begin{cases}
             \text{true } & \text{if } f(d) \geq \delta\\
             \text{false } & \text{otherwise }
         \end{cases}
 \end{equation}
 
-
+%% ---- Maybe use $\theta$ instead of  $\delta$
 
 Given that the freshness filter function $F(d, \delta)$ is valid for all described metrics, the concrete freshness determination individually defined as $f(d)$, 
 varies among the use cases.
@@ -156,10 +170,12 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
     With this metric the specified relative time delay can directly be used as $\delta$. The freshness function $f(d)$ described in \ref{eq:relative_freshness}
     will essentially compare the current commit timestamp $t(d)$ against its primary replica $t(d_{primary})$.
         \begin{equation} \label{eq:relative_freshness}
-            f(d) = t(d_{primary}) - t(d)
+            f(d) := t(d_{primary}) - t(d)
         \end{equation}
 
     Again if the calculated deviation from the up-to-date node is within bound of the specified delay in $delta$, this replica is accepted.
+
+
 
     \item [Replica Deviation] Although the first three metrics already provide some granularity to consider different nuances of freshness, we 
         do not yet involve the number pf pending updates to any replica or can differ between the number of modifications each replica has received yet.
@@ -176,7 +192,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
 
         This \textbf{Modification Deviation} is defined in \ref{eq:modification-deviation}.
         \begin{equation} \label{eq:modification-deviation}
-            f(d) = \frac{m(d)}{m(d_{primary})},  with f(d) \in [0,1]
+            f(d) := \frac{m(d)}{m(d_{primary})},  with f(d) \in [0,1]
         \end{equation}
         
         Generally this describes how far behind an outdated replica is compared to the primary version.
@@ -190,7 +206,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
 
 
         \begin{equation}
-            f(d) = \frac{t(d)}{t(d_{primary})},  with f(d) \in [0,1]
+            f(d) := \frac{t(d)}{t(d_{primary})},  with f(d) \in [0,1]
         \end{equation}
 
 \end{description}
@@ -201,7 +217,8 @@ This allows to specify the tolerated level of freshness $\delta$ from a type $\t
 Although as mentioned in section \ref{sec:data_replicas} some engines within a polystore might be more suitable for up-to-date replicas than others,
 we don't limit the possibility of different freshness metrics to a subset of stores. Hence, every store is able to uniformly work with all levels of freshness.
 The Data Freshness shall always be evaluated within the polystore layer and is then used to compare the tolerated value against possible candidates that might fulfil such a request 
-(see \ref{r:read}).
+(see \ref{r:read}). This enables us to use a polystore to fulfil the requirements of \textit{(ii)}, by centrally analyzing the freshness contraints and select possibily outdated 
+candidates that conform to the specified constraints.
 
 
 
@@ -272,6 +289,7 @@ We therefore propose the following strategies to apply pending updates to the ou
 
 
 \subsection{Refresh Operations}
+\label{sec:refresh_operations}
 
 The Update Propagation generally refers to the refresh operation that transforms possibly outdated objects towards an up-to-date state.
 Disregarding the described Refresh Strategies from section \ref{sec:refresh_strategies} we need to converge the outdated replicas towards their 
@@ -360,7 +378,8 @@ Therefore, we propose the following approaches: \\
 
 
 While all of these approaches can be used to replicate and refresh the data on outdated nodes,
-they all come with their own set of trade-offs and might be used in different scenarios. 
+they all come with their own set of trade-offs and might be used in different scenarios.
+However all are sufficient to fulfil our requirments \textit{iii}.
 %So given that the change-data-set is larger than the total set of operations that have been applied to the priamry-replica it looses efficiency. 
 
 
@@ -370,6 +389,11 @@ they all come with their own set of trade-offs and might be used in different sc
 
 \section{Transactional guarantees - Locking - Isolation Level}
 \label{consistency}
+
+although with the freshness read we already reduce the ACID properties of a transaction, we still require some funcitonal constraints.
+
+
+%%%%% OLD v %%%
 
 To support the overall consistency of the system we have to ensure that all updates are correctly serialized and applied to the system.
 
@@ -411,6 +435,8 @@ needs to be adapted to allow locking not only on table-level but rather on a par
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Freshness-aware Read Access}
+\label{sec:read_access}
+
 \todoMissing{with the Read semantics -  we are now able to}
 
 \todoMissing{However, we want to include primary nodes for reads as well }
@@ -436,6 +462,7 @@ SELECT * FROM dummy
 As an extension we also propose to omit the specifications entirely and only state to the system that any freshness level is acceptable or the system central
 configured default, to further speed up queries.
 
+\todoMissing{In our proposal primary-copies can still be used during proposal }
 
 
 As mentioned in \ref{consistency} since update transactions don't allow any usage of freshness metrics to ensure consistency, solely read-only transactions are allowed.
@@ -454,6 +481,10 @@ and filter on all nodes that can fulfil this freshness. Then pick a suitable one
 
 \section{Consistency}
 \label{sec:consistency_concept}
+
+\todoMissing{Consistency does not only resolve around ensuring the consistenc yof all replicas  but also on consitency in term sof processing and handling within one transaction
+This could mean: how a system handles freshness within a transaciton how locks are applied and queries are shielded against each other}
+
 Move from Strong consistency to eventual consistency 
 have a loose form of consistency constraints that we need to comply with, in order to still provide response times while sacrificing consistency.
 
@@ -471,11 +502,13 @@ they will first be commited before the refresh takes place  (avoid deadlock) if 
 \todoMissing{Add this to requirements when talking about what is needed to provide freshness-aware data management}
 This is certainly we still have to comply with the acid properties. 
 
+\todoMissing{Disallow DML operations when freshness queries will be or have been executed within the same transaction. Which would violate the ACID properties.}
+
 
 As suggested in \ref{r:replication} there exist several techniques how outdated nodes can be updated lazyily in the context of freshness.
 Most of these presented distributed architectures follow a primary-copy approach for master-driven replication to all their secondary replicas.
 This eases the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly
-with Polypheny-DB we always have a single point of entry which can vaguely be compared as the poly-layer acting as a master node
+with Polypheny-DB we always have a single point of entry which can vaguely be compared as the polylayer acting as a master node
 when distributing or even routing queries. Hence, Polypheny acts as the master anyway. However since any requests have to pass through the poly-layer
 we have full control how and where queries need to be routed to allowing us to selectively route read-operations to outdated and up-to-date stores alike.
 This enables Polypheny-DB to take full control how different levels of data freshness are being accessed.
@@ -500,7 +533,5 @@ entities this means that all constraints on the number of available column-place
 the consistency of the system. For nodes labeled as outdated any variation is possible.
 
 
-\todoMissing{In our proposal primary-copies can still be used during proposal }
 
-\section{Placement constraints}
-\todoMissing{What happens for data DDL operations, to they neglect the freshness}
+
