@@ -219,9 +219,9 @@ Since a polystore system acts as an abstraction layer on top of the encompassed 
 allowing us to restrict the eager replication and locking mechanisms to the primary nodes alone.
 Given the multiple versions described in section \ref{sec:data_replicas} we could consequently decouple primary transactions from 
 secondary transactions. In that sense any modification to an object will now only target and lock its primary copies which are labeled as \emph{up-to-date}.
-The secondary nodes could then be read without any further locking by the user transaction. 
-Nonetheless, we need an approach how these outdated stores can converge their state towards a state of a primary copy.
-Otherwise, we would have entirely outdated stores that would remain in their current state and users using these store for querying might read stale data. 
+The secondary nodes could then be read without any further locking by a user transaction. 
+Nonetheless, we need an approach how these outdated stores can converge their state towards the state of their primary copy.
+Otherwise, we would have entirely outdated stores that would remain in their current state and users using these store for querying will always read stale data. 
 
 
 \subsection{Refresh Strategies}
@@ -230,39 +230,39 @@ Otherwise, we would have entirely outdated stores that would remain in their cur
 Since we have no longer access to an eager replication we need the possibility to apply the changes lazily to any outdated replica.
 Depending on the use case there might be different approaches needed to fulfil certain requirements.
 
-We therefore propose the following strategies to update the outdated nodes.
+We therefore propose the following strategies to apply pending updates to the outdated nodes.
 
 \begin{description}
     \item[Immediate Execution] This approach mainly pursues the decoupling of one single eagerly applied transaction, to two subsequent transactions.
     While the eagerly applied modification is executed synchronously it is bound by the slowest performing node in a setup.
     That is why with a lazy update propagation we only have to wait for the up-to-date replicas to finish the transaction.
-    Since these can be strategically placed on stores that are suitable for transactional workload they are assumed to apply the operation faster.
+    Since these can be strategically placed on stores that are suitable for transactional workload, they are assumed to apply the operation faster.
     After this primary transaction has then committed and the locks are released, an asynchronously executed secondary update transaction can be executed, 
     applying the updates to the outdated nodes.\\
     Since these secondary transactions are merely executed with a small processing delay and assuming that the update queue might not be very large and 
     updates can be applied right away, the outdated nodes intuitively will not deviate much from its primary partner.
 
     \item[On-demand Refresh] Since a regular queue will not consider priorities, and we still have to obey the execution constraints of the primary transaction (see \ref{sec:consistency_concept})
-    we need to preserve the execution order of the primary transaction. Depending on the size of the update propagation-queue some replicas might stay outdated longer than others.
-    That is why an on-demand approach is necessary to refresh outdated nodes immediately and bring them up-to-date.
-    Applying such an approach, the queue has to remove all pending updates for that specific replica, that the updates are not applied twice. 
+    we always need to preserve the execution order of the primary transaction. Depending on the size of the update propagation-queue some replicas might stay outdated longer than others.
+    That is why an on-demand approach is necessary to refresh outdated nodes at once and bring them up-to-date.
+    Applying such an approach, the queue has to remove all pending updates for that specific replica, to avoid that updates are not applied twice. 
     
     \item[Load-aware] Although an automatically scheduled execution and a manual execution might serve most use cases, it might not be desirable to do so.
     Neither an immediate execution after a primary transaction nor an on-demand triggered refresh, take the system load into account.
-    Since polystore consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
+    Since polystores consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
     So while most of the underlying stores could apply the pending changes immediately, some might currently not be capable on handling the additional load and have to 
     be deferred yet again. Despite that this approach might slow down the convergence speed of the updated nodes, 
     it will observe underlying stores and artificially limit the load on the system introduced through the propagation of updates hence keeping the system stable and available.
 
-    \item[Update on Read] So far all proposed solutions suffer either from additional evaluation overhead or from manual interference. This will limit the overall 
+    \item[Update on Read] So far, all proposed solutions suffer either from additional evaluation overhead or from manual interference. This will limit the overall 
     performance of the system. We could therefore again introduce a decoupled operation that is automatically triggered as soon as an outdated replica has been part of any query. 
-    During the freshness-related retrieval we obviously identify that this is indeed an outdated node and can then schedule an update propagation for it. This propagation is then
+    During the freshness-related retrieval of any data object, we obviously identify that this is indeed an outdated node and can directly schedule an update propagation for it. This propagation is then
     executed asynchronously after the initial read-operation has finished. This would reduce the additional caching, and avoid storing 
     information as which updates need to be applied on which node.\\
-    However, the downside of this approach is in highly transactional environments with heavy write- and read-operations, that the outdated node would always be marked as 
-    needing an update. This would schedule an update, although it was might have already been scheduled by another strategy. 
-    To mitigate this, the approach could be enhanced even further by allowing a centrally defined configuration threshold. This would state if an outdated replica has been read
-    and is above the centrally configured threshold, that no update propagation will be automatically scheduled.
+    However, the downside of this approach is, in highly transactional environments with heavy write- and read-operations, that the outdated node would always be marked as 
+    needing an update. This would schedule an update, although it might have already been scheduled by another strategy. 
+    To mitigate this, the strategy could be enhanced even further by allowing a centrally defined configuration threshold, that validates how much an outdated replica deviates from its priamry. 
+    This assumes that if an outdated replica has been read and is above the centrally configured threshold, that no update propagation will be automatically scheduled.
     This will avoid permanent scheduling of an update for every freshness-related read access.
 
 \end{description}
@@ -278,19 +278,13 @@ Disregarding the described Refresh Strategies from section \ref{sec:refresh_stra
 primary copies.
 There are several possibilities to achieve this and a system can choose to implement each of these cases in various ways. However, each implementation comes with its
 own trade-offs.
-
-
-
-\todoMissing{}
-
 We have several possibilities how to handle and propagate the updates.
 Since we assume that every write-operation needs to go through the polystore-layer, we can easily keep track which operations have been applied to the primary node.
-We require that the operations are executed in correct execution order and therefore need to apply all pending changes as they have been applied at the priamry site.
+To ensure the overall consistency we require that the operations are executed in correct execution order and therefore need to apply all pending changes as they have been applied at the priamry site.
 This imposes a natural execution order of any item in the queue to be delivered to the secondaries.
 
 We need to define how executed operations are tracked and how they then apply those operation to the replicas. 
-
-We propose the following approaches: \\
+Therefore, we propose the following approaches: \\
 
 \begin{description}
     \item [Change Data Capture]
@@ -299,19 +293,19 @@ We propose the following approaches: \\
     The idea of this approach is that all changes including the data could be temporarily stored either in-memory or persisted onto a disk.
     The choice where to store it depends on the individual consistency-availability requirements and will not be part of this discussion.\\
     For the CDC-Algorithm we consider that during an active transaction all changes will be tracked and written into a Firt-In-First-Out (FIFO) queue.
-    Since this is only a preliminary step we will conveniently call this capture-collection: \emph{pre-queue} \todoMissing{Think of a better name}.
-    As operations are being executed each change along with its data and the corresponding parent transaction is stored within this pre-queue.
-    Although we could simply capture the executed statement as in a Write-Ahead-Log (WAL) and re-execute it on the underlying stores, we now benefit from the polystore layer.
-    Since possibly existing functions or constraints might have already been evaluated at runtime. We can save further computations and store the end result that is pushed-down directly
-    to the designated stores. As soon as this transaction has been successfully committed, all entries in this pre-queue are further enriched with the respective commit timestamp of their parent transaction.
-    Afterwards the corresponding entries in the pre-queue are added to an actual central replication queue containing the pending updates.
+    Since this is only a preliminary step we will conveniently call this capture-collection: \emph{capture-queue}.
+    As operations are being executed, each change along with its data and the corresponding parent transaction is stored within this capture-queue.
+    Although we could simply capture the executed statement in a Write-Ahead-Log (WAL) and re-execute it on the underlying stores, we now benefit from the polystore layer.
+    Since possibly existing functions or constraints might have already been evaluated at runtime. Thus, we can save further computations and store the end result that is pushed-down directly
+    to the designated stores. As soon as this transaction has been successfully committed, all entries in this capture-queue are further enriched with the respective commit timestamp of their parent transaction.
+    Afterwards the corresponding entries in the capture-queue are added to an actual central replication queue containing the pending updates.
     For each designated replica that should receive this update an individual entry is created inside this queue. 
     Each entry is accompanied by its parent transactions ID, the commit timestamp as well as the data to be replicated.
-    Since we do not need to store the data $n$-times for $n$ replicas that will receive the data, we can simply link each replication item in the queue to the replication 
-    that is stored separately. 
-    Since all entries in this final replication-queue are ordered in respect to the execution order of the original transaction.
-    We have ensured that the operations are executed in order to receive the same state as its primary copy.\\ 
-    However, if the transaction aborts, all active entries in the pre-queue can be removed due to their association with the parent transaction.\\
+    Since we do not need to store the data $n$-times for $n$ replicas determined to receive the data, we can simply link each replication item in the queue to its 
+    correspodning replication data, which is stored separately. 
+    Since all entries in this final replication-queue are ordered in respect to the execution order of the original transaction,
+    we have ensured that the operations are executed in order to conerge to the same state as its primary copy.\\ 
+    Finally, if the transaction aborts, all active entries in the initial capture-queue can be removed due to their association with the parent transaction.\\
     
     \todoMissing{In Implementation, state that e.g. for update operations this is broken down into operations applied to each store. }
 
@@ -329,41 +323,45 @@ We propose the following approaches: \\
     Since the snapshot itself will have no real impact on the primary node, we can continue to use it for all operations.
     Because the secondary replica will be recreated from scratch, querying it will result in an incorrect state. 
     Therefore it cannot by activiely used by any freshness-related queries.
-    Hence, we have to refrain from providing this replica as a possible candidate in the retireval process and lock it entirely, 
+    Hence, we have to refrain from providing this replica as a possible candidate in the retireval process, and lock it entirely 
     until everything has been processed and the replica is equal to the snapshot. After it has been applied we can now update the commit timestamp of the replica
-    with the timestamp retrieved alongside the snapshot to mark this refresh as successfull.\\
-    However, despite that this snapshot-copy will again result in a correct secondary node, it is not suitable for very large data sets to copy.  
-    For one, depending on the refresh strategies proposed in section \ref{sec:refresh_strategies}, it could be triggered too frequently and would constantly lock the 
-    secondaries. Additioanlly, a complete copy of a data set, takes time, which removes the replica from the replicas to be used within retrieval.\\
+    with the timestamp retrieved alongside the snapshot, to mark this refresh as successfull.\\
+    Despite that this snapshot-copy will again result in a correctly updated secondary node, it is not suitable for very large data sets to copy.  
+    For one, depending on the refresh strategiy proposed in section \ref{sec:refresh_strategies}, it could be triggered too frequently and would constantly lock the 
+    secondaries. Additioanlly, a complete copy of a data set, takes time, which removes the replica from the potenial candidate replicas to be used within retrieval.\\
     To avoid these locking situations, we could further adapt this algorithm to create a temporary shadow replica while the copy process is in place.
-    With this we could recerate an entirely new replica on the basis of the snapshot, which would still allow acessing the old outdated node.
-    Allthough possibily more outdated data is now retrieved, and the data footprint is temporarily retrieved, this replica can still continue to serves freshness-queries 
+    With this we could recreate an entirely new replica on the basis of the snapshot, which would still allow acessing the old outdated node.
+    Allthough possibily more outdated data is now retrieved, and the data footprint is temporarily increased, this replica can still continue to serves freshness-queries 
     since it will not need to be locked.
     Finally, when the process has finished we only need to apply a lock during takeover time to ensure the consistency. During this short timeframe, the old replica is dropped
     and the newly created hidden shadow replica is now activated, making it an official replica to be used.
 
 
-    %So given that the change-data-set is larger than the total set of operations that have been applied to the priamry-replica it looses efficiency. 
-
-
 
     \item [View Materialization]
-    Along the idea of internal partitions materialization could help reduce the number of statements necessary to create new levels of freshness.
-    Since materialized views are considered to be snapshots of data objects, anytime a propagation or refresh operation is being executed a new materialized view is 
-    generated on basis of the up-to-date placement.
-    This would ommit replication operations entirely hence no bookkeeping of the queued updates would be necessary. The only needed reference would be the new timestamp
-    to calculate the freshness index.
+    Along the idea of the \emph{Primary Data Snapshot}, the materialization of views could also help to reduce the number of statements necessary to create new levels of freshness.
+    Since materialized views are by nature considered to be precomputed-snapshots of data objects, we can simply leverage these semantics to create different versions of data, 
+    represented by indvidual views.
+    Because views are common in most databases there are an easy to use access without implementing an entire refresh algorithm.\\
+    In contrast to the benefits described in section \ref{sec:data_replicas} we now indeed need to artificially create new versions.
+    However, instead of replicating the data operation-wise to another store, we can simply omit to create replicas that become outdated and create materialized views on this 
+    stores instead. Hence, we are left with at least one true up-to-date replica and several outdated replicas, which are repserented by views created on the underlying stores.
+    Due to their flexibility we can decide per use case which degree of freshness a view supports. 
+    Analogously to the aformentioned approach, anytime a propagation or refresh operation is being executed a new materialized view is generated on basis of the up-to-date replica.
+    This also ommits replicating single operations entirely, hence no bookkeeping of the queued updates is necessary. 
+    The only needed reference would again be the commit timestamp of the primary node. 
 
-    As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
-    necessary when switching the outdated with a refreshed view.
-    Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
-    inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
+    %As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
+    %necessary when switching the outdated with a refreshed view.
+    %Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
+    %inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
 
 \end{description}
 
 
-While all of these approaches can be used to replicate and refresh the data on outdated nodes, they all come with their own set of trade-offs and might be used in different scenarios. 
-
+While all of these approaches can be used to replicate and refresh the data on outdated nodes,
+they all come with their own set of trade-offs and might be used in different scenarios. 
+%So given that the change-data-set is larger than the total set of operations that have been applied to the priamry-replica it looses efficiency. 
 
 
 
