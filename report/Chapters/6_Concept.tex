@@ -318,35 +318,46 @@ We propose the following approaches: \\
 
 
 
+    \item [Primary Data Snapshot]
+    Although CDC will correctly recreate any secondary replica, it will lose its efficiency when there are more modifications to apply to secondaries that there 
+    have been totally applied at the priamry site. Although it would still produce the correct result it could be further optimized without replicating operation by operation 
+    until the replica has converged.\\
+    Therefore another propositions could be the usage of a primary-copy approach. 
+    Intuitively this would allow to simply snapshot the entire state of a matching primary node to be copied onto the traget replica.
+    During this copy we only need the current commit timestamp of the primary and snapshot the current state of the respective data object. 
+    This could be done simply by executing a read-only transaction to retireve the current state of the primary replica.
+    Since the snapshot itself will have no real impact on the primary node, we can continue to use it for all operations.
+    Because the secondary replica will be recreated from scratch, querying it will result in an incorrect state. 
+    Therefore it cannot by activiely used by any freshness-related queries.
+    Hence, we have to refrain from providing this replica as a possible candidate in the retireval process and lock it entirely, 
+    until everything has been processed and the replica is equal to the snapshot. After it has been applied we can now update the commit timestamp of the replica
+    with the timestamp retrieved alongside the snapshot to mark this refresh as successfull.\\
+    However, despite that this snapshot-copy will again result in a correct secondary node, it is not suitable for very large data sets to copy.  
+    For one, depending on the refresh strategies proposed in section \ref{sec:refresh_strategies}, it could be triggered too frequently and would constantly lock the 
+    secondaries. Additioanlly, a complete copy of a data set, takes time, which removes the replica from the replicas to be used within retrieval.\\
+    To avoid these locking situations, we could further adapt this algorithm to create a temporary shadow replica while the copy process is in place.
+    With this we could recerate an entirely new replica on the basis of the snapshot, which would still allow acessing the old outdated node.
+    Allthough possibily more outdated data is now retrieved, and the data footprint is temporarily retrieved, this replica can still continue to serves freshness-queries 
+    since it will not need to be locked.
+    Finally, when the process has finished we only need to apply a lock during takeover time to ensure the consistency. During this short timeframe, the old replica is dropped
+    and the newly created hidden shadow replica is now activated, making it an official replica to be used.
 
-    \item [Internal Partitions]
-    Another propositions could be the usage of background processing together with a primary-copy approach. With this approach
-    which are accompanied by an update-timestamp that represents the last time the partition has been updated, this could include the Age-of-Information as well as 
-    the Age-of-Synchronization. Furthermore, since partitions logically belong to partition groups described in \ref{express} we can easily identify which partitions are considered to be 
-    outdated or should always be up-to-date. With this information we could even use the existing capabilities of the \emph{Partition Manager} which uses the notion of 
-    partition-qualifiers to identify required levels of freshness.
 
-    For every update-transaction the eager replication is loosend to only consider the primary partitions for updates.
-    For the refresh operation itself we can utilize the \emph{Data Migrator} to extract the relevant data via an accumulated select-statement on the primary placements.
-    Additionally, to further decouple the data refreshment a hidden shadow partition can be created for this purpose. In that way writes on the primary copy as well as the 
-    currently existing outdated placements can still be executed while the outdated placement gets refreshed in the background. Once the data migration process has finished, 
-    we only need to logically apply a \emph{Refresh-Lock} to ensure the overall consistency. During the short time the outdated-site is locked the old placement is dropped and 
-    the hidden shadow partition is officially being activated. Since this only really requires one select on the primary site, write-operations can still take place, reducing
-    locks to a minimum. Even during the time the refresh-lock is active the benefits of the poly-layer comes in to play which enables the system to choose to 
-    route read-operations to primary servers as well.\\
+    %So given that the change-data-set is larger than the total set of operations that have been applied to the priamry-replica it looses efficiency. 
 
 
-\item [View Materialization]
-Along the idea of internal partitions materialization could help reduce the number of statements necessary to create new levels of freshness.
-Since materialized views are considered to be snapshots of data objects, anytime a propagation or refresh operation is being executed a new materialized view is 
-generated on basis of the up-to-date placement.
-This would ommit replication operations entirely hence no bookkeeping of the queued updates would be necessary. The only needed reference would be the new timestamp
-to calculate the freshness index.
 
-As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
-necessary when switching the outdated with a refreshed view.
-Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
-inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
+    \item [View Materialization]
+    Along the idea of internal partitions materialization could help reduce the number of statements necessary to create new levels of freshness.
+    Since materialized views are considered to be snapshots of data objects, anytime a propagation or refresh operation is being executed a new materialized view is 
+    generated on basis of the up-to-date placement.
+    This would ommit replication operations entirely hence no bookkeeping of the queued updates would be necessary. The only needed reference would be the new timestamp
+    to calculate the freshness index.
+
+    As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
+    necessary when switching the outdated with a refreshed view.
+    Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
+    inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
 
 \end{description}
 
@@ -489,6 +500,9 @@ They are rather used as a clear indication on which part of the process is refer
 These changes will also have an impact on the partition distribution constraints. For vertically and horizontally partitioned 
 entities this means that all constraints on the number of available column-placements can only be considered for primary update stores. Otherwise, this could harm
 the consistency of the system. For nodes labeled as outdated any variation is possible.
+
+
+\todoMissing{In our proposal primary-copies can still be used during proposal }
 
 \section{Placement constraints}
 \todoMissing{What happens for data DDL operations, to they neglect the freshness}
