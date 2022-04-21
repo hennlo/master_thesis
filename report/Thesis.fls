@@ -343,10 +343,10 @@ INPUT Chapters\6_Concept.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr7t.tfm
-INPUT Chapters\7_Implementation.tex
-INPUT Chapters\7_Implementation.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\courier\pcrr7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr8r.tfm
+INPUT Chapters\7_Implementation.tex
+INPUT Chapters\7_Implementation.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx5.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmr6.tfm

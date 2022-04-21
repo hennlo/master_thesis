@@ -19,3 +19,42 @@
 
 
 * Implementation based on the described architecture
+
+%%%% NEW
+
+* Multiple Versions -> Data Replicas
+(* Express/Specify Freshness - Query extension) Implementation
+* Different Freshness Metrics -> Freshness Metrics 
+(Freshness Comparison -> How to compare the freshness)
+* Refresh Strategies
+(How can refreshes be applied, adhoc, immediateely, load-aware)
+* Update Propagation -> Update Propagation
+
+* Freshness Read
+ (extension to a query languages to specify a tolerated level of freshness)
+ (reduce locking for reads)
+
+
+
+
+* Update Propagation
+
+** Refresh strategies
+  - Immediately Asynchronous after priamry copy has finished
+  - Adhoc only if requested, apply all pending updates
+  - Load-aware scheduling monitor the underlying store and observe when there are suitable time frames when updates can be applied.
+   Of course updates only need to be applied as long as the load remains adequatly low. 
+  - Update on read
+   To identify stale or outdated data. We need no periodic checking if a replica is outdated but simply wait until it is queried.
+   This reduces overhead 
+
+** Refresh Operations
+  - This refers to the updates being actually replicated to the secondary stores
+  - CDC
+  - Structural Copy - copy the entire object from an up-to-date replica. 
+  - Materialized View that provides a snap shot of some kind but is not rather suited for large data fooprints
+  - 
+
+** Failure handling
+  - In a polystore environment we could always have the possibility that some stores might not available after a time.
+  - resulting in a large Database of pending updates. If failed to often remove these pending updates
