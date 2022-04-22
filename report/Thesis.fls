@@ -340,11 +340,6 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helve
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbxti10.tfm
 INPUT Chapters\6_Concept.tex
 INPUT Chapters\6_Concept.tex
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr7t.tfm
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\courier\pcrr7t.vf
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr8r.tfm
 INPUT Chapters\7_Implementation.tex
 INPUT Chapters\7_Implementation.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmbx7.tfm
@@ -360,6 +355,11 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msam7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm7.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr7t.tfm
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\courier\pcrr7t.vf
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr8r.tfm
 INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\9_Conclussion.tex

@@ -2,7 +2,7 @@
 \chapter{Implementation}
 \label{c:implementation}
 
-This chapter describes an implementation in correspondence to the concepts elaborated in chapter \ref{c:concept}. 
+This chapter describes an implementation in correspondence to the concepts proposed and ellabirated in chapter \ref{c:concept}. 
 These concepts are applied to Polypheny-DB, a particular polystore system.\\
 First the current architecture and all relevant components and modules of this system are described as a foundation to put the implementations in place ($\rightarrow section \ref{sec:architecture}$).
 
@@ -22,7 +22,10 @@ and add them to the appendix }
 
 
 
-
+\todo{Resort}
+The locking is done logically within the polystore layer and locks the entire table.
+Since we want to establish the freshness comparison ob objects based on the Data Placement respectively each individual partition placement, the locking mechanism
+needs to be adapted to allow locking not only on table-level but rather on a partition level. 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -273,6 +276,7 @@ certain operations if we execute batch wise and one UPDATE operation e.g. update
 
 \todoMissing{LazyWorkerThreads - were each worker is responsbile for carrying out one replication or requeing it after it has failed}
 
+\todoMissing{In Implementation, state that e.g. for update operations this is broken down into operations applied to each store. }
 
 
 \subsection{Refresh strategies}
@@ -320,6 +324,9 @@ In such a way a user can not only steer its desire but is also informed whether 
 
 \todo{How does the freshness respresentation look like for SQL.}
 
+\todoMissing{When a refresh transaction  is executed no more locks on secondary nodes can be applied, if there is still a shared lock on that outdated node
+they will first be commited before the refresh takes place  (avoid deadlock) if we do not hinder the system to build more shared locks refresh operations might starve}
+
 \todo{WITH FRESHNESS}
 This can be used if a user does not require a minimum level of freshness. This can be easily supported  
 
@@ -328,11 +335,47 @@ This can be used if a user does not require a minimum level of freshness. This c
 
 
 \subsection{Freshness Selection}
+For the overall freshness guidance an extension of PolySQL is necessary.
+Along the description in \ref{express} users can choose to select any of the specifications to guide the system.
+\begin{verbatim}
+SELECT * FROM dummy 
+[ WITH FRESHNESS [ <TIMESTAMP> | <DELAY> | <PERCENTAGE> ] ];
+\end{verbatim}
 
+\todo{Also use simply WITH FRESHNESS to specify that you dont care with what freshness it returns}
+
+\todoMissing{The removal of the entity immediately removes all outdated placmenets, so no freshnes or multi version read is possible anymore.
+Also if an up-to-date placement is dropped, we need to ensure that we do not lose data otherwise this operation is not possible.}
 
 \todo{Maybe not an entire section. Rather discussed internally}
 \tocless\subsection{Referential Integrity}
 
+\todoMissing{Hence, it might occur that cumulative reads on multiple objects might return incomplete results, since a specified freshness
+level can be entirely different on two tables which makes it hard to even compare freshness levels among different objects. However since a user is willing to access 
+stale data anyway this is a known risk and thus can be accepted.}
+
+The new isolation level provided by Polypheny-DB in association with freshness can therefore we distinguished between three different levels.
+Since we already violated the ACID constraints by returning outdated data, the system initially treats every freshness-related wuery to not acquire any locks on outdated palcements, 
+hence allowing dirty reads. This results in refresh operations being able to override or add new results to the placement while it is currently being read. 
+While this is not harmful for consecutive write operations that are lazily replicated onto this placement, it could return entirely inconsistent data when 
+an \emph{INFINITELY OUTDATED} placement is being refreshed by the data Migrator. Since this empties the table and starts from the beginning. 
+Therefore another possibility to avoid those dirty reads is to acquire locks even for outdated or freshness queries. Although the results stay stable and consistent in regards to
+the results provided, it will block refresh operations on this placement entirely. Since polypheny-DB uses a version of 2PL shared locks can be easily extended with more transactions adding
+itself to the list of waiting transactions, which could lead to starvation of the refresh transaction. Therefore we embedded an extension to this locking approach especially for this use case, which does not interefere with 
+the locking mechanism that targets primary copies. When there is currently a shared lock on an object that is about to receive a manual refresh operation, this disables the possibility
+for any new upcoming freshness transactions to add itself to the existing shared lock. Instead they are treatetd and added to the dependency graph of the refresh operation (requiring an exclusive lock)
+as if they woukd already be an exclusive lock in place. This would avoid straving the refresh operation while still being able to sevre freshness queries on different placements.
+This can also be enhanced by centrally configuring \todoMissing{implement} a threshold after how many retries the refresh operation can finally force itself to be executed.
+Finally we allow to specify a referential integrity enforcement. As described in section \ref{sec:read_access} we would allow this to try enforcing the referential intergity,
+within this transaction. Which also would need to lock the placements. This approach aims to enforce the refernetial intergity among all entitite sused within the transaction.
+However in an outdated scenario this can only be ensured if all entities, even have outdated versions of itself and they have all been updated by the same 
+transaction and consequently. Otherwise we cannot easily guarantee that they enforce those constraints. If there is doubt or no suitable combination of placements can fulfil this request,
+we always have the possibility to fallback to the primary nodes, which are guaranteed to support referential integrity. Allthough, this again blocks updates on the priamry placements,
+it fulfils the constriants as it would have when executing the same query without specifying a tolerated level of freshness.
+
 \section{Placement constraints}
 \todoMissing{What happens for data DDL operations, to they neglect the freshness}
 
+\todoMissing{These changes will also have an impact on the partition distribution constraints. For vertically and horizontally partitioned 
+entities this means that all constraints on the number of available column-placements can only be considered for primary update stores. Otherwise, this could harm
+the consistency of the system. For nodes labeled as outdated any variation is possible.}
