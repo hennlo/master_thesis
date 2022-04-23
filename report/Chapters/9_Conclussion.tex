@@ -15,6 +15,9 @@ This immediately enables us to use possibly outdated nodes containing stale data
 This does not only improve parallel processing but also allows the efficient usage of all available stores.
 
 
+With this implementation we have introduced a fault tolerant replication algorithm which can be used to lazily replicate changes to outdated replicas,
+while ensuring the correct consistency of each placemnts by enforcing the natural execution order. All while autoamtically rescheduling failed replications and removing left over
+replications from suspended or removed placments, hence cleansing the environemnt during runtime.
 
 
 
@@ -133,3 +136,15 @@ DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name;
 To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
 The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
 
+
+\subsection{Session-Wide Freshness}
+Another addiitona to freshness could be the extension to also allow the specification
+of freshness per session. This avoids specifiyng the freshness for individual statements.
+This is especially useful if the freshness requirements do not really change, allowing a quick
+possibility to adapt the requirements. Although, they could we extented for individual stateemntes,
+that indeed erquire a more strict form of freshness, it provides a good base line to operate on freshness.
+This is espeicially interesting for applications that usually establish one session,
+for the majority of its lifetime. 
+\todo{Essentially for every configurabel freshness related paramteres as with modification deviation or time deviation, or if modification deviation than total or per entitiy}
+
+\todo{Add spacing in chapters to avoid entire blocks of data}

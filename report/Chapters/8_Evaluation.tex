@@ -27,6 +27,8 @@ The second part of the validation process focuses on the retrieval of outdated n
 we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.
 
 
+\todo{Also checks for freshness specification if this can for one be even applied to the system , due to ongoing constraints or if it is even posssible to specify a freshness index >1.0}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Benchmarks}
@@ -40,6 +42,8 @@ we still want to avoid excessive locking to parallelize requests to ultimately s
 \subsection{Evaluation Procedure}
 The following steps outline the procedure for benchmarking data freshness within Polypheny-DB.
 
+\todo{Check how fast the replication is compared to the primary execution. Benchmark on two equal stores and measure the time}
+
 \todo{ Execute benchmarks on multimodal dbs. as well as different kind of }
 
 \todo{ Talk about implementation of freshness characteristic in many query languages}
@@ -47,6 +51,9 @@ The following steps outline the procedure for benchmarking data freshness within
 \todoMissing{Check if freshness could even be used, or if we would always fallback to primary or when is the turining point when the freshness now works.}
 
 \todoMissing{Using 3 Node and 5 Node with eager replication than the same using lazy replication without any freshneess queries.}
+
+
+
 
 \subsection{Results}
 \label{sec:discussion}
