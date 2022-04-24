@@ -182,104 +182,209 @@ This allows the utilization of SS2PL to handle concurrency control only within P
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Multiple Versions}
-
-as described in Section \ref{sec:part}, since read-only queries typically benefit directly from data partitioning, they are suitable candidates to base our freshness awareness on.
-Therefore, we propose to define outdatedness on the state of a specific partition placement.
-Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
-these partitions could already be up-to-date again, while others still remain outdated.
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Locking - Isolation Level}
-
-
-The locking is done logically within the polystore layer and locks the entire table.
-Since we want to establish the freshness comparison ob objects based on the Data Placement respectively each individual partition placement, the locking mechanism
-needs to be adapted to allow locking not only on table-level but rather on a partition level. 
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+\todoMissing{Maybe rename?}
 \section{Lazy Replication}
+\label{sec:lazy_replication}
+
+This section discusses all implementations along with the introduced components and services to establish 
+multi versioning and the possibility to refresh specific replicas. This serves as a foundation in order to use those distinct versions
+to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing a mixed worklaod to exist in parallel.
+
+
+
+\subsection{Placement Versioning}
+
+As we have established in section \ref{sec:data_replicas}, the existence of multiple data replicas are fundamental in distributed systems to even provide the 
+possibility of a trade-off between latency and consistency. These versions essentially allow load balancing requests among all suitable replicas to effectively 
+use the entirety of the system. This does not only enable one to distribute the load evenly across the landscape, hence increasing availability
+but also define how many of these replicas need to utilized jointly to enforce the desired consistency constraints.\\
+
+As the name might suggest, a multi-version database would be ideal and the obvious choice for such an approach.
+These databases will automatically generate a new version per data object for each modification. 
+Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as predecessor and successor versions.
+This would directly allow us to utilize these versions on freshness-related queries. But, this would also imply the utilization of MVCC.
+However, as stated in \ref{sec:concurrency_control} multi-version databases automatically tend to have larger data footprints, due to persisting  
+redundant and even obsolete data.
+Since polystore systems already suffer from a larger data volume, given the redundant data storage across severall stores.
+Finally, aforementioned, Polypheny-DB currently only supports SS2PL for its concurrency control.
+Since we require to have equally converging states for our outdated versions \textit{iv}, we need a serializable execution that can be applied to 
+the underlying stores as well.
+Although, MVCC reduces common blocking scenarios and allows write- and read-operations to be executed in parallel, 
+it cannot reliably produce a serializable execution order of all operations among all participating stores.
+That is why we stick with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
+
+However, as already mentioned in chapter \ref{c:concept}, multiple versions are automatically created when using a lazy update propagation. 
+This will directly loosen the constraints, impossed on replicas to update. 
+The update in these cases will then only be targeted towards the primary replicas, drastically reducing the reponse time of a write-operation,
+but lowering the consistency at the same time.  \todoMissing{Besserer Übergang}
+Furthermore, to provide freshness-awareness as well, we do not only require several versions for updates to be applied quicker,
+but also be able to actually utilize these versions to efficiently operate on the entire system.
+These versions therefore also allow us to compare and find suitable candidates in freshness related queries.\\
+
+Fortunately, polystore systems and especially Polypheny-DB is inherently distributed, automatically providing potentially multiple replicas.
+Although they might be distributed or replicated, resulting in redundant data storage, Polypheny-DB allows to create multiple data placements for an individual entity. \todoMissing{Besserer Übergang}
+The data placements described above can therefore be considered as an individual replica or version for a corresponding data item as referred to in the concept.
+Therefore to enable Polypheny-DB to retain different levels of freshness we need to allow our routing process
+to only target a subset of all placements for primary update transactions. The remaining placements will therefore autoamtically become outdated. 
+
+However, since partition placements logically refer to the physical entities that actually persist the data and 
+read-only queries typically benefit directly from data partitioning (see \ref{sec:part}), Polypheny-DBs partition placements 
+are suitable candidates to base our freshness awareness on.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/entity_placements_replication.png}
+    \caption{Entity alongside all its physical placements}
+    \label{fig:placements}
+\end{figure}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Replication Strategy}
+\label{sec:strategy}
+
+In order to reduce the update time per write-operation and increase the performance
+of OLTP workload, we need to enable Polypheny-DB to identify placements that need to receive updates immediately. 
+
+To allow the routing process to differentiate between such placements,
+we need the possibility to label data placments on how they are going to receive updates. This is defined as the \emph{Replication Strategy} $\Gamma \in \{EAGER,LAZY\}$.
+\emph{EAGER} means that DML operations are applied at once, while \emph{LAZY}
+allows data manipulation to be deferred, resulting in outdated data.\\
+
+
+Although, we defined that we will base the freshness evaluation on partition placements, we implemented the strategy per data placement. 
+As introduced in the beginning of this chapter, partition placements inherit their information from its corresponding data placement.
+Although they receive there updates independently their properties are defined within the parent placement. 
+Therefore, it is sufficient to configure the data placement to achieve an intended state of the subordinate partition placements.
+Such that a partition on a given store can either be updated enitrely eagerly or lazily. 
+
+\todoMissing{integrate SYNC and ASYNC}
+
+%Since the locking within Polypheny-DB is done logically within the polystore layer and locks the entire table.
+Since we want to establish the freshness comparison on based on each individual partition placement, the locking mechanism
+needs to be adapted to allow locking on partition level rather than on a table-level. 
+
+
 Can be used to selectively define which data placement shall be updated lazily.
-\todoMissing{Statement} 
-\begin{verbatim}
-    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION LAZY;
-\end{verbatim}
+The replication strategy can therfore be directly defined as:
+
+
+\begin{lstlisting}[language=sql]
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION ( LAZY | EAGER );
+\end{lstlisting}
 
 This replication strategy is added as part of the newly added data placement properties. Since Data Placements inherently carry the information, what column and partitions reside
 on a given store, they were extended to now also hold information on data placement specific properties.
 
 
+When a placement is created without any replication strategy, it will automatically be labeled to receive updates eagerly.\\
+This allows us to flexibly define the strategy per data placement, considering all necessary constraints to ensure the integrity of the data (see \ref{sec:constraints}).
 
-\subsection{Multiple Versions}
 
-The data placement listed above can therefore be considered as an individual replica or version for a corresponding data item as referred to in the concept.
-
-\todoMissing{Link to concept}
-As the name suggests a multi-version database would be ideal and the obvious choice for such an approach.
-These databases will automatically generate a new version for a data object on each modification.
-Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as older and newer versions.
-This would directly allow us to utilize these versions on freshness-related queries. But, it would also imply the utilization of MVCC.
-However, Polypheny-DB currently only supports SS2PL for its concurrency control. 
-
-Additionally, there are a lot of trade-offs to consider when using MVCC as previously stated in \ref{sec:concurrency_control}.
-For one, it has a large data footprint which is already inherently larger in a polystore system, given the redundant data storage.
-Furthermore, since all transactions are handled within the polystore layer we need a correct and serializable execution order on all stores \todoMissing{Remove Correctness Guarantees}. 
-Hence, we need to provide a more rigorous and uniform schedule on all stores, which is not directly provided by MVCC.
-That is why we stick with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \subsection{Replication State}
+\label{sec:states}
 
-Since the replication strategy is bound to an independent Data Placement we still need the possibility to define how the actual Partition Placements, that hold the data 
+Since the replication strategy is bound to an individual data placement we still need the possibility to 
+define how the actual partition placements, that hold the data, will behave in certain scenarios and will consequently be processed.
+We therefore introduce the \emph{Replication State} per partition placement.\\
 
-
+This replication state is logically bound, and directly influenced by the replication strategy defined within a data placement
+and can be differentiated into three states. 
 \begin{description}
-    \item [UPTODATE]
-    \item [REFRESHABLE]
-    \item [INFINITELY-OUTDATED]
+    \item [UPTODATE] Is automatically set within a partition placement, when the parent placement is configured to receive updates eagerly.
+    This cannot be changed by any user. It does also not refer to the current state of any data object, meaning that an lazily updated placement can become up-to-date overtime.
+    Allthough this is possible in terms of the received update, it is not respresented using these states. They rather impact the behaviour and handling during processing.
+    
+    \item [REFRESHABLE] Initially this is configured when the corresponding data placement receives updates lazily. This allows the partition placement to actively receive 
+    individual updates by a replication algorithm. A refreshable state can be automatically and manually transformed into an \emph{INFINITELY-OUTDATED} state.
+
+    \item [INFINITELY-OUTDATED] This state is specifically marked, to stay outdated and not receive any updates. This can either be done manually, because a user may want to
+    retain an item with a given version, hence surpressing the automatic update replication on this node. Additionally this can be set autoamtically by the system, 
+    if either the entire store or the system is not available anymore. This can be caused due to an unexpected outage or simply because the replication algorithm has 
+    numerously failed to apply updates, indicating an error. Given certain prerequisites it can be manually transformed back into an \emph{REFRESHABLE} state.
+
 \end{description}
+
+Although, this state is required for internal processing of individual partition placements, the manual specifcation of this state is still targeted to an entire data placement.
+Since the internal partitioning should be rathe ruser agnostic one should only be able to specifiy this per data placement. 
+As with the replication strategy, the changes are then propagated downwards to all linked partiton placements. 
+
+They have a dependency that refreshable can be set to INFINITELY OUTDAED and vice versa, however UPTODATE can only be influenced by the replicaiton strategy.
+Trying to change this manually will result in an error since it is controlled by the system.
+\todoMissing{flowchart?}
+
+Placements containing \emph{REFRESHABLE} 
+
+\begin{lstlisting}[language=sql]
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH STATE ( REFRESHABLE | OUTDATED );
+\end{lstlisting}
+OUTDATED referring to INFINITELY OUTDATED,  by explicitly labeling it as outdated it will suspend all update propagation towards those stores.
 
 Furthermore each Partition Placement is enriched with the most recent update information to support various freshness metrics.
 This update information contains insights such as the id of the last comitted update transaction, the corresponding commit and update timestamp as well as the number of 
 modifications that 
 
 
+Therefore, we propose to define the outdatedness on the state of a specific partition placement.
+Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
+these partitions could already be up-to-date again, while others still remain outdated.
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{Lazy Replication Engine}
 
 Is build on a basic \emph{Replication Engine}, that contains the core functionality that transforms capture objects into distinct replication Objects and 
 pipes them to specific execution engines.
 
+\todo{add image of global replication Queue}
+
 \begin{description}
     \item[Global Replication Queue] 
+    a = defines a unique target placement, 2 the unique replication id and 1000 the associated data id
+
+    \begin{figure}[t]
+        \centering
+        \includegraphics[width=0.8\textwidth]{Figures/Queue.png}
+        \caption{Global and local queue}
+        \label{fig:queue}
+    \end{figure}
+
+
     \item[Local Replication Queue]
+    \item[Data Replicator]
     \item[Replication Data]
     \item[Replication Worker]
 \end{description}
 
-- Global Replication Queue
-- Local Replication Queue
+
 - ReplicationData
 - Lazy Execution Workers
-- Global replication Queue
-- Local Replication Queue
--ChangeDataCaptureObject
+- ChangeDataCaptureObject
 - ChangeDataCaptureCollectore capture-queue \todo{add picture with statement and transaction id to filter out teh individual capture objects as hashtable }
 - Queueing process as flowchart
 - replication process as flowchart
 
 
 
+\todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
+as well as the on-demand approach using Priamry Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Automatic Lazy Replication Algorithm}
 \label{sec:algo}
@@ -354,9 +459,11 @@ we can directly remove all pending updates and execute a primary snapshot copy b
 \todoMissing{Explain potential optimization steps  that we can analyze the queue and can aggregate certain steps or avoid 
 certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Manual Refresh Operations}
+\label{sec:manual_refresh}
+
 Despite that the autoamtic refresh operation will take care of most the occuring changes, users might need to be able to specifically priorities certain data placements 
 or entire tables to be updated faster than others. This couls also be the case if the placemnt is currently marked as \emph{INFNITELY OUTDATED}
 either because of to many failed replications or manually to remain a given state. 
@@ -371,7 +478,7 @@ This can therefore be used to for snapshot copy.
 \todoMissing{LazyWorkerThreads - were each worker is responsbile for carrying out one replication or requeing it after it has failed}
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Refresh strategies}
 As already stated above, there are essentially three ways to update a secondary node. 
@@ -399,10 +506,19 @@ ALTER TABLE dummy REFRESH ALL PLACEMENTS;
 
 Although such refresh-transactions can be executed on any placement, it will have no effect on primaries and simply omit their execution. 
 
-\subsection{Placement Refresh}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+\todoMissing{ Replication Suspension- Centrally via config for all or specifically for one data placement of a given entity using INFINITELY OUTDATED not to be compaired by a failing placment that is autoamtically marked as INFINITELY outdtaed}
+
+\todoMissing{Resume Distribution - Resumes the distirbution again after it has been centrally suspended}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Placement Constraints}
+\label{sec:constraints}
+
 \todoMissing{What happens for data DDL operations, to they neglect the freshness}
 
 \todoMissing{These changes will also have an impact on the partition distribution constraints. For vertically and horizontally partitioned 
@@ -411,6 +527,34 @@ the consistency of the system. For nodes labeled as outdated any variation is po
 
 \todoMissing{Maybe outllok adaptively learn the average failcount of certain operations on specific stores to automatically find a good balance between waiting for another try or labeleing it as outdated, therefore a given cost metric would be needed to also ensure 
 how often is this outdated palcement even cosnidered in freshness-related queries, do I need it in general }
+
+
+Furthermore since we are in a distributed setup, we always need to ensure that we do not lose any data, while transforming the indidivdual placements. 
+This already starts by defining the replicaiton strategy. Although Polypheny-DB allows to customly distributed an entity across several stores, we have to enforce that no 
+information is lost. This means that since we can arbitraly place any combination of columns and partitions of a given entity of any store, we need to make sure that at the end, 
+each column is represented by all available partitions at least once. Otherwise ... in violating the integrity of our system. 
+This consequently needs to be considered for outdatedness as well. Since we have decoupled updates of eagerly and lazily replicated placements, we again could lose data. 
+Therefore we again have to ensure that at least the eagerly replicated placements are sufficently configured such that each column is available for all partitions at least once.
+The remaining secondary placements however can again be arbitrarly combined without any requirements.\\
+Because it is possible to switch freely between LAZY and EAGER strategies even after tehy contain data, we again have to verify that no data is lost.
+Therefore when trying to switch from LAZY to EAGER, we have to ensure that this placement does not contain any pending updates, otherwise the operation will fail.
+If there currently are no pending updates the system will lock the entire table, so it will not receive any updates while switching the strategy internally. 
+Since this is merely done by setting a flag, the impact of the blocking behaviour can be neglected.\\
+
+Finally, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from REFRESHABLE to 
+INFINITELY OUTDATED and vice versa.
+While the manual switch to INFINITELY OUTDATED is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
+If this is not correctly ensured, and the replication starts propagting changes towards this replication again we will lose data in between on this replica.
+In this scenario the system first will need to make sure that the placements on this store are all uptodate. If this is not the case the operation will fail. 
+This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. An immediate chnage of states will then be accepted.
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsection{Placement Refresh}
 
 
 
@@ -429,8 +573,13 @@ ultimately fulfilled. Furthermore, for successfully executed queries that consid
 executed by means of a specific freshness level.
 In such a way a user can not only steer its desire but is also informed whether the request could be fulfilled.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{Fresnness Evaluation Types}
 \todo{maybe put this as description item into another sub section}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Freshness Query Specification}
 
@@ -495,6 +644,9 @@ Afterwards, these lists of partition placements is filtered based on the provide
 
 After the specification it is enriched 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{Freshness Detection and Extraction}
 
 For every query the query tree is parsed and evaluated in terms of syntactical correctness. Additionally, teh query is analyzed semantically where also the 
@@ -502,7 +654,7 @@ freshness will be extracted. This helps to autoamtically enrich the statement wi
 which influences locking capabilities and changes the routing process.
 The \textit{Freshness Extractor} also checks if for the specified freshness evaluation type
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Freshness Manager}
 \todo{Applies filters and combines different possibilities}
@@ -519,9 +671,17 @@ they will first be commited before the refresh takes place  (avoid deadlock) if 
 \todo{WITH FRESHNESS}
 This can be used if a user does not require a minimum level of freshness. This can be easily supported  
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Freshness Filtering}
 This is done based on thedifferent freshness evaluation types.
+
+
+\todo{partition placments are filtered and compared. although as stated in constraints, the priamry and lazy palcement do not have to be equal in terms of there representation (can contian different columns) 
+, we therefore just require to compare a partition placement with another eagerly partitoin palcement associated with the same partition.
+Allthough the columns good differ, the update and commit is always considered the same since they are based on the same partition. }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \subsection{Freshness Selection}
@@ -536,6 +696,8 @@ Lifecycle how does the freshness selection process work in geenral. How is filte
 \todoMissing{The removal of the entity immediately removes all outdated placmenets, so no freshnes or multi version read is possible anymore.
 Also if an up-to-date placement is dropped, we need to ensure that we do not lose data otherwise this operation is not possible.}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \todo{Maybe not an entire section. Rather discussed internally}
 \subsection{Referential Integrity - Freshness Isolation}
 

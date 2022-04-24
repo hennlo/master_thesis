@@ -78,8 +78,8 @@ To achieve this in a polystore environment we need to be able to classify existi
 Naively these could be \emph{up-to-date} and \emph{outdated}. Where the latter could become outdated over time, while the first one always needs to be up-to-date. \\
 Based on these roles we are then able to decide which replicas to consider for which use case.
 Alongside the idea of a polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
-based on the provided use case. E.g. label those stores as up-to-date that support highly transactional workload and will therefore be considered for every update.
-And configure replicas as outdated, when they are rather suitable for analytical queries which implicitly harvests the benefits of the encompassed stores. \\
+based on the provided use case. E.g. label those stores as up-to-date that support highly transactional workload and will therefore be considered for every update as OLTP nodes.
+And configure replicas as outdated, when they are rather suitable for analytical queries which implicitly harvests the benefits of the encompassed stores as OLAP nodes. \\
 
 To consequently, compare those replicas, they need to be equipped with metadata of at least two timestamps. 
 One is the update timestamp when the replica has been last modified,
