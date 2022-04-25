@@ -9,6 +9,21 @@ They are attached as an optional leaf expression for every \emph{SELECT} stateme
 
 \tocless\section{PolySQL}
 
+
+\begin{lstlisting}[language=sql]
+    SELECT * FROM tableName 
+    [ WITH FRESHNESS 
+        [ 
+            ( 
+                TIMESTAMP 
+                | 
+                <DELAY> 
+                | 
+                <INDEX> 
+            )   
+        ]];
+\end{lstlisting}
+
 \tocless\subsection{Absolute Timestamp}
 
 \begin{verbatim}

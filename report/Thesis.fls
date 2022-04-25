@@ -163,6 +163,10 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\uniquecou
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\uniquecounter\uniquecounter.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\cleveref\cleveref.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\cleveref\cleveref.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption3.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\caption3.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\todonotes\todonotes.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\todonotes\todonotes.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\pgf\frontendlayer\tikz.sty
@@ -365,6 +369,18 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msam7.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm10.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\amsfonts\symbols\msbm7.tfm
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\entity_placements_replication.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\entity_placements_replication.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\entity_placements_replication.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\entity_placements_replication.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\entity_placements_replication.png
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\Queue.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\Queue.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\Queue.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\Queue.png
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\Queue.png
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\psnfss\ot1pcr.fd
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\courier\pcrr7t.tfm
@@ -373,8 +389,6 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\couri
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\jknappen\ec\tcrm0800.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omlcmr.fd
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omlcmr.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd
-INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\base\omscmr.fd
 INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\9_Conclussion.tex
