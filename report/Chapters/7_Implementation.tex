@@ -200,6 +200,8 @@ This section discusses all implementations along with the introduced components 
 multi versioning and the possibility to refresh specific replicas. This serves as a foundation in order to use those distinct versions
 to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing a mixed worklaod to exist in parallel.
 
+\todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
+as well as the on-demand approach using Priamry Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
 
 
 \subsection{Placement Versioning}
@@ -309,7 +311,7 @@ and can be differentiated into three states that define the intended state of a 
     Allthough this is possible in terms of the received update, it is not respresented using these states. They rather impact the behaviour and handling during processing.
     
     \item [REFRESHABLE] Initially this is configured when the corresponding data placement receives updates lazily. This allows the partition placement to actively receive 
-    individual updates by a replication algorithm. A refreshable state can be automatically and manually transformed into an \emph{INFINITELY-OUTDATED} state.
+    individual updates by a replication algorithm. A refreshable state can be automatically and manually transformed into an \emph{INFINITELY OUTDATED} state.
 
     \item [INFINITELY-OUTDATED] This state is specifically marked, to stay outdated and not receive any updates. This can either be done manually, because a user may want to
     retain an item with a given version, hence surpressing the automatic update replication on this node. Additionally this can be set autoamtically by the system, 
@@ -319,7 +321,7 @@ and can be differentiated into three states that define the intended state of a 
 \end{description}
 
 The distinction between these cases is necessary, to allow treating partition placements on a given store differentely. 
-Otherwise if one 
+Otherwise if one partition placement would be automatically labeled as \emph{INFINITELY OUTDATED} the entire data placement could be refreshed anymore.
 Therefore they are handled and considered independently.
 
 Although, this state is required for internal processing of individual partition placements, the manual specifcation of this state is still targeted to an entire data placement.
@@ -352,13 +354,12 @@ these partitions could already be up-to-date again, while others still remain ou
 \subsection{Change Data Capture}
 \label{sec:cdc_impl}
 
-
 Influenced by the replication strategies the routing process is now capable of differentiating between placements needed to be updated immediately or asynchronously. 
 When processing a DML-operation, the router can identify for a given entitiy if it contains at least one placement that is updated lazily.
 If this is true it will capture all executed changes within a \emph{Change Data Object} to be later applied on these placements. 
 Disregarding the operation type $\in \{INSERT,UPDATE,DELETE\}$, it contains information on all logical partitions that have been involved, 
 the executed operation, as well as the current statement and transaction id. For \emph{DELETE} and \emph{UPDATE} operations it also stores additional information on possible filter 
-conditions. Each statement within a transaction can have at most one of these objects.\\
+conditions. Each statement within a transaction can have at most one of these objects and refers to one operation to be executed.\\
 
 After creation this object will be added along its statement id to a preliminary \emph{capture-queue} within the \emph{Change Data Collector}. 
 As visualized in \ref{fig:capture}\todoMissing{Add illustration of hashtable in data colelctor identifiyng transaction to stateemnt.} this capture-queue is represented as as hashtable for 
@@ -369,7 +370,7 @@ Each statement inside this structure is attached to its respective \emph{Change 
 To be able to apply operations directly to the outdated replicas, they need to be converted into basic operations that can be applied to a prepared statement.
 Therefore they are captured before they are executed but after they have been evaluated.\\
 Since not all stores provide the same functional capabilities, we can leverage the polystore-layer to pre-compute certain calls before applying them to the underlying stores.
-Typical functions that are not uniformly provided are e.g.: $CURRENT\_TIME$ or $TIME\_NOW$. This allows storing the actual values that are executed on the store,
+Typical functions that are not uniformly provided are e.g.: \emph{CURRENT\_TIME} or \emph{TIME\_NOW}. This allows storing the actual values that are executed on the store,
 hence saving execution time during update propagation.
 During runtime of any given statement the actual evaluated data values are then injected into the object stored within the capture-queue.\\
 The benefit of this structure is that as soon as the transaction commits, the \emph{Change Data Collector} is notified, streaming all objects in correct execution order
@@ -382,16 +383,16 @@ Since the registration is done during the commit, we are sure that any pending c
 
 \subsection{Lazy Replication Engine}
 
-Is build on a basic \emph{Replication Engine}, that contains the core functionality that transforms capture objects into distinct replication objects and 
+A \emph{Replication Engine}, contains the core functionality that transforms capture objects into distinct replication objects and 
 pipes them to specific execution engines.
 The \emph{Lazy Replication Engine} is a specific implementation of the general replication engine and enhances it with several additional capabilities targeting
 the lazy replication strategy. This engine essentially provides the CDC approach proposed in section \ref{sec:refresh_operations} and is influenced by the 
-change data capture service of section \ref{sec:cdc_impl}.\\
+change data capture service of section \ref{sec:cdc_impl}, to apply changes operation-wise to designated targets.\\
 
 During commit time of a transaction, all corresponding \emph{Change Data Objects} will be first transformed into distinct \emph{Replication Objects}. Other than
 the generic change objects these are restructured and specifically tailored to specific operations and designated targets. During transformation the engine retrieves all 
 relevant placements that are currently defined to receive updates lazily. Then for each of these target placements an individual replication object is generated, allowing to 
-replicate changes independently from each other. These transformed replication objects are then added to a \emph{Global Replication Queue} which concludes the change data registration process.
+replicate changes independently from each other. These transformed objects are then added to a \emph{Global Replication Queue} which concludes the change data registration process.\\
 
 
 The engine itself is decomposed into the following services that jointly allow an asynchronous execution of modifications within Polypheny-DB. 
@@ -399,66 +400,112 @@ The engine itself is decomposed into the following services that jointly allow a
 \begin{description}
 
     \item[Replication Data Object] This object contains all information, necessary to re-create a statement which is equivalent to the orginal one,
-    that has been executed on the primary placements. 
+    that has already been executed on the primary placements. 
     Therefore it keeps information on the orginal transaction, its commit time as well as the operation type and the data to be delivered. 
     This is further enriched with a list of all target partition placements that shall receive this modification. The list of targets is generated
     at the time the initial update transaction has been committed and changes have been queued. In order to avoid storing data redundantly, this data object 
-    is centrally stored and only referenced at the depending replication objects disregarding the number of placements that shall receive a given DML-operation. 
+    is centrally stored and only referenced by depending replication objects, disregarding the number of placements that shall receive a given DML-operation.
+    This data is kept as long as there are replication objects depending on it for executing their replication.
 
 
-    \item[Global Replication Queue] This queue is the core component and the inherent driver revolving around the lazy replication approach. 
-    It contains individual replication IDs which correspond to replications targeting exactly one partition placement at a time. 
-    It is represented as a FIFO queue receiving new replication IDs that are resitred through the \emph{Change Data Collecor} or rescheduled from workers.
+    \item[Global Replication Queue] 
     
-
-    As depicted in figure \ref{fig:queue} this 
-
-    Each replication event within the queue is therefore defined as $x_{z}^y$, where $x$ is the designated target partition placement, $y$ a global
-    replication id uniquely identifiying a specific replication and $z$ a reference linking to the actual replication data. 
-    Since our replication engine should replicate the data operation-wise, each event within the queue corresponds to one operation associated with one target partition placement.
-    Therefore each event can be applied independently 
-
     \begin{figure}[t]
         \centering
         \includegraphics[width=0.8\textwidth]{Figures/Queue.png}
-        \caption{Global and local queue}
+        \caption{Association between global replication queue and local dependency queues}
         \label{fig:queue}
     \end{figure}
 
-    
+    This queue is the core component and the inherent driver revolving around the lazy replication approach. 
+    It contains individual replication IDs which correspond to replications targeting exactly one partition placement at a time.
+    As depicted in figure \ref{fig:queue} it is represented as a FIFO queue receiving new replication IDs that are registered through the \emph{Change Data Collector} 
+    or are rescheduled by \emph{Replication Workers}.\\
+    Each replication event within this queue is therefore defined as $x_{z}^y$, where $x$ represents the designated target partition placement, $y$ a global
+    replication id uniquely identifiying a specific replication object and $z$ a reference linking to the actual replication data. 
+    Since our replication engine should replicate the data operation-wise, each event within the queue corresponds to one operation associated with one target partition placement.
+    Therefore each event can be applied independently. Since the priamry transaction can only be committed when teh data to be replicated has been added to this queue,
+    it stores the replication events in-memory.
 
-    \item[Local Replication Queue] This queue is defined per partition placement containing pending updates that are yet to be replicated. 
+  
+    \item[Local Dependency Queue] This queue is defined per partition placement containing pending updates that are yet to be replicated. 
     Since all updates need to be delivered in the same order as they have been applied on the primary replica, they depend on each other. 
     Although labeled and represented as a queue, the entries are saved as an DAG. Where each replication event depends on its predecessor to be executed first.
-    Since the entries within this queue are not added concurrently and are ordered in their execution order, we are certain that the imposed dependency
-    reflects the original execution order. Therefore this queue is used as a utility to enforce constraints and ensure that operations are applied in correct order.
+    Since the entries within this queue are not added concurrently and are ordered according to their execution order, we are certain that the imposed dependency
+    reflects the original execution order. Therefore this queue is used as an utility to enforce constraints on all intermediate steps ensuring that operations are applied 
+    in correct order, that all replicas converge equally towards a given target. 
 
 
-    \item[Replication Worker] These workers are an essential part of the replication engine since they continuously process events from the global queue.
-    
+    \item[Replication Worker] These workers are an essential part of the replication engine since they continuously process events from the global queue 
+    and initiate the execution. As soon as a worker thread has finished processing a replication, it will tak the oldest item from the global queue. 
+    Before starting the replication process, it will make sure that this is indeed the next replication to be executed based on the dependency constraints
+    within the local dependency queue. If the replication event is not the next to be executed, the worker will re-queue the event, to be proccessed later.
+    However, if all prerequisites can be verified a dedicated refresh-transaction is started.
+    The one operation is passed on to the \emph{Data Replicator} which will then actually execute the statement on a given target.
+    After successful termination, the worker will remove this dependency form the local queue as well as from the replication data. \\
     Based on the current load and the number of pending replications on the system, these workers will be scheduled as needed, allowing to dynamically scale as the system grows.
-    Since the \emph{Local Replication Queue} always will ensure the correct execution order a concurrent processing of the replicaitons is possible.     
+    Since the \emph{Local Dependecy Queue} always will ensure the correct execution order a concurrent processing of the replicaitons is possible.     
     
-    \item[Data Replicator] Is implemented as the 
+
+
+    \item[Data Replicator] Is implemented as the actual execution engine which will recreate and execute a captured operation. 
+    It is invoked by the replication workers, passing a replication event together with a reference to the corresponding replication data.
+    For the Lazy Replication Engine, it will receive one operation per target placement. 
+    This has the advanatage that we can now decide based on the targets current placement structure, how to reconstruct the statement. 
+    Because this is done right before execution, it shows the benefits of capturing the entire object instead of the statement to be executed per placement. 
+    Since this target could have been altered since capturing, it could now have a different set of columns.
+
+
 
     \item[Update Metadata] Since data is essentially stored on physical entities, represented by the internal partition placements, we extended these objects 
-    to contain information on general update statistics relevant for this particular placement.
+    to contain information on general update statistics relevant for this particular placement. These information will be updated at commit time of a write-operation.
+    For eagerly replicated placements this is the priamry transaction, for lazily replicated however the refresh transaction.
     This enables the system to use this update information to essentially retrieve the current state of the data, represented by the commit timestamp
-    and the numer of updates this partition placment has already applied. Allowing us to use those metadata to compare different versions against each other. 
+    and the numer of updates this partition placement has already applied. Allowing us to use those metadata to compare different versions against each other.
     \todoMissing{Maybe illustration}
 
 \end{description}
 
 
-\todoMissing{ Change Data Capture  -Is separated into 2 phases}
+
+With all these services the replication engine is able to process multiple replications at once, while ensuring the correct execution order and stability
+for each replication to be executed. 
+Since all operations are propagated atomically within one transaction we do not need to worry about a rollback of a refresh transaction or provide complex undo-operations 
+to remove those changes. Therefore, these replications can be applied independently per target partition placements and do not interfere with each other, 
+allowing for a high flexibility.
+Furthermore, it does not only replicate the captured modififcations it provides a fault-tolerant approach as well. 
+Since Polypheny-DB consists of multiple attached stores that might suffer from outages or local failures, replications might fail.
+However since the replication data is centrally stored and is only removed when all dependent replications have been executed, 
+a replication event that coninuosuly keeps failing will uneccessarly occupy worker threads and waste storage resources to preserve the data.
+Therefore a centrally configured \emph{Fail Count Threshold} is introduced. Everytime a replication fails, the responsbile worker thread will increase the \textit{fail counter} 
+of a given replicaiton object. If it reaches the threshold the replication will be removed from the queue entirely. 
+Furthermore the traget will be removed from the engine by deleting all remaining local replications for this target as well.
+Consequently this particular partition placement will be suspeneded for active data capturing and marked as \emph{INFINITELY OUTDATED}.\\
+
+Due to the architecture of the queue, we can only get an event at the top of the queue. This increases the difficulty to remove all associated replications 
+for a target placement at once. However since workers will validate if replications can even be executed and can therefore identify suspended targets, they will
+automatically cleanse the queue from unwanted replications, without expensively removing each item within the queue.\\
+
+Moreover contentions can also occur directly within Polypheny-DB, if there are too many pending updates, waiting to be replicated.
+Despite the scaling capabilities of the workers the load on the system might still be too high essentially affecting the main operation on the system.
+However part of the defined requiremnts are 
+Therefore we have enriched the configuration to globally enable or disable the replciation distribution. In constrast to labeleing data placements as outdated, 
+and removing all pending replications for ever, we can now allow to temporarily stop the replication and only continue to capture modifications. This can help the system
+to adapt to high load situations by focusing on the core funcitonality.\\
+
+However despite this ability to remain operational during failure situations, the utilzed queues within the engine are still only stored within main memory.
+Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
+shuts down for any reason. Since we rely on the fast registration process to commit the primary transaction as fast as possible we need to mitigate this behaviour.
+Since we always know which placments are updates lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
+The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as INFINITELY OUTDATED, 
+and therefore suspending any more replications. Users can either choose to update the system manually or refreshing is on read as proposed in \ref{sec:refresh_strategies}.
+The second approach approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
+
 
 - Queueing process as flowchart
 - replication process as flowchart
 
 
-
-\todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
-as well as the on-demand approach using Priamry Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

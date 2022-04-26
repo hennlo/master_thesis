@@ -19,7 +19,9 @@ With this implementation we have introduced a fault tolerant replication algorit
 while ensuring the correct consistency of each placemnts by enforcing the natural execution order. All while autoamtically rescheduling failed replications and removing left over
 replications from suspended or removed placments, hence cleansing the environemnt during runtime.
 
-
+The results presented in section \ref{sec:results} show that allthough freshness can greatly improve the performance of 
+already the differentiation between eager and lazy replication, helped to drastically reduce the average repsonse time of the system.
+Furthermore it now enables Polypheny-DB to decide per entity how the trade-off betwwen latency and consistency should look like, in accordance with the CAP theorem. 
 
 When partial replication is used, several of the underlying stores may qualify
 for the execution of these queries. In order to avoid that single stores are overloaded, query processing and optimization
@@ -35,6 +37,12 @@ Albeit not being able to support Serializable Snapshot Isolation, the implementa
 Since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
 Even the freshness specification without any determined tolerated level, promises a certain level of freshness by design.
 
+
+Of yource there are obvious choices to improve such as teh queue persistency. While enabling a fast access when storing replicaiton in memeory it is prone to failures and outages,
+losing relevant data to be replicated. In order to remove the workarounds during startup, teh replication queues as well as the data have to be persisted.
+Despite slower processing times for priamry update transactions, we would increase the stability and the receoverability of the system immensely 
+At the end this again is a trade-off between availability and consistency, dependening on indidivdual requirements.
+This is however is an obvious extension for this work and introduces a foundation for future work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
