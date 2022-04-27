@@ -201,7 +201,7 @@ multi versioning and the possibility to refresh specific replicas. This serves a
 to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing a mixed worklaod to exist in parallel.
 
 \todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
-as well as the on-demand approach using Priamry Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
+as well as the on-demand approach using primary Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
 
 
 \subsection{Placement Versioning}
@@ -282,8 +282,9 @@ This allows for a much finer level of detail and increases the degree of paralle
 
 Can be used to selectively define which data placement shall be updated lazily.
 The replication strategy can therfore be directly defined as:
-\begin{lstlisting}[language=sql]
-    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION ( LAZY | EAGER );
+\begin{lstlisting}[language=sql, caption={SQL Stateemnt Syntax to modify the designated Replication Strategy for a Data Placement}]
+ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName 
+                                       WITH REPLICATION ( LAZY | EAGER );
 \end{lstlisting}
 
 This replication strategy is added as part of the newly added data placement properties. Since Data Placements inherently carry the information, what column and partitions reside
@@ -334,10 +335,11 @@ Trying to change this manually will result in an error since it is controlled by
 
 Placements containing \emph{REFRESHABLE} 
 
-\begin{lstlisting}[language=sql]
-    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH STATE ( REFRESHABLE | OUTDATED );
+\begin{lstlisting}[language=sql, caption={SQL Statement Syntax to change the designated Replication State of data placement.}]
+ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName 
+                                       WITH STATE ( REFRESHABLE | OUTDATED );
 \end{lstlisting}
-OUTDATED referring to INFINITELY OUTDATED,  by explicitly labeling it as outdated it will suspend all update propagation towards those stores.
+OUTDATED referring to INFINITELY OUTDATED, by explicitly labeling it as outdated it will suspend all update propagation towards those stores.
 
 Furthermore each Partition Placement is enriched with the most recent update information to support various freshness metrics.
 This update information contains insights such as the id of the last comitted update transaction, the corresponding commit and update timestamp as well as the number of 
@@ -362,10 +364,17 @@ the executed operation, as well as the current statement and transaction id. For
 conditions. Each statement within a transaction can have at most one of these objects and refers to one operation to be executed.\\
 
 After creation this object will be added along its statement id to a preliminary \emph{capture-queue} within the \emph{Change Data Collector}. 
-As visualized in \ref{fig:capture}\todoMissing{Add illustration of hashtable in data colelctor identifiyng transaction to stateemnt.} this capture-queue is represented as as hashtable for 
+As visualized in \ref{fig:hashtable} this capture-queue is represented as a hashtable for 
 faster retrieval, and maps a transaction to a list of statements that require change data capture. 
 These statements are stored with respect to their execution order within the parent transaction.
 Each statement inside this structure is attached to its respective \emph{Change Data Object}.\\
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Figures/hashtable.png}
+    \caption{Capture Queue, containing partitions as well as ordered lists of corresponding statements}
+    \label{fig:hashtable}
+\end{figure}
 
 To be able to apply operations directly to the outdated replicas, they need to be converted into basic operations that can be applied to a prepared statement.
 Therefore they are captured before they are executed but after they have been evaluated.\\
@@ -382,6 +391,7 @@ Since the registration is done during the commit, we are sure that any pending c
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Lazy Replication Engine}
+\label{sec:lazy:_engine}
 
 A \emph{Replication Engine}, contains the core functionality that transforms capture objects into distinct replication objects and 
 pipes them to specific execution engines.
@@ -416,7 +426,7 @@ The engine itself is decomposed into the following services that jointly allow a
         \caption{Association between global replication queue and local dependency queues}
         \label{fig:queue}
     \end{figure}
-
+  
     This queue is the core component and the inherent driver revolving around the lazy replication approach. 
     It contains individual replication IDs which correspond to replications targeting exactly one partition placement at a time.
     As depicted in figure \ref{fig:queue} it is represented as a FIFO queue receiving new replication IDs that are registered through the \emph{Change Data Collector} 
@@ -424,15 +434,17 @@ The engine itself is decomposed into the following services that jointly allow a
     Each replication event within this queue is therefore defined as $x_{z}^y$, where $x$ represents the designated target partition placement, $y$ a global
     replication id uniquely identifiying a specific replication object and $z$ a reference linking to the actual replication data. 
     Since our replication engine should replicate the data operation-wise, each event within the queue corresponds to one operation associated with one target partition placement.
-    Therefore each event can be applied independently. Since the priamry transaction can only be committed when teh data to be replicated has been added to this queue,
-    it stores the replication events in-memory.
+    Therefore each event can be applied independently. Since the primary transaction can only be committed when the data to be replicated has been added to this queue,
+    it stores the replication events in-memory to process it faster.
 
   
     \item[Local Dependency Queue] This queue is defined per partition placement containing pending updates that are yet to be replicated. 
     Since all updates need to be delivered in the same order as they have been applied on the primary replica, they depend on each other. 
     Although labeled and represented as a queue, the entries are saved as an DAG. Where each replication event depends on its predecessor to be executed first.
     Since the entries within this queue are not added concurrently and are ordered according to their execution order, we are certain that the imposed dependency
-    reflects the original execution order. Therefore this queue is used as an utility to enforce constraints on all intermediate steps ensuring that operations are applied 
+    reflects the original execution order. If the queue already contains items, new changes will be appended left of the dependency graph. 
+    Resulting in the first new item directly depending on the last item currently in the queue, to be executed first. 
+    Therefore this queue is used as an utility to enforce constraints on all intermediate steps ensuring that operations are applied 
     in correct order, that all replicas converge equally towards a given target. 
 
 
@@ -459,7 +471,7 @@ The engine itself is decomposed into the following services that jointly allow a
 
     \item[Update Metadata] Since data is essentially stored on physical entities, represented by the internal partition placements, we extended these objects 
     to contain information on general update statistics relevant for this particular placement. These information will be updated at commit time of a write-operation.
-    For eagerly replicated placements this is the priamry transaction, for lazily replicated however the refresh transaction.
+    For eagerly replicated placements this is the primary transaction, for lazily replicated however the refresh transaction.
     This enables the system to use this update information to essentially retrieve the current state of the data, represented by the commit timestamp
     and the numer of updates this partition placement has already applied. Allowing us to use those metadata to compare different versions against each other.
     \todoMissing{Maybe illustration}
@@ -493,29 +505,21 @@ Therefore we have enriched the configuration to globally enable or disable the r
 and removing all pending replications for ever, we can now allow to temporarily stop the replication and only continue to capture modifications. This can help the system
 to adapt to high load situations by focusing on the core funcitonality.\\
 
-However despite this ability to remain operational during failure situations, the utilzed queues within the engine are still only stored within main memory.
-Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
-shuts down for any reason. Since we rely on the fast registration process to commit the primary transaction as fast as possible we need to mitigate this behaviour.
-Since we always know which placments are updates lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
-The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as INFINITELY OUTDATED, 
-and therefore suspending any more replications. Users can either choose to update the system manually or refreshing is on read as proposed in \ref{sec:refresh_strategies}.
-The second approach approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
-
-
-- Queueing process as flowchart
-- replication process as flowchart
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Automatic Lazy Replication Algorithm}
 \label{sec:algo}
 
-\todo{Uses the provided change data capture approach}
+\begin{figure}[t] 
+    \centering
+    \includegraphics[width=0.9\textwidth]{Figures/flow_worker.png}
+    \caption{Lifecycle of a \textit{Replication Worker} processing pendning replications from central queue}
+    \label{fig:flow_worker}
+\end{figure}
 
 The goal of the entire lazy replication approach is providing a scalable and fault tolerant approach to distribute the data for each placement onto the designated stores.
-Therefore, the algorithm as depicted in figure \todo{ref image of flowchart}, aims to provide a cost-efficient approach to replicate the change data without increasing 
+Therefore, the algorithm as depicted in figure \ref{fig:flow_worker}, aims to provide a cost-efficient approach to replicate the change data without increasing 
 the overhead of the system and impacting regular operations. 
 For every DML-operation the routing process will verify which placements need to receive this modification. During this process, all eagerly replicated stores for this entity
 are identified. Since all entities contain a list of all data placements, we can compare the delta between the retrieved stores and the actual stores. 
@@ -528,7 +532,7 @@ and appended to the capture-queue.\\
 During runtime when the statement is about to be pushed-down to the designated stores, the prepared statement is enriched with the pre-evaluated information, 
 neccessary to execute the statement. These parameter values are added to the \emph{Change Data Capture Object} as well. 
 Accompanied with the parent transaction and the statement id we can identify this change object within the preliminary capture-queue 
-and enrich it with the necessary information (see \todo{add link to image}).\\
+and enrich it with the necessary information (see \ref{fig:hashtable}).\\
 As soon as the transaction has finished, this object is further processed. If the transaction was aborted and rolledback, we again can directly remove all pre-queued changes 
 that are associated with this transaction by removing the entry from the nested hashtable. This will cascadingly remove all attached capture objects.\\
 However, if the transaction will be succesfully commited, the finalization phase starts. For all capture objects associated with this transaction the corresponding commit 
@@ -569,57 +573,41 @@ the correct execution order that we have to apply the data changes on. So it is 
 after the entire transaction has been replicated but right after each operation. 
 However, since Polypheny-DB currently only supports a SS2PL approach we can 
 mimic this behaviour by scheduling refresh transaction containing only one modification.
-This allows us to replicate data using the less strict 2PL approach, hence improving the overall performance of replications with respect to the priamry execution.
+This allows us to replicate data using the less strict 2PL approach, hence improving the overall performance of replications with respect to the primary execution.
 
-
-
-\todoMissing{In regards to CDC, if we observe that the number of pending update operations exceed a certain threshold for example 50\% of the total number of modifications of the master
-we can directly remove all pending updates and execute a primary snapshot copy because this is faster then reexecuting the operation again. }
-
-
-
-\todoMissing{Explain potential optimization steps that we can analyze the queue and can aggregate certain steps or avoid 
-certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Manual Refresh Operations}
 \label{sec:manual_refresh}
 
-Despite that the autoamtic refresh operation will take care of most the occuring changes, users might need to be able to specifically priorities certain data placements 
-or entire tables to be updated faster than others. Additionally this could also be the case if one placement is currently marked as \emph{INFNITELY OUTDATED}
-either because of too many failed replications or because it was manually configured to remain in a given state. 
+Although, the automatic refresh operation, based on the change data capture approach will continuously propagate incoming changes,
+it is not able to prioritize certain placements after they have been added to the queue proposed in \ref{sec:lazy:_engine}.
+However, users might need to be able to specifically prioritize data placements or entire tables to be updated faster than others. 
+This could also be the case if one placement is currently marked as \emph{INFNITELY OUTDATED}.
+Either because of too many failed replications or because it was manually configured to remain in a given state. 
 As described in \ref{sec:refresh_operations} we need to be able to provide manual refreshes on the basis of primary snapshot copies.
-This inherently uses the capabilities of Poylphenys existing \emph{Data Migrator}, which essentially queries a defined source entity on a given store.
-and subsequently will apply this data onto a targeted placement.
-This can therefore be used to for snapshot copy.
-
-\todoMissing{Not specifically in manual, altering or inhernetly modifying a data placement with DDLs leaves them as INFINITELY OUTDATED }
-\todoMissing{ Or is this automatically detected since we centrally store the replication object and can apply it to arbitrary placements disregarding their local columns or partitions.}
-
-\todoMissing{LazyWorkerThreads - were each worker is responsbile for carrying out one replication or requeing it after it has failed}
-
-\todoMissing{Allthough data resides on th epartition placmeents, users may only directly interact with a data placement.
-We therefore either allow to manually refresh one specific data placement respectively all partition placements resing on a given store or an entire table.}
-
-\begin{verbatim}
-    ALTER TABLE dummy REFRESH PLACEMENT ON STORE outdated_store;
-\end{verbatim}
-
-\begin{verbatim}
-    ALTER TABLE dummy REFRESH ALL PLACEMENTS;
-\end{verbatim}
+This inherently uses the capabilities of Poylphenys existing \emph{Data Migrator}, which essentially queries a defined source entity on a given store. 
+Together with the current update metadata of this placement, the extracted result of this query can be considered as a snapshot of a given replica.
+The contents of this result will be subsequently applied onto a targeted placement.\\
+After the data migration process has finished, the target receives its new update inforamtion on the basis of previously extracted update metadata.
+The system then autoamtically switched teh replication state of this placement back to REFRESHABLE, starting to capture chanegs again.
+Since the snapshot merely depends on the source, only a short-lived shared lock is applied until the data has been extracted. Apart from this, the snapshot will have no impact
+on the actual system.\\
 
 
-Although such refresh-transactions can be executed on any placement, it will have no effect on primaries and simply omit their execution. 
+Despite that data resides on the partition placmenets, users may only directly interact with a data placement of an entity.
+We therefore either allow to manually refresh one specific data placement respectively all partition placements resing on a given store or an entire table.
+
+\begin{lstlisting}[language=sql, caption={SQL Statement Syntax for an On-Demand Refresh Operation}]
+ALTER TABLE tableName REFRESH ( ALL PLACEMENTS 
+                              | PLACEMENT ON STORE outdated_store );
+\end{lstlisting}
+
+Although such refresh-transactions can be executed on any placement, it will have no effect on primaries. 
+The same holds for placements that are already up-to-date with respect to their corresponding primary-version, where the execution will be simply omitted.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\todoMissing{ Replication Suspension- Centrally via config for all or specifically for one data placement of a given entity using INFINITELY OUTDATED not to be compaired by a failing placment that is autoamtically marked as INFINITELY outdtaed}
-
-\todoMissing{Resume Distribution - Resumes the distirbution again after it has been centrally suspended}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -627,54 +615,49 @@ Although such refresh-transactions can be executed on any placement, it will hav
 \subsection{Placement Constraints}
 \label{sec:constraints}
 
-\todoMissing{What happens for data DDL operations, to they neglect the freshness}
-
-\todoMissing{These changes will also have an impact on the partition distribution constraints. For vertically and horizontally partitioned 
-entities this means that all constraints on the number of available column-placements can only be considered for primary update stores. Otherwise, this could harm
-the consistency of the system. For nodes labeled as outdated any variation is possible.}
-
-\todoMissing{Maybe outllok adaptively learn the average failcount of certain operations on specific stores to automatically find a good balance between waiting for another try or labeleing it as outdated, therefore a given cost metric would be needed to also ensure 
-how often is this outdated palcement even cosnidered in freshness-related queries, do I need it in general }
-
-
-Furthermore since we are in a distributed setup, we always need to ensure that we do not lose any data, while transforming the indidivdual placements. 
-This already starts by defining the replicaiton strategy. Although Polypheny-DB allows to customly distributed an entity across several stores, we have to enforce that no 
+Since we are in a distributed setup, we always need to ensure that we do not lose any data, while transforming the indidivdual placements. 
+This already starts by defining the replicaiton strategy. Although Polypheny-DB allows to customly distribute an entity across several stores, we have to enforce that no 
 information is lost. This means that since we can arbitraly place any combination of columns and partitions of a given entity of any store, we need to make sure that at the end, 
-each column is represented by all available partitions at least once. Otherwise ... in violating the integrity of our system. 
+each column is represented by all available partitions at least once. Otherwise this would violate the integrity of our system. 
 This consequently needs to be considered for outdatedness as well. Since we have decoupled updates of eagerly and lazily replicated placements, we again could lose data. 
 Therefore we again have to ensure that at least the eagerly replicated placements are sufficently configured such that each column is available for all partitions at least once.
 The remaining secondary placements however can again be arbitrarly combined without any requirements.\\
-Because it is possible to switch freely between LAZY and EAGER strategies even after tehy contain data, we again have to verify that no data is lost.
+Because it is possible to switch freely between LAZY and EAGER strategies even after they contain data, we again have to verify that no data is lost.
 Therefore when trying to switch from LAZY to EAGER, we have to ensure that this placement does not contain any pending updates, otherwise the operation will fail.
 If there currently are no pending updates the system will lock the entire table, so it will not receive any updates while switching the strategy internally. 
 Since this is merely done by setting a flag, the impact of the blocking behaviour can be neglected.\\
 
-Finally, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from REFRESHABLE to 
+Furthermore, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from REFRESHABLE to 
 INFINITELY OUTDATED and vice versa.
 While the manual switch to INFINITELY OUTDATED is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
 If this is not correctly ensured, and the replication starts propagting changes towards this replication again we will lose data in between on this replica.
 In this scenario the system first will need to make sure that the placements on this store are all uptodate. If this is not the case the operation will fail. 
-This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. An immediate chnage of states will then be accepted.
+This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. An immediate change of states will then be accepted.\\
 
+Finally, despite its ability to remain operational during failure situations, the utilzed queues within the engine are still only stored within main memory.
+Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
+shuts down for any reason. Since we rely on the fast registration process to commit the primary transaction as fast as possible we need to mitigate this behaviour.
+Since we always know which placments are updates lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
+The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as INFINITELY OUTDATED, 
+and therefore suspending any more replications. Users can either choose to update the system manually or refreshing is on read as proposed in \ref{sec:refresh_strategies}.
+The second approach approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-\subsection{Placement Refresh}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 
 
 \section{Freshness Awareness}
 This section focusses on all aspects to establish the core aspects of freshness within Polypheny-DB. 
 
+With the Lazy Replication and teh accompanied defferal of transactions in place, we already have a foundation to us ethese versions
+for outdated data.
 
 Moreover, to improve the user experience the query tree paths should be extended to specify which level of freshness was requested and with which level it was 
 ultimately fulfilled. Furthermore, for successfully executed queries that considered some kind of freshness it shall be added in the SQL response that is has been 
@@ -704,9 +687,8 @@ For SQL it is extended as an optional leaf expression at the end of every query.
 
 For the overall freshness guidance an extension of PolySQL is necessary.
 Along the description defined users can choose to select any of the specifications to guide the system.
-\begin{lstlisting}[language=sql]
-SELECT * FROM tableName 
-[ WITH FRESHNESS [ <TIMESTAMP> | <DELAY> | <INDEX> ] ];
+\begin{lstlisting}[language=sql, caption={Generalized Freshness Specification}]
+SELECT * FROM tableName [ WITH FRESHNESS [ <TIMESTAMP> | <DELAY> | <INDEX> ] ];
 \end{lstlisting}
 
 Also use simply \emph{WITH FRESHNESS} to specify that you dont care with what freshness it returns
@@ -735,7 +717,7 @@ Afterwards, these lists of partition placements is filtered based on the provide
     This will intuitively substract the specified \emph{absolute time delay} from the current time generating a lower bound timestamp. 
     This again allows filtering all partition placements based on the age of their commit timestamp.
     Again as described in \ref{sec:freshne_metrics}, an absolute time delay based on the current time is not always accurate or might even render wrong results.
-    Therefore, a \emph{relative time delay} specification is provided as well. Allowing to specify the tolerated time deviation based on the commit of a priamry placement 
+    Therefore, a \emph{relative time delay} specification is provided as well. Allowing to specify the tolerated time deviation based on the commit of a primary placement 
     compared to an outdated placement. To differentiatet those options they are individually suffixed $\in \{ABSOLUTE, DELAY\}$
 
     \item[Freshness Index]
@@ -757,7 +739,7 @@ After the specification it is enriched
 
 \subsection{Freshness Detection and Extraction}
 
-For every query the query tree is parsed and evaluated in terms of syntactical correctness. Additionally, teh query is analyzed semantically where also the 
+For every query the query tree is parsed and evaluated in terms of syntactical correctness. Additionally, the query is analyzed semantically where also the 
 freshness will be extracted. This helps to autoamtically enrich the statement with the correct freshness inforamtion and informs the transaction that freshness is being used
 which influences locking capabilities and changes the routing process.
 The \textit{Freshness Extractor} also checks if for the specified freshness evaluation type
@@ -788,7 +770,7 @@ This can be used if a user does not require a minimum level of freshness. This c
 This is done based on thedifferent freshness evaluation types.
 
 
-\todo{partition placments are filtered and compared. although as stated in constraints, the priamry and lazy palcement do not have to be equal in terms of there representation (can contian different columns) 
+\todo{partition placments are filtered and compared. although as stated in constraints, the primary and lazy palcement do not have to be equal in terms of there representation (can contian different columns) 
 , we therefore just require to compare a partition placement with another eagerly partitoin palcement associated with the same partition.
 Allthough the columns good differ, the update and commit is always considered the same since they are based on the same partition. }
 
@@ -802,7 +784,8 @@ Lifecycle how does the freshness selection process work in geenral. How is filte
 \todo{Add image}
 
 
-
+\todoMissing{Depending on the number of placements available for this frweshness validation, alot of permutations are possible. Possibly taking longer to evaluate each of them in stead
+of just routing on eto the target.}
 
 \todoMissing{The removal of the entity immediately removes all outdated placmenets, so no freshnes or multi version read is possible anymore.
 Also if an up-to-date placement is dropped, we need to ensure that we do not lose data otherwise this operation is not possible.}
@@ -832,5 +815,5 @@ Finally we allow to specify a referential integrity enforcement. As described in
 within this transaction. Which also would need to lock the placements. This approach aims to enforce the refernetial intergity among all entitite sused within the transaction.
 However in an outdated scenario this can only be ensured if all entities, even have outdated versions of itself and they have all been updated by the same 
 transaction and consequently. Otherwise we cannot easily guarantee that they enforce those constraints. If there is doubt or no suitable combination of placements can fulfil this request,
-we always have the possibility to fallback to the primary nodes, which are guaranteed to support referential integrity. Allthough, this again blocks updates on the priamry placements,
+we always have the possibility to fallback to the primary nodes, which are guaranteed to support referential integrity. Allthough, this again blocks updates on the primary placements,
 it fulfils the constriants as it would have when executing the same query without specifying a tolerated level of freshness.

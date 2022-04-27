@@ -38,7 +38,19 @@ Since we are certain, that we do not have infinitely available versions as in co
 Even the freshness specification without any determined tolerated level, promises a certain level of freshness by design.
 
 
-Of yource there are obvious choices to improve such as teh queue persistency. While enabling a fast access when storing replicaiton in memeory it is prone to failures and outages,
+
+\todoMissing{In regards to CDC, if we observe that the number of pending update operations exceed a certain threshold for example 50\% of the total number of modifications of the master
+we can directly remove all pending updates and execute a primary snapshot copy because this is faster then reexecuting the operation again. }
+
+
+\todoMissing{Explain potential optimization steps that we can analyze the queue and can aggregate certain steps or avoid 
+certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
+
+
+
+
+%%%% LAST part 
+Of course there are obvious choices to improve such as teh queue persistency. While enabling a fast access when storing replicaiton in memeory it is prone to failures and outages,
 losing relevant data to be replicated. In order to remove the workarounds during startup, teh replication queues as well as the data have to be persisted.
 Despite slower processing times for priamry update transactions, we would increase the stability and the receoverability of the system immensely 
 At the end this again is a trade-off between availability and consistency, dependening on indidivdual requirements.
