@@ -39,6 +39,12 @@ Even the freshness specification without any determined tolerated level, promise
 
 
 
+\todoMissing{Allthough not all entities have to support freshness, but since we allowing a fallback to the respedtive priamry placements, users can act agnostic of the 
+underlying architecture and specify the
+freshness eitehr way. Since we can always fallback and route the query towards the priamry placements. This enables user agnostic access and 
+further allows to configure these freshness
+values within an application. That would then autoamtically evaluate the freshness once it actually has different versions of data.}
+
 \todoMissing{In regards to CDC, if we observe that the number of pending update operations exceed a certain threshold for example 50\% of the total number of modifications of the master
 we can directly remove all pending updates and execute a primary snapshot copy because this is faster then reexecuting the operation again. }
 
@@ -46,7 +52,11 @@ we can directly remove all pending updates and execute a primary snapshot copy b
 \todoMissing{Explain potential optimization steps that we can analyze the queue and can aggregate certain steps or avoid 
 certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
 
+\todo{partition placments are filtered and compared. although as stated in constraints, the primary and lazy palcement do not have to be equal in terms of there representation (can contian different columns) 
+, we therefore just require to compare a partition placement with another eagerly partitoin palcement associated with the same partition.
+Allthough the columns good differ, the update and commit is always considered the same since they are based on the same partition. 
 
+Since we allow the comparision of freshness on the basis of partition update times alone we do not need to consider  that priamry and secondary placements need to have the same configuration e.g. the same set of column placmeents we can do this simply on the basis of comparing the update informationof two distinct partition placements}
 
 
 %%%% LAST part 
@@ -74,7 +84,8 @@ Such approaches can then be easily combined with tuneable consistency to allow s
 \subsection{Locking}
 Reduce locking to a physical partition level  (partition placement)
 
-
+\todoMissing{When a refresh transaction  is executed no more locks on secondary nodes can be applied, if there is still a shared lock on that outdated node
+they will first be commited before the refresh takes place  (avoid deadlock) if we do not hinder the system to build more shared locks refresh operations might starve}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

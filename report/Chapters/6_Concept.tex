@@ -458,8 +458,7 @@ Since refresh operations are generated based on the original transaction, they a
 Because this is done prior to the execution, there is no need to route them or identify possible candidates.
 Consequently this enables us to employ another transaction aiming solely to refresh the outdated replicas while saving overhead in computation.\\
 Finally, to not interfere with the regular system operation we require that transactions containing freshness-related queries cannot conflict or break the ACID properties 
-of primary nodes. 
-Therefore no write-operations are allowed when specifying a freshness-level, transforming this transaction to a read-only transaction.
+of primary nodes. Therefore no write-operations are allowed when specifying a freshness-level, transforming this transaction to a read-only transaction.
 This is necessary since we do not know during scheduling if the write operation has used results, obtained from an outdated replica.
 Analogously when a write-operation has already been executed within a transaction we can then no longer accept a freshness-aware query. 
 Therefore the system always has to make sure that the system executes freshness-aware read operations within read-only transactions \textit{(vi)}. 
