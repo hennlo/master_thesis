@@ -24,16 +24,15 @@ Finally, all building blocks are gathered and put into perspective to describe a
 
 The implementation is based on the polystore system Polypheny-DB\footnote{https://github.com/polypheny/Polypheny-DB}.
 In this chapter we briefly describe and illustrate a simplified version of Polypheny-DBs current architecture.
-As well as some fundamenetal components that will be used in this chapter\\
-This extends the foundations laid out in Chapter \ref{c:Foundation} and sets them in context of the existing system model.
+As well as some fundamenetal components that will be throughout this chapter\\
+This extends the foundations laid out in Chapter \ref{c:Foundation} and sets them in context of the existing system model.\\
 
 
 
 
 \emph{Polypheny-DB} is an Open-Source project\footnote{https://polypheny.org/} developed by 
-the \textit{Database and Information Systems} (DBIS) group of the University of Basel.\\
-
-Polypheny-DB is a self-adaptive polystore that provides cost- and workload aware access to heterogeneous data\cite{poly2020}.
+the \textit{Database and Information Systems} (DBIS) group of the University of Basel.
+It is a self-adaptive polystore that provides cost- and workload aware access to heterogeneous data\cite{poly2020}.
 
 Compared to other systems like \textit{C-Store}\cite{cstore_2005} or \textit{SAP HANA} \cite{hana_2012}, 
 Polypheny-DB does not provide its own set of different storage engines to support 
@@ -64,7 +63,7 @@ This leverages Polypheny-DB to a data orchestration platform towards an actual P
 
 \subsection{Placements}
 Placements are considered to be Polyphenys virtual representation of physical entities.
-Since Polypheny provides a multi model approach, underlying stores can range from relational, document to graph engines. 
+Since Polypheny provides a multi model approach, underlying stores can range from relational to document until graph engines. 
 Entities are therefore a genereal definition encompassing tables, collection or graphs, respectiviely of the utilized model.
 They act as an abstraction between the polystore layer and the physical representation of an entity. 
 Mostly used within the PolyDBMS itself they help to assist the logical routing process of Polypheny-DB.
@@ -72,8 +71,8 @@ Mostly used within the PolyDBMS itself they help to assist the logical routing p
 \todoMissing{remove replication strategy from image}
 \begin{figure}[t]
     \centering
-    \includegraphics[width=0.7\textwidth]{Figures/entity_placements_replication.png}
-    \caption{Entity alongside all its physical placements.}
+    \includegraphics[width=0.7\textwidth]{Figures/data_placement.png}
+    \caption{Polypheny-DB's entity representaiton via placements. Mapping a logical entity to the actual physical stores.}
     \label{fig:placements}
 \end{figure}
 
@@ -81,17 +80,18 @@ Mostly used within the PolyDBMS itself they help to assist the logical routing p
     \item [Data Placements] A Data Placement is essentially a virtual representation of the physical entity residing on a given store.
     A store in Polypheny is an underlying physical data storage which is attached to Polypheny-DB.
     All attached stores can be used to hold several fragments of data. 
-    During routing decisions stores are automatically taken into consideration if they are designated for the associated data 
+    During routing decisions stores are automatically taken into consideration if they are designated for the associated data.
     
-    It contains information on available columns ($\rightarrow$ Column Placements), partitions ($\rightarrow$ Partition Placements)
-    as well as properties unique to this store.
+    A Data Placment contains information on available columns ($\rightarrow$ Column Placements), partitions ($\rightarrow$ Partition Placements)
+    as well as properties that are unique to this store. These properties are centrally configured per Data Placement but will be passed on to the underlying placements as well.
     
+    When an entity is created on Polypheny-DB it is an ordinary structure placed onto one store.
     An entity can therefore contain several Data Placements with different capabilities and properties as depicted in figure \ref{fig:placements}. 
     
-    When an entity is created on Polypheny-DB it is an ordinary structure placed onto one store. \\
+    
 
     \item [Column Placements]
-    Are part of the virtual representation of a physical entit. They are essentially needed to fulfill the intended flexibility of Polypheny-DB. 
+    Are part of the virtual representation of a physical entity. They are essentially needed to fulfill the intended flexibility of Polypheny-DB. 
     Column Placements are considered to be instances of a column placed on a specific store.
     These placements are the result of the extended vertical partitoning of an entity.
 
@@ -102,11 +102,10 @@ Mostly used within the PolyDBMS itself they help to assist the logical routing p
     column wise, which allows a table itself to be split further into a disjoint 
     set of columns.
     Column Placements are instances of a column placed on a specific store.
-    These placements are the result of the extended vertical partitioning of an entity.
     They are considered unique per column on a cluster.
-    Such an entity consists of one to \textit{n}-columns.
+    Since an entity consists of one to \textit{n}-columns.
     In the context of vertical partitioning a subset of these \textit{n}-columns can now 
-    be placed onto another store in form of a \textit{Data Placement}.
+    be placed onto another store, which will consequently be part of a \textit{Data Placement}.
     This can either be done by evenly distributing the columns onto these stores 
     or by simply replicating the subset to a second store.
     This functionality enables Polypheny-DB to adapt the data structure to continuously 
@@ -114,12 +113,12 @@ Mostly used within the PolyDBMS itself they help to assist the logical routing p
 
    
 
-    \item [Partition Placements] Although, part of the Data Placement as well, a Partition Placement is considered to be the actual virtual representation of physical table.
-    It essentially represents and links to the physical entity stored on an underlying engine. Partition Placements are the results of applying a partition function to an entity.
+    \item [Partition Placements] Although, part of the Data Placement as well, a Partition Placement is considered to be the actual virtual representation of a physical entity.
+    It essentially represents and links to the physical entity stored on an underlying engine. Partition Placements are the results of applying a partition function to an entity,
     to horizontally partition the entity into a distinct set of rows. The resulting partition placements can then be placed freely on existing stores to distribute or replicate data.\\
     Due to the partition function \emph{NONE} every entity inside Polypheny-DB is considered to be partitioned. Hence consisting only of one partition.
     Additioanlly, Polypheny suppports the most common partition algorithms like \emph{HASH}, \emph{RANGE}- and \emph{LIST}-Partitioning. 
-    It allows to selectiviely query independent placements hence distinct underlying physical stores to distribute incoming workload evenly within the cluster.
+    It allows to selectiviely query independent placements respectiviely distinct underlying physical stores, to distribute incoming workload evenly within the cluster.
     Together with Column Placements they provide great flexbility to adapt and customize any system, to fit various requiremnts.
     
 \end{description}
@@ -132,12 +131,12 @@ Mostly used within the PolyDBMS itself they help to assist the logical routing p
 \subsection{Query Routing}
 \label{sec:routing}
 
-The query routing is an essential part of any polystore system and is crucial for Polypheny-DB processing capability.
-The routing process can be briefly described as an abstraction layer that will locate and consequently provide the best combination of suitable Data Placements to provide 
-a given result. \\
+The query routing is an essential part of any polystore system and is crucial for Polypheny-DB's processing capabilities.
+The routing process can be briefly described as an abstraction layer that will locate and consequently provide the best combination of suitable Data Placements to fulfil a given request 
+or to provide a given result. \\
 The Routing Process can roughly be distinguished in four phases. A \emph{resolving phase} which identifies individual building blocks such as partitions which are necessary 
-for the query execution. The next phase is referred to as \emph{parametrization} and is used to transform the statement into cachable object to simplify further routing steps.
-Followed by the time-consuming \emph{planning phase} which generates and proposes possible execution plans to determine on which store a query should be executed.
+for the query execution. The second phase is referred to as \emph{parametrization} and is used to transform the statement into cachable object to simplify further routing steps.
+Followed by the time-consuming \emph{planning phase} which generates and proposes possible execution plans to determine on which store and placement combinations a query should be executed.
 This is finalized by the \emph{selection phase} which is build on top of the previously generated candidate plans and will effectiviely pick the best suitable plan for a 
 given execution. Since especially the time consuming generation of possible plans can get quite large for highly distributed entitites, allowing for a large set of 
 possible combinaitons, this phase can be cached.
@@ -151,7 +150,7 @@ If the requested data indeed happens to be distributed on several stores. The ce
 placements to construct the result set. Hence, the query is always routed to stores which hold relevant data.\\
 
 
-Given Polyphenys current architecture all incoming queries has to be delivered through this central polylayer, acting as a central instance.
+Given Polyphenys current architecture all incoming queries have to be delivered through this central polylayer, acting as a central instance.
 Since we assume that there is no direct interaction with the underlying systems there is no immediate risk of inconsistencies. 
 This allows the utilization of SS2PL to handle concurrency control only within Polypheny-DB for correct isolation treatment.
 While this provides a serializable execution of each operation by applying suitable locking capabilities, it impacts the availability respectiviely the latency of the entire system.
@@ -176,7 +175,7 @@ which introduces a bottleneck for this layer, that is inherently dependend on th
 
 This section discusses all implementations along with the introduced components and services to establish 
 multi versioning and the possibility to refresh specific replicas. This serves as a foundation in order to use those distinct versions
-to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing a mixed worklaod to exist in parallel.
+to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing mixed workload to exist in parallel.
 
 \todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
 as well as the on-demand approach using primary Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
@@ -186,25 +185,26 @@ as well as the on-demand approach using primary Snapshot Copy ($\rightarrow$ \re
 
 As we have established in section \ref{sec:data_replicas}, the existence of multiple data replicas are fundamental in distributed systems to even provide the 
 possibility of a trade-off between latency and consistency. These versions essentially allow load balancing requests among all suitable replicas to effectively 
-use the entirety of the system. This does not only enable one to distribute the load evenly across the landscape, hence increasing availability
-but also defines how many of these replicas need to utilized jointly to enforce the desired consistency constraints.\\
+use the entirety of the system. This does not only enable one to distribute the load evenly across the landscape, hence increasing the availability.
+But also defines how many of these replicas need to utilized jointly to enforce the desired consistency constraints.\\
 
 As the name might suggest, a multi-version database would be ideal and the obvious choice for such an approach.
 These databases will automatically generate a new version per data object for each modification. 
 Due to their properties we would immediately have the information on the validity-interval of the version, its update time as well as predecessor and successor versions.
-This would directly allow us to utilize these versions on freshness-related queries. But, this would also imply the utilization of MVCC.
+This would directly allow us to utilize these versions on freshness-related queries. 
 However, as stated in \ref{sec:concurrency_control} multi-version databases automatically tend to have larger data footprints, due to persisting  
 redundant and even obsolete data.
-Howeever, polystore systems already suffer from a larger data volume, given the redundant data storage across severall stores.
-Finally, aforementioned, Polypheny-DB currently only supports SS2PL for its concurrency control.
+However, polystore systems already suffer from a larger data volume, given the redundant data storage across severall stores.
+Furthermore, this would also consequently imply the utilization of MVCC.
+But aforementioned, Polypheny-DB currently only supports SS2PL for its concurrency control.
 Since we require to have equally converging states for our outdated versions \textit{(iv)}, we need a serializable execution that can be applied to 
 the underlying stores as well.
 Although, MVCC reduces common blocking scenarios and allows write- and read-operations to be executed in parallel, 
 it cannot reliably produce a serializable execution order of all operations among all participating stores.
 That is why we remain with SS2PL and refrain from using the automatic versioning provided by a multi-version database.\\
 
-However, as already mentioned in chapter \ref{c:concept}, multiple versions are automatically created when using a lazy update propagation. 
-This will directly loosen the constraints, impossed on replicas to update. 
+However, as already mentioned in chapter \ref{c:concept}, multiple versions are automatically created when using a lazy update propagation among the participating nodes. 
+This will directly loosen the constraints, imposed on replicas to update. 
 The update in these cases will then only be targeted towards the primary replicas, drastically reducing the reponse time of a write-operation,
 but lowering the consistency at the same time.  \todoMissing{Besserer Übergang}
 Furthermore, to provide freshness-awareness as well, we do not only require several versions for updates to be applied quicker,
@@ -212,8 +212,8 @@ but also be able to actually utilize these versions to efficiently operate on th
 These versions therefore also allow us to compare and find suitable candidates in freshness related queries.\\
 
 Fortunately, polystore systems and especially Polypheny-DB is inherently distributed, automatically providing potentially multiple replicas.
-Although they might be distributed or replicated, resulting in redundant data storage, Polypheny-DB allows to create multiple data placements for an individual entity. \todoMissing{Besserer Übergang}
-The data placements described above can therefore be considered as an individual replica or version for a corresponding data item as referred to in the concept.
+Although they might be distributed or replicated, resulting in redundant data storage, Polypheny-DB allows to create multiple data placements for an individual entity.
+The introduced data placements described above can therefore be considered as an individual replica or version for a corresponding data item as referred to in the concept.
 Therefore to enable Polypheny-DB to retain different levels of freshness we need to allow our routing process
 to only target a subset of all placements for primary update transactions. The remaining placements will therefore autoamtically become outdated. 
 
@@ -244,7 +244,6 @@ Although they receive there updates independently their properties are defined w
 Therefore, it is sufficient to configure the data placement to achieve an intended state of the subordinate partition placements.
 Such that a partition on a given store can either be updated enitrely eagerly or lazily. 
 
-\todoMissing{integrate SYNC and ASYNC}
 
 %Since the locking within Polypheny-DB is done logically within the polystore layer and locks the entire table.
 Since we want to establish the freshness comparison based on each individual partition placement, the locking mechanism
@@ -258,7 +257,7 @@ ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName
                                        WITH REPLICATION ( LAZY | EAGER );
 \end{lstlisting}
 
-This replication strategy is added as part of the newly added data placement properties. Since Data Placements inherently carry the information, what column and partitions reside
+This replication strategy is added as part of the newly introduced data placement properties. Since Data Placements inherently carry the information, what column and partitions reside
 on a given store, they were extended to now also hold information on data placement specific properties.
 
 When a placement is created without any replication strategy, it will automatically be labeled to receive updates eagerly.\\
@@ -285,7 +284,8 @@ and can be differentiated into three states that define the intended state of a 
     \item [REFRESHABLE] Initially this is configured when the corresponding data placement receives updates lazily. This allows the partition placement to actively receive 
     individual updates by a replication algorithm. A refreshable state can be automatically and manually transformed into an \emph{INFINITELY OUTDATED} state.
 
-    \item [INFINITELY-OUTDATED] This state is specifically marked, to stay outdated and not receive any updates. This can either be done manually, because a user may want to
+    \item [INFINITELY-OUTDATED] This state is specifically marked, to stay outdated and not receive any updates by suspending all distribution towards those stores.
+    This can either be done manually, because a user may want to
     retain an item with a given version, hence surpressing the automatic update replication on this node. Additionally this can be set autoamtically by the system, 
     if either the entire store or the system is not available anymore. This can be caused due to an unexpected outage or simply because the replication algorithm has 
     numerously failed to apply updates, indicating an error. Given certain prerequisites it can be manually transformed back into an \emph{REFRESHABLE} state.
@@ -293,31 +293,25 @@ and can be differentiated into three states that define the intended state of a 
 \end{description}
 
 The distinction between these cases is necessary, to allow treating partition placements on a given store differentely. 
-Otherwise if one partition placement would be automatically labeled as \emph{INFINITELY OUTDATED} the entire data placement could be refreshed anymore.
+Otherwise if one partition placement would be automatically labeled as \emph{INFINITELY OUTDATED} the entire data placement could not be refreshed anymore.
 Therefore they are handled and considered independently.
 
-Although, this state is required for internal processing of individual partition placements, the manual specifcation of this state is still targeted to an entire data placement.
-Since the internal partitioning should be rathe ruser agnostic one should only be able to specifiy this per data placement. 
-As with the replication strategy, the changes are then propagated downwards to all linked partiton placements. 
+Although, this state is required for internal processing of individual partition placements, the manual specifcation of this state is still 
+targeted to an entire data placement (\ref{lst:state}).
+Since the internal partitioning should be rather user agnostic one should only be able to specifiy this per data placement. 
+As with the replication strategy, the changes are then propagated downwards to all linked partiton placements.\\
 
-They have a dependency that refreshable can be set to INFINITELY OUTDAED and vice versa, however UPTODATE can only be influenced by the replicaiton strategy.
+However they cannot be set freely and have to follow certain constraints (see \ref{sec:constraints}).
+Although Placements containing REFRESHABLE can be set to INFINITELY OUTDAZED and vice versa, the state UPTODATE can only be influenced by the replication strategy.
 Trying to change this manually will result in an error since it is controlled by the system.
-\todoMissing{flowchart?}
-
-Placements containing \emph{REFRESHABLE} 
 
 \begin{lstlisting}[language=sql, caption={SQL Statement Syntax to change the designated Replication State of data placement.},label={lst:state}]
 ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName 
                                        WITH STATE ( REFRESHABLE | OUTDATED );
 \end{lstlisting}
-OUTDATED referring to INFINITELY OUTDATED, by explicitly labeling it as outdated it will suspend all update propagation towards those stores.
 
-Furthermore each Partition Placement is enriched with the most recent update information to support various freshness metrics.
-This update information contains insights such as the id of the last comitted update transaction, the corresponding commit and update timestamp as well as the number of 
-modifications that 
-
-
-Therefore, we propose to define the outdatedness on the state of a specific partition placement.
+Furthermore since each Partition Placement is enriched with the most recent update information to support various freshness metrics,
+we propose to define the outdatedness on the state of a specific partition placement.
 Although the entire data placement, could be labeled as outdated or rather receive updates lazily, some of 
 these partitions could already be up-to-date again, while others still remain outdated.
 
@@ -327,7 +321,7 @@ these partitions could already be up-to-date again, while others still remain ou
 \subsection{Change Data Capture}
 \label{sec:cdc_impl}
 
-Influenced by the replication strategies the routing process is now capable of differentiating between placements needed to be updated immediately or asynchronously. 
+Influenced by the replication strategies, the routing process is now capable of differentiating between placements needed to be updated immediately or asynchronously. 
 When processing a DML-operation, the router can identify for a given entitiy if it contains at least one placement that is updated lazily.
 If this is true it will capture all executed changes within a \emph{Change Data Object} to be later applied on these placements. 
 Disregarding the operation type $\in \{INSERT,UPDATE,DELETE\}$, it contains information on all logical partitions that have been involved, 
@@ -343,7 +337,7 @@ Each statement inside this structure is attached to its respective \emph{Change 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.5\textwidth]{Figures/hashtable.png}
-    \caption{Capture Queue, containing partitions as well as ordered lists of corresponding statements.}
+    \caption{Capture Queue, containing pending transactions as well as an ordered list of executed statements containing the captured data.}
     \label{fig:hashtable}
 \end{figure}
 
@@ -394,7 +388,7 @@ The engine itself is decomposed into the following services that jointly allow a
     \begin{figure}[t]
         \centering
         \includegraphics[width=0.8\textwidth]{Figures/Queue.png}
-        \caption{Association between global replication queue and local dependency queues-}
+        \caption{Association between global replication queue and local dependency queues.}
         \label{fig:queue}
     \end{figure}
   
@@ -403,9 +397,9 @@ The engine itself is decomposed into the following services that jointly allow a
     As depicted in figure \ref{fig:queue} it is represented as a FIFO queue receiving new replication IDs that are registered through the \emph{Change Data Collector} 
     or are rescheduled by \emph{Replication Workers}.\\
     Each replication event within this queue is therefore defined as $x_{z}^y$, where $x$ represents the designated target partition placement, $y$ a global
-    replication id uniquely identifiying a specific replication object and $z$ a reference linking to the actual replication data. 
+    replication id uniquely identifiying a specific replication object and $z$ as a reference linking to the actual replication data. 
     Since our replication engine should replicate the data operation-wise, each event within the queue corresponds to one operation associated with one target partition placement.
-    Therefore each event can be applied independently. Since the primary transaction can only be committed when the data to be replicated has been added to this queue,
+    Therefore each event can be applied independently.\\Since the primary transaction can only be committed when the data to be replicated has been added to this queue,
     it stores the replication events in-memory to process it faster.
 
   
@@ -420,7 +414,7 @@ The engine itself is decomposed into the following services that jointly allow a
 
 
     \item[Replication Worker] These workers are an essential part of the replication engine since they continuously process events from the global queue 
-    and initiate the execution. As soon as a worker thread has finished processing a replication, it will tak the oldest item from the global queue. 
+    and initiate the execution. As soon as a worker thread has finished processing a replication, it will take the oldest item from the global queue. 
     Before starting the replication process, it will make sure that this is indeed the next replication to be executed based on the dependency constraints
     within the local dependency queue. If the replication event is not the next to be executed, the worker will re-queue the event, to be proccessed later.
     However, if all prerequisites can be verified a dedicated refresh-transaction is started.
@@ -445,7 +439,6 @@ The engine itself is decomposed into the following services that jointly allow a
     For eagerly replicated placements this is the primary transaction, for lazily replicated however the refresh transaction.
     This enables the system to use this update information to essentially retrieve the current state of the data, represented by the commit timestamp
     and the numer of updates this partition placement has already applied. Allowing us to use those metadata to compare different versions against each other.
-    \todoMissing{Maybe illustration}
 
 \end{description}
 
@@ -455,7 +448,7 @@ With all these services the replication engine is able to process multiple repli
 for each replication to be executed. 
 Since all operations are propagated atomically within one transaction we do not need to worry about a rollback of a refresh transaction or provide complex undo-operations 
 to remove those changes. Therefore, these replications can be applied independently per target partition placements and do not interfere with each other, 
-allowing for a high flexibility.
+allowing for a high flexibility.\\
 Furthermore, it does not only replicate the captured modififcations it provides a fault-tolerant approach as well. 
 Since Polypheny-DB consists of multiple attached stores that might suffer from outages or local failures, replications might fail.
 However since the replication data is centrally stored and is only removed when all dependent replications have been executed, 
@@ -470,11 +463,10 @@ for a target placement at once. However since workers will validate if replicati
 automatically cleanse the queue from unwanted replications, without expensively removing each item within the queue.\\
 
 Moreover contentions can also occur directly within Polypheny-DB, if there are too many pending updates, waiting to be replicated.
-Despite the scaling capabilities of the workers the load on the system might still be too high essentially affecting the main operation on the system.
-However part of the defined requiremnts are 
+Despite the scaling capabilities of the workers the load on the system might still be too high, essentially affecting the main operation on the system.
 Therefore we have enriched the configuration to globally enable or disable the replciation distribution. In constrast to labeleing data placements as outdated, 
 and removing all pending replications for ever, we can now allow to temporarily stop the replication and only continue to capture modifications. This can help the system
-to adapt to high load situations by focusing on the core funcitonality.\\
+to adapt to high load situations by focusing on its core funcitonality.\\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -485,7 +477,7 @@ to adapt to high load situations by focusing on the core funcitonality.\\
 \begin{figure}[t] 
     \centering
     \includegraphics[width=0.9\textwidth]{Figures/flow_worker.png}
-    \caption{Lifecycle of a \textit{Replication Worker} processing pendning replications from central queue.}
+    \caption{Lifecycle of a \textit{Replication Worker} processing pending replications from central queues.}
     \label{fig:flow_worker}
 \end{figure}
 
@@ -510,12 +502,12 @@ However, if the transaction will be succesfully commited, the finalization phase
 timestamp of the transaction will be set. This can later on be used for freshness comparison. Afterwards each capture object will be registered at the \emph{Lazy Replication Engine}. 
 To do this, the joint capture object will now be separated into two parts. The first one is the replication data, which contains all information to be applied to 
 secondaries as well as all partition placements that shall receive this replication and thus depend on this data. The second one is the creation of independent replication 
-objects targeted to individual partition placements. They are bound to a specific operation and responsible for a given target. Additionally they are linked to the single replication Data for this change-data set.
-This allows us to reduce the data fottprint by caching the replication data only once. The list of individual replication events as well as the data is now passed on to the
+objects targeted to individual partition placements. They are bound to a specific operation and responsible for a given target. Additionally they are linked to the single replication data for this change-data set.
+This allows us to reduce the data footprint by caching the replication data only once. The list of individual replication events as well as the data is now passed on to the
 queue registration. This consequently adds for each target placement a new entry into the global queue. Additonally, it also appends the corresponding replication ID to 
 the local queue of each partition placement. Once all replication objects have been added to the global queue the finalization phase ends.\\
 Since these capture objects have been added to the prelimiary capture-queue in their execution order, they are also passed on to the actual queue in this exact same order.
-This ensures the consistency among the different placments, and ensures that they uniformly progress towards a given state as its up-to-date counterpart has.\\
+This ensures the consistency among the different plaecments, and ensures that they uniformly progress towards a given state as its up-to-date counterpart has.\\
 
 Since this is all still done before the transaction has publicly finished, further operations are blocked until we have asured that all objects have been consequently 
 transformed and queued within the associated replication engine. Thus we can ensure the consistency of the secondary placements by waiting until all steps have finished 
@@ -543,7 +535,7 @@ Since we already have a serializable schedule after execution, we also know per 
 the correct execution order that we have to apply the data changes on. So it is not necessary to only free the resources 
 after the entire transaction has been replicated but right after each operation. 
 However, since Polypheny-DB currently only supports a SS2PL approach we can 
-mimic this behaviour by scheduling refresh transaction containing only one modification.
+mimic this behaviour by scheduling refresh transactions containing only one modification.
 This allows us to replicate data using the less strict 2PL approach, hence improving the overall performance of replications with respect to the primary execution.
 
 
@@ -558,10 +550,10 @@ However, users might need to be able to specifically prioritize data placements 
 This could also be the case if one placement is currently marked as \emph{INFNITELY OUTDATED}.
 Either because of too many failed replications or because it was manually configured to remain in a given state. 
 As described in \ref{sec:refresh_operations} we need to be able to provide manual refreshes on the basis of primary snapshot copies.
-This inherently uses the capabilities of Poylphenys existing \emph{Data Migrator}, which essentially queries a defined source entity on a given store. 
-Together with the current update metadata of this placement, the extracted result of this query can be considered as a snapshot of a given replica.
+This inherently uses the capabilities of Polyphenys existing \emph{Data Migrator}, which essentially queries a defined source entity on a given store. 
+Together with the current \emph{Update Metadata} of this placement, the extracted result of this query can be considered as a snapshot of a given replica.
 The contents of this result will be subsequently applied onto a targeted placement.\\
-After the data migration process has finished, the target receives its new update information on the basis of previously extracted update metadata.
+After the data migration process has finished, the target receives its new update information on the basis of previously extracted metadata.
 If this placement had remaining replications in its local dependency queue, they are all removed to avoid adding data twice. 
 The system then autoamtically switches the replication state of this placement to REFRESHABLE, starting to activiely capture changes again.
 Since the snapshot merely depends on the source, only a short-lived shared lock is applied until the data has been extracted. Apart from this, the snapshot will have no impact
@@ -594,7 +586,7 @@ each column is represented by all available partitions at least once. Otherwise 
 This consequently needs to be considered for outdatedness as well. Since we have decoupled updates of eagerly and lazily replicated placements, we again could lose data. 
 Therefore we again have to ensure that at least the eagerly replicated placements are sufficently configured such that each column is available for all partitions at least once.
 The remaining secondary placements however can again be arbitrarly combined without any requirements.\\
-Because it is possible to switch freely between LAZY and EAGER strategies even after they contain data, we again have to verify that no data is lost.
+Because it is possible to switch freely between LAZY and EAGER strategies even after they already contain data, we again have to verify that no data is lost.
 Therefore when trying to switch from LAZY to EAGER, we have to ensure that this placement does not contain any pending updates, otherwise the operation will fail.
 If there currently are no pending updates the system will lock the entire table, so it will not receive any updates while switching the strategy internally. 
 Since this is merely done by setting a flag, the impact of the blocking behaviour can be neglected.\\
@@ -602,9 +594,9 @@ Since this is merely done by setting a flag, the impact of the blocking behaviou
 Furthermore, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from REFRESHABLE to 
 INFINITELY OUTDATED and vice versa.
 While the manual switch to INFINITELY OUTDATED is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
-If this is not correctly ensured, and the replication starts propagting changes towards this replication again we will lose data in between on this replica.
+If this is not correctly ensured, and the replication starts propagting changes towards this placement again, we will lose data the data in between thos versions.
 In this scenario the system first will need to make sure that the placements on this store are all uptodate. If this is not the case the operation will fail. 
-This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. An immediate change of states will then be accepted.\\
+This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. A subsequent change of states will then be accepted.\\
 
 Finally, despite its ability to remain operational during failure situations, the utilzed queues within the engine are still only stored within main memory.
 Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
@@ -612,7 +604,7 @@ shuts down for any reason. Since we rely on the fast registration process to com
 Since we always know which placments are updates lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
 The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as INFINITELY OUTDATED, 
 and therefore suspending any more replications. Users can either choose to update the system manually or refreshing is on read as proposed in \ref{sec:refresh_strategies}.
-The second approach approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
+The second approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
 
 
 
@@ -639,12 +631,13 @@ to provide an efficient workflow.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Fresnness Evaluation Types}
+\subsection{Evaluation Types}
 \label{sec:eval_types}
 
 As delivered through the concept in section \ref{sec:freshne_metrics}, there exist several possible freshness metrics to use for version comparison.
-These metrics are primarly used to filter placement candidates based on a defined freshness.
+These metrics are primarly used to filter placement candidates based on a defined freshness based on their \emph{Update Metadata}.
 We have summarized these possibilities and established three different evaluation types, that can be used to specify an accepted level of freshness.
+
 
 \begin{description}
     \item[Timestamp] A timestamp is the most simple form of a freshness evaluation type, since it intuitively provides the capability to define 
@@ -657,7 +650,7 @@ We have summarized these possibilities and established three different evaluatio
     This again allows filtering all partition placements based on the age of their commit timestamp.
     Again as described in \ref{sec:freshne_metrics}, an absolute time delay based on the current time is not always accurate or might even render wrong results.
     Therefore, a \emph{Relative Time Delay} specification is provided as well. Allowing to specify the tolerated time deviation based on the commit of a primary placement 
-    compared to an outdated placement. To differentiatet those options they are individually suffixed $\in \{ABSOLUTE, RELATIVE\}$
+    compared to an outdated placement. To differentiate those options they are individually suffixed with either \emph{ABSOLUTE} or  \emph{RELATIVE}.
 
     \item[Freshness Index]
     Naturally it expresses the freshness specification based on the modification deviation between an up-to-date placement
@@ -665,7 +658,7 @@ We have summarized these possibilities and established three different evaluatio
     to define a freshness index. For a query this index can be either configured to filter based on each partitions placements deviation or on their accumulated deviation.
     Therefore the number of modifications is accumulated and then compared against the accumultaed number of modifications 
     of all up-to-date entities that have been considered within this query. This allows a more stable approach since it is not prone against outliers. 
-    However, this index can also be configured using the freshness index to evaluate the time deviation between two replicas \emph{Time Deviation}. 
+    Furthermore, this index can also be configured using the freshness index to evaluate the \emph{Time Deviation} between two replicas. 
     Essentially the index dictates how accurate a given placement is with respect to its up-to-date replica.
     
 \end{description}
@@ -676,10 +669,10 @@ allow users to indicate their tolerated level of freshness, depending on their r
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Freshness Query Specification}
+\subsection{Query Specification}
 \label{sec:fresh_spec}
 
-Equppied with the evaluation types, users now need to be able to define their intended level of freshness.
+Equipped with the evaluation types, users now need to be able to define their intended level of freshness.
 Although that this could be centrally defined for an entire system, it is very subjective and often does not even depend on the user
 but is rather influenced by application-specific requirements.
 Therefore, the specification should be rather defined on a query level, to allow a more fine-grained definition.\\
@@ -687,8 +680,8 @@ Therefore, the specification should be rather defined on a query level, to allow
 This can be achieved by extending the query functionality of Polypheny-DB, allowing users to directly specify their demands.
 Although Polypheny-DB provides multiple query interfaces and languages, the following specifications are solely demonstrated with SQL. 
 As proposed within section \ref{sec:eval_types} we have introduced three freshness types that can be used to specify a tolerated level of freshness.
-These support all freshness metrics as described in the corresponding section \ref{sec:freshne_metrics} and along the functional 
-requiremnt \textit{(ii)} have also been introduced within Polypheny-DB.
+These support all freshness metrics as described in the corresponding section \ref{sec:freshne_metrics}. Along the functional 
+requirement \textit{(ii)} all these metrics have been introduced within Polypheny-DB.
 
 For SQL, the query syntax is extended  with an optional leaf expression at the end of every query to generally support freshness specifications. 
 Along the description, users can choose to select any of the presented evaluation types to guide the system if and how it should consider the freshness of an entity.
@@ -698,8 +691,8 @@ SELECT * FROM tableName [ WITH FRESHNESS [ <TIMESTAMP> | <DELAY> | <INDEX> ] ];
 
 The statement depicted in \ref{lst:general} illustrates a generalized and abstracted freshness specification including placeholders for the different evaluation types.
 
-While a statement with an explicit evaluation type provides a direct intent, users can also choose to simply use \emph{WITH FRESHNESS} 
-and omit the type to implicitly suggest that you will consider all outdated data and have no further constraints.
+While a statement with an explicit evaluation type provides a direct intent, users can also choose to solely specify \emph{WITH FRESHNESS} 
+and omit the type, to implicitly suggest that you will consider all outdated data regardless of the actual version.
 
 
 
@@ -720,9 +713,9 @@ containing all specified freshness details. This will be attached to the stateme
 It automatically helps to enrich the statement with the correct freshness information and informs the transaction that freshness is being used,
 which directly influences locking capabilities and changes the routing process. 
 Along with requirement \textit{(vi)} as stated in \ref{sec:tx_handling}, this will transform the transaction to read-only mode, prohibiting the execution of any more DML
-statements. This is necessary to avoid that a write operation uses outdated data retrieved within this transaction to update a placement.\\
+statements. This is necessary to avoid that a write-operation uses outdated data retrieved within this transaction to update a placement.\\
 
-Since freshness-awareness allows to read data that is considered to be stale, we implicitly support \emph{Dirty Reads} hence violating the ACID properties.
+Since freshness-awareness allows to read data that is considered to be stale, we implicitly support \emph{Dirty Reads}, hence violating the ACID properties.
 Therefore the read-only transaction now allows to omit locking entirely, by enabling the new isolation mode \emph{None}. 
 Compared to the conventonal isolation mode \emph{Serializable} which enforces locks on the basis of SS2PL to provide correct concurrency control, \emph{None} 
 loosens all constraints. This causes refresh operations to override or add new results to the entity while it is currently being read. 
@@ -758,11 +751,11 @@ While the previous approaches simply tried to provide any possible combination
 and construct a result out of different independent versions, the last charcteristic goes a step further and allows to specify a referential integrity enforcement. 
 As described in section \ref{sec:read_access} this approach aims to enforce the referential intergity among all entities used within the transaction, 
 allowing to retrieve a cross-entity result that was valid in the past. Since it builds on top of the previous characteristic is also needs to lock the placements. 
-However in our implemented scenario, other than in classical multo-version databases, we are not even guaranteed that every entity even has several versions. 
+However in our implemented scenario, other than in classical multi-version databases, we are not even guaranteed that every entity even has several versions. 
 Therfore we require for such a query that all relevant placements need to be updated by the same original transaction in order to guarantee that this state is valid.
 However if there is doubt or no suitable combination of placements can fulfil this request,
 we always have the possibility to fallback to the primary nodes, which are guaranteed to support referential integrity.
-Allthough, this again will again block updates on the primary placements, it fulfils the constriants as it would have, when executing the same query without specifying a tolerated level of freshness.
+Allthough, this again will again block updates on the primary placements, it fulfils the constraints as it would have, when executing the same query without specifying a tolerated level of freshness.
 
 
 
@@ -776,7 +769,7 @@ Allthough, this again will again block updates on the primary placements, it ful
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.9\textwidth]{Figures/filter.png}
-    \caption{Subsequent Filter Operations for an abstracted freshness read operation, generating several possible execution plansn based on a freshness-index.}
+    \caption{Subsequent Filter Operations for an abstracted freshness read operation, generating several possible execution plans based on a given freshness-index.}
     \label{fig:filter}
 \end{figure}
 
@@ -788,7 +781,7 @@ Initially the routing process will first assess which partitions of the requeste
 This is an independent step and will be done regardless, whether a regular or a freshness query ist processed. 
 A list of all required partitions is then passed on to the Freshness Manager, along with the associated Freshness Object. 
 As already described above, we have applied our versioning on the basis of partition placements, since they represent the actual physical tables,
-the freshness filtering and evaluation is therefore always executed by comparing individual partition placements. 
+the freshness filtering and evaluation is therefore always executed by comparing the \emph{Update Metadata} of individual partition placements. 
 Disregarding the actual type, the Manager then retrieves all partition placements for each required partition that are considered to be updated lazily.
 Aforementioned this can be easily retrieved since these are represented by the Replication Strategy: \emph{LAZY}, which is configured within each placement. 
 This operation will consequently generate a data-structure, mapping the required partitions to a list of potential partition placement candidates.\\
@@ -804,19 +797,17 @@ Naively the filtering can then be done by ensuring that placments are only kept 
 a given tolerated threshold. However, for the deviation types we also allow to assess the freshness jointly among all possible candidate combinations.
 This means instead of filtering on the basis of single candidates we extend this notion to be able to filter based on their acccumulated freshness when combining the placements
 (see \ref{sec:fresh_select}).
-Since our query can require multiple partitions at once, we could now combine a very fresh placement with a placement that is by itself considered to be outdated.
-While the individual placements might not fulfil the placement their combination does allowing to consider more candiates, hence tolerating outliers.
-Due to the possible strong fragementation of versions with this approach, it is not used by default and needs to be configured separetely.
-
+Since our query can require multiple partitions at once, we could now combine a very fresh placement with a placement that is by itself considered to be too outdated.
+While the individual placements might not fulfil the placement, their combination migth do. Allowing to consider more candidates, hence tolerating outliers.
+Due to the possible strong fragementation of versions with this approach, it is not used by default and needs to be configured separately.
 Based on the final filter application or already on the intial pre-mapping of partitions we can resepctiviely identify if we have sufficiently collected partition placements 
 for all partitions. If one map should be empty, the freshness manager will halt and automatically fallback to a regular routing appoach, targeting only primary placments 
 as if freshness has never been specified. \\
-
 Although theoretically an empty partition mapping would not require the entire processing to fallback to the primary version, and 
 would be able to solely provide a primary copy for this partition alone and still allowing to construct the freshness, 
-for the ramining partitions. 
+for the remaining partitions. 
 However, we need the system to provide a seamless and reproducible approach for users, and strictly distinguish between regular and freshness operations. 
-As also defined with requirement \textit{(vi)} we should not interfere with the primary versions of the system, resulting in a defined fallback scenario whenever the freshness
+Additioanlly as defined with requirement \textit{(vi)} we should not interfere with the primary versions of the system, resulting in a defined fallback scenario whenever the freshness
 criteria cannot be uniquely fulfilled.
 
 
@@ -831,7 +822,7 @@ The combination of possible candidates is also executed within the \emph{Freshne
 It tries to combine accepted candidates with each other, in order to provide possible executable plans, as visualized in figure \ref{fig:filter}.
 While this step is trivial if we only have one possible candidate per partition, it becomes more complicated for entities containing multiple placements 
 with several partitions. This could easily result in large permutations and possibilities to combine the different placements with each other.
-However, selecting a suitable combination is often time consuming and can lead to performance impacts, 
+Therefore, selecting a suitable combination is often time consuming and can lead to performance impacts, 
 resulting in freshness queries to be less efficient than regular queries due to the enlarged processing times. 
 But, since the introduction of a freshness notion is inherently driven by the pursuit to reduce locking and speed up queries we have to 
 retain additional overhead as much as possible. 
@@ -845,7 +836,7 @@ Therefore our freshness combination process should be attached to this phase as 
 If based on the filtered placements the \emph{Freshness Manager} now recognizes that there are too many possible combinations, and the planning would 
 exceed a common processing time, the actual planning and combination phase is deferred to be executed asynchronously.
 However a suitable substitute plan needs to be provided to still fulfil the request.
-While it is always save to simply return the result generated by a primary execution plan, we can also choose to simply select one of the generated candidate plans before
+While it is always save to simply return the result generated by a primary execution plan, we can also choose to simply select one of the generated candidate plans, before
 the \emph{Freshness Manager} has decided that this computation is too expenssive and will be deferred. 
 The deferred planning phase can then be executed at a later point in time, to decouple the time-consuming combination of candidate placements from the actual execution.
 These generated plans associated with a given query can then still be added to the cache, to be reused next time.
@@ -858,7 +849,7 @@ However this again reduces concurrent writes and reads on the store imposing pos
 
 Since the Freshness Manager always identifies the given freshness first and gathers all possible placement distribution possibilities for a given freshness specififcation, 
 we can validate if we have already cached a similiar query where we had the same placement distribution as input. 
-This allows us to use the cache, skip the planning phase and avoid generating possible combinations again. 
+This allows us to use the cache, skip the planning phase and avoid generating possible combinations again, to again provide access to outdated data . 
 
 This ultiamtely enables freshness-awarenss within Polypheny-DB to evaluate and utilize the freshness specififcation, to improve the inherently distributed system 
 architecture to decouple transactions and efficiently distribute workload to utilize outdates replicas and consequently increase the performance of the entire system.
