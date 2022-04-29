@@ -46,6 +46,34 @@ outdated data is acceptable.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
+\section{Polystores}
+
+The decision which data structure to use and built upon is a crucial step for the overall performance of a systems design, as suggested by
+H.Plattner and B.Leukert ~\cite{plattner2015}.\\
+While row-oriented data stores might be useful and preferred for write-heavy transactional 
+workloads they are rather insufficient for purely analytical workload which would rather benefit from a
+column-oriented data store with less write operations ~\cite{sigmond2008}.\\
+
+Despite the fact that nowadays there exist a variety of Database Management Systems (DBMS) which were originally created with an intention to
+support specific scenarios,
+applications are getting more complex relying on various requirements and characteristics 
+to serve multiple use cases at once.
+That is why modern day applications can not solely rely on one storage technology alone. 
+Consequently Multi- and Polystore systems have emerged. \\
+\\
+While multistore database systems aim to combine and manage data across heterogeneous data stores,
+polystore systems are essentially based on the idea of combining multistores with
+\textit{polyglot persistence} ~\cite{polypheny2020}.
+Polyglot persistence is a term which refers to a practice originated from the concept 
+of \textit{polyglot programming} or microservice architectures, to utilize different 
+programming languages for different task requirements following a best-fit approach ~\cite{fowler2011}. \\
+Along this paradigm, polystores want to utilize multiple data storage technologies to
+fulfill different needs for different application components in order to cope
+with mixed and varying workloads.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Goal?}
 The system therefore needs to be able to allow transactional as well as analytical workload in parallel. 
 
