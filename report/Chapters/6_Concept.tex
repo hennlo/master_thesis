@@ -85,8 +85,8 @@ To consequently, compare those replicas, they need to be equipped with metadata 
 One is the update timestamp when the replica has been last modified,
 the other is the commit timestamp of the original transaction which has modified the replica.
 This differentiation is important since it allows us to compare replicas based on their commit timestamp. This timestamp is always directly associated with the primary transaction.
-It means that even if the update propagation for secondaries has been deferred to a later point in time, as soon as they converge they will have the same commit timestamp 
-as their primary counterpart.
+It means that even if the update propagation for secondaries has been deferred to a later point in time and consequently has a different update timestamp, 
+as soon as they converge they will have the same commit timestamp as their primary counterpart.
 Otherwise, it would not be possible to compare replicas based on their timestamp, since individual commit timestamps per replica would not allow a direct timestamp comparison 
 to determine the freshness of an object.
 
@@ -318,7 +318,9 @@ Therefore, we propose the following approaches: \\
     Since this is only a preliminary step we will conveniently call this capture-collection: \emph{capture-queue}.
     As operations are being executed, each change along with its data and the corresponding parent transaction is stored within this capture-queue.
     Although we could simply capture the executed statement in a Write-Ahead-Log (WAL) and re-execute it on the underlying stores, we now benefit from the polystore layer.
-    Since possibly existing functions or constraints might have already been evaluated at runtime. Thus, we can save further computations and store the end result that is pushed-down directly
+    Since every query has to centrally pass the polystore layer to be executed, it will pre-compute and evaluate certain functions or constraints internally at runtime instead of
+    deligating it to an underlying store. Therefore, we can ensure that the values received by a store are equal on all other stores as well.
+    Thus, we can save further computations and store the end result that is pushed-down directly
     to the designated stores. As soon as this transaction has been successfully committed, all entries in this capture-queue are further enriched with the respective commit timestamp of their parent transaction.
     Afterward the corresponding entries in the capture-queue are added to an actual central replication queue containing the pending updates.
     For each designated replica that should receive this update an individual entry is created inside this queue. 
@@ -332,7 +334,7 @@ Therefore, we propose the following approaches: \\
 
 
     \item [Primary Data Snapshot]
-    Although CDC will correctly recreate any secondary replica, it will lose its efficiency when there are more modifications to apply to secondaries that there 
+    Although CDC will correctly recreate any secondary replica, it will lose its efficiency when there are almost as many modifications to apply to secondaries that there 
     have been totally applied at the primary site. Although it would still produce the correct result it could be further optimized without replicating operation by operation 
     until the replica has converged.\\
     Therefore another proposition could be the usage of a primary-copy approach. 
@@ -416,7 +418,7 @@ a comparable freshness-related state.
 Disregarding the refresh algorithm, we require that all updates are propagated and applied in the exact execution order as they were at the up-to-date 
 replicas. This avoids inconsistencies even when handling outdated data \textit{(iv)}.\\
 
-Finally, as briefly mentioned in \ref{sec:refresh_operations} we require a \emph{Refresh-Lock} as a newly introduced lock.
+Finally, as briefly mentioned in \ref{sec:refresh_operations} we require a \emph{Refresh-Lock} as a newly introduced locking capability.
 This lock shall only be applied whenever a refresh operation is currently in place and updates an outdated node. 
 This way the routing mechanism can avoid sending any queries to that replica for reads or a new refresh operation, which might have been triggered manually by an user.
 
@@ -499,7 +501,7 @@ One of this requirements is the usage of referential integrity.
 But despite that a polystore system might enforce primary-key constraints and hence referential integrity at run time, the usage of multiple versions does not automatically
 ensure this for outdated versions as well. Although it might be possible to generate dependencies between data objects, such that they need to be refreshed jointly,
 it should not be generally enforced. Otherwise it will trigger cascading refresh operations of dependent data objects, neglecting the benefits of decoupling the transactions 
-in the first place. Furthermore, as previously stated, we do not require every data iteam to exist in several possibly outdated versions.  
+in the first place. Furthermore, as previously stated, we do not require every data item to exist in several possibly outdated versions.  
 However, if a user wants to specifically use such a constraint even for the outdated nodes, the system will allow this and try to find a suitable combination of all required 
 objects that have been updated jointly. If it cannot identify such a combination, the system can always choose to fallback to the primary nodes sucessfully serving the query.
 This is then however done omitting the advanatages of freshness-awarenss and employing regular read-operations again.
