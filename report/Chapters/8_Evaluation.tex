@@ -2,7 +2,15 @@
 \chapter{Evaluation}
 \label{c:evaluation}
 
-This chapter is separated into 
+This chapter is separated into two sections. The first section aims to validate and verify the implementation in terms of their
+correct execution. It focuses on the core contributions, such as the lazy replicaiton algorithm as well as the freshness constraint.
+Further it ensures the described constraints and establishes certain test cases to identify possibile failures that can occur 
+during execution as well as failure handling scenarios..
+
+The second part of this chapter focuses on benchmarking the implementation on the basis of the described motivational scenario itself.
+This is followed by comparing the performance of several cases to identify how the system will behave in certain situations.
+Further it will compare several executions to determine how the impleemntation affect the providede requirements.
+
 
 \section{Goal}
 The evaluation has two goals the correctness as well as the impact of data freshness onto different kinds of workloads.
@@ -18,8 +26,8 @@ Or if it is just marginally lower than before. Also compare this to the overall 
 
 \section{Correctness}
 
-The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly.
-And if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
+The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly,
+and if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
 a replication update. Rather we compare on a high level the metadata 
 (i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node) of two replicas. 
 
@@ -29,6 +37,9 @@ we still want to avoid excessive locking to parallelize requests to ultimately s
 
 \todo{Also checks for freshness specification if this can for one be even applied to the system , due to ongoing constraints or if it is even posssible to specify a freshness index >1.0}
 \todoMissing{\ref{sec:constraints, lazy -> eager and outdated -> refreshable}}
+\todoMissing{As already suggested within constrianst we have to ensure that data will not be lost}
+
+\todoMissing{How to ensure that cached freshness objects are not falesely executed and secertly violating the specified freshness (It is rechecked)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -62,6 +73,8 @@ The following steps outline the procedure for benchmarking data freshness within
 \todoMissing{Compare different evaluation types with each other, timestamp, absolute delay, relative delay and index mdoficiaiton and time}
 
 \todoMissing{Schuldt FAS Evaluation possibilities}
+
+\todoMissing{Execute on two stores, one time store is eager second tiem store 1 is lazy. Show how a mixed workload impacts the total processing time of a fixed benchmark }
 
 \subsection{Results}
 \label{sec:discussion}

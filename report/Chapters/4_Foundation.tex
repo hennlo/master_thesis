@@ -104,7 +104,7 @@ However, during the convergence period, until all changes have been replicated, 
 As pointed out by ~\cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
 This could result in retrieving outdated data, if the client contacts one of the outdated nodes.
 \\
-Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency}.
+Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency} ~\cite{shapiro:2011}.
 Although not considered strong, this form of weak consistency guarantees, that if no further updates are made 
 during convergence, all accesses to these replicas will eventually see the same value and become uptodate. ~\cite{quorums:2003}
 
