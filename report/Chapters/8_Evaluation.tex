@@ -51,46 +51,56 @@ we still want to avoid excessive locking to parallelize requests to ultimately s
 
 \section{Benchmarks}
 
-\todoMissing{Contain overhead as much as possible otherwise the freshness eveluation will negativiely impact regular operations}
+
 
 \todo{Explain why it is necessary to verify the solution with different combinations}
 
 \subsection{Evaluation Environment}
 \todo{Elaborate and thoroughly explain why the environment was chosen and how the test was executed for the sake of rerpoducibility}
 
+If not explititly stated otherwise, the benchmarks will be executed using two underlying stores.
+
+Define that we have HSQLDB fast and PSQL slow because on docker.
+
+First show single Performance on the Store to see which one is the slower one of these stores in our setup.
+This will also show which stores logically bound the primary transaction time. PSQL on Docker. Since Docker Containers use a limited shared set of resources 
+this store immitating a slower performinh node in oru setup.
+
+
+Define Workload Environement
+DQL DML
+Mixed Worklaod if not stated otherwise is  60\% read-operations and 40\% write-operations
 
 \subsection{Evaluation Procedure}
 The following steps outline the procedure for benchmarking data freshness within Polypheny-DB.
 
+
+progressiviely build on top of each other, test after test.
+
 \todo{Check how fast the replication is compared to the primary execution. Benchmark on two equal stores and measure the time}
-
 \todo{ Execute benchmarks on multimodal dbs. as well as different kind of }
-
 \todo{ Talk about implementation of freshness characteristic in many query languages}
-
 \todoMissing{Check if freshness could even be used, or if we would always fallback to primary or when is the turining point when the freshness now works.}
-
-\todoMissing{Using 3 Node and 5 Node with eager replication than the same using lazy replication without any freshneess queries.}
-
-\todoMissing{Locking switched from table-wise to partition-wise. Compare unpartitioned table to horiontally partitioned table, single placment vs. distributed across stores}
-
-\todoMissing{Convergence time on different stores and in general}
-
-\todoMissing{Compare different evaluation types with each other, timestamp, absolute delay, relative delay and index mdoficiaiton and time}
-
 \todoMissing{Schuldt FAS Evaluation possibilities}
-
-\todoMissing{Also number of nodes-stores will have impact on query times replication time etc.}
-
-\todoMissing{Execute on two stores, one time store is eager second tiem store 1 is lazy. Show how a mixed workload impacts the total processing time of a fixed benchmark }
-
 \todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
 
 
-\subsubsection{Compare Overhead} 
-To see if the implementation has any impact on the genral processing time. 
-Since every request through a polystore will impact the entire throughput, minimizing additonal overhead is crucial.
-FIgure \ref{fig:overhead}
+\subsubsection{Overhead} 
+Polystore systems and specifically Polypheny-DB uniformly collect all incoming requests, process them and then
+route the resulting queries to the designated stores, where they will be finally executed. 
+However, due to this centralized processing, addtional introduced overhead will directly impact the performance of the system.
+Although, Polypheny-DB aims to provide cost- and workload-aware self-adaptiveness, to provide the best possible query results,
+its internal processing is executed on top of the actual execution of the underlying store.
+This can have a crucial impact on the entire throughput of the system.\\
+Hence we used Chronos\todoMissing{cite} a benchmarking tool....
+to measure the overhead. For this evaluation the introduced implementation is compared against the current state of Polypheny-DB.\\
+
+As depicted in Figure \ref{fig:overhead}, the results indeed show that the implementation introduced a little overhead for single store operations.
+However with multiple stores the actual average execution time was indeed slightly reduced. Although, single store executions should not be entirely negelcted
+they do not form the main pursuit of polystore systems, which are more suitably visualized by the multistore runtime.
+
+\todoMissing{Contain overhead as much as possible otherwise the freshness eveluation will negativiely impact regular operations}
+
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/overhead.png}
@@ -102,55 +112,79 @@ FIgure \ref{fig:overhead}
 
 \subsubsection{Locking } 
 
-Impact on locking adaptation. Comparing old locking model against the new locking model targeting partitions instead of entire table entities.
-
-Comparing un partitioned vs. partitioned on a single and on nstores where n is the numbe rof partitions
-figure \ref{fig:lock_comp} \ref{fig:oldlock} \ref{fig:newlock} \ref{fig:oldandnewlock}
+As described in Section \ref{sec:strategy}, one of the prerequisites to establish multiple refresh strategies and hence lazy replication,  
+was the refactoring of the locking mechanism. Although, not completely reworked, the locking-module of Polyphenys SS2PL 
+poses as a core component of the system. It therefore  impacts correct serializability treatement and is and inherent driver of 
+the concurrency which directly influences the overall performance of the system.\\
+For the evaluation again the current state of Polypheny-DB is compared against this implementation.
+Since the locking module was changed from a table-wise locking towards a partition-wise locking we will validate the impact on the basis of 
+a single table using YCSB\todoMissing{cite}. 
+The evaluation was executed with gradually increasing numbers of partitions, which are placed on one store or distributed across $n$-Stores 
+for $n$ partitions to observe any changes on the locking and therefore the throughput.\\
+To get a general overview of the impact, the benchmark was executed using a mixed workload.\\
 
 \begin{figure}
     \centering
-    \begin{subfigure}{.7\textwidth}
+    \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.5\linewidth]{Figures/old_locking.PNG}
-      \caption{A subfigure}
+      \includegraphics[width=.7\linewidth]{Figures/old_locking.PNG}
+      \caption{Old Locking}
       \label{fig:oldlock}
     \end{subfigure}%
     \begin{subfigure}{.5\textwidth}
       \centering
       \includegraphics[width=.7\linewidth]{Figures/new_locking.PNG}
-      \caption{A subfigure}
+      \caption{New Locking}
       \label{fig:newlock}
     \end{subfigure}
     \begin{subfigure}{.7\textwidth}
         \centering
         \includegraphics[width=.7\linewidth]{Figures/old_vs_new.PNG}
-        \caption{Old vs. New}
+        \caption{Old vs. New Locking}
         \label{fig:oldandnewlock}
       \end{subfigure}
     \caption{A figure with three subfigures}
     \label{fig:lock_comp}
 \end{figure}
 
+As visualized in Figure \ref{fig:oldlock} and \ref{fig:newlock}, for both cases the overall situation is quite similiar.
+While the distribution of the partitions across several stores gets gradually worse, the single store performance actually improves the more partitions are added to the table.
+This behaviour is essentially caused by the Polyphenys need to join and union several stores together, when querying multiple partitions across several stores.
+Since more stores need to be connected and considered, it is a rather costly approach and as stated before gets increasingly harder the more stores are involved.\\
+
+Because the single store variations prove to be more reliable, they are summarized in \ref{fig:oldandnewlock}.
+We can observe that the new locking mechanism indeed proves to be slightly better in terms of the possible throughput.
+Furthermore it shows that again with a growing number of stores, the gap between the old and new locking extends even more, validating the benefits of the new locking mechanisms.
+
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\subsubsection{ Single PSQL vs HSQL } 
+\subsubsection{Baseline Identification} 
+\todoMissing{Single PSQL vs HSQL}
 
-Ellaborate why DML only
-
-First show single Performance on the Store to see which one is the slower one of these stores in our setup.
-This will also show which stores logically bound the primary transaction time. PSQL on Docker. Since Docker Containers use a limited shared set of resources 
-this store immitating a slower performinh node in oru setup.
+Since the Lazy Replication algorithm is not only fundamental to generate multiple versions to be used within freshness-awareness
+but also a core functionality how data is propagated throughout the system. 
+Hence, along with the newly introduced replication strategies, and \emph{Change Data Collection} it will have a major impact on the overall perfromance of the system.
+Since the replication solely focuses on replicating captured changes, the next benchmarks will be consequently executed using only DML-operations without any reads.\\
 
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
     \caption{Single DML PostgreSQL vs. Single HSQLDB}
-    \label{fig:store_comparision}
+    \label{fig:singlepsqlhsql}
 \end{figure}
+
+As stated in the evaluation environement \todoMissing{ref section}, these benchmarks will be mainly executed with HSQLDB and PostgreSQL running within a virtualized 
+container environment. To have a general base line for comparison Figure \ref{fig:singlepsqlhsql} presents a single store execution, comparing theses two stores against each other.
+As motivated in the beginning, it is crucil for a system to utilize the key benefits of each store. For our scenario this is important to determine which 
+store configuration is more suitable to be used as an eagerly replicated priamry placement, due to its lower latency and better reponse time.\\
+This illustreated comparison clearly shows that Due to its limited resources the PostgreSQL store cannot directly compete with this HSQLDB configuration.
+This provides us with the intuitive decission to use HSQLDB for the priamry transactions.
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -158,10 +192,20 @@ this store immitating a slower performinh node in oru setup.
 
 
 
-\subsubsection{TERMINAL 1 vs TERMINAL 50 } 
+\subsubsection{Lazy Replication} 
+\todoMissing{TERMINAL 1 vs TERMINAL 50 }
 
-Compare parallel worklaod. Use one terminal as a base set and the impact
-it has on the overall performance.
+As previously stated, the replication strategies will impact the processing capability of the system immensly.
+A placement with a configured lazy replication strategy automatically enables the system, to start tracking changes for this entity, impacting the duration of a query.
+Therfore we want to compare how each store handles the replication differently. Consequently we want to benchmark and compare two equal placements that are eagerly replicated
+against the same two stores but one configured as \emph{lazy}.\\
+
+To extend the baseline discovered before, we again want to demonstrate the behaviour a purely sequential environment with only one client has, 
+against a parallel environment with 50 clients.\\
+Figure \ref{fig:terminal} shows the evaluation across two stores, providing the possible throughput per second. Which is given as the number of modifications that can be 
+applied to the system per second. As before HSQLDB obviously achieves better results then PostgreSQL. However what is surprising is that disregarding the store,
+and not, apparent when only considering  \ref{fig:terminal50}, the eagerly replicated configuration performs much better in all tests.
+Considering that he collection of changes within a llazy setup, indeed imposes additional costs on the processing time, such deviations are expected.
 
 \begin{figure}
     \centering
@@ -181,60 +225,26 @@ it has on the overall performance.
     \label{fig:terminal}
 \end{figure}
 
-Therefore from now on we will use TERMINAL 50 batch 128.
 
-Show with equal stores lazy replicaiton is much smaller. Therefore also consider interlaving the stores and see which is faster in what area.
-Which dowsnsides does it have
+Admittingly an enitity that is composed of only similiar or equal stores, will not be beneficial for a polystore system, to allow different workloads.
+Therefore the follwoing benchmarks will concentrate on a mixed setup with interleaved stores. Furthermore these tests will be executed with 50 parallel clients to repoduce a 
+conventional environment. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{PSQL vs HSQL DML only} 
-TERMINAL 50 batch 128
-Compare Execution between PSQL and HSQL.
-BOTH eager  -- PSQL EAGER HSQL LAZY -- HSQL EAGER PSQL --LAZY
+\todoMissing{PSQL vs HSQL DML only} 
 
+Now focussing on a mixed setup of two stores containing PostgreSQL as well as HSQLDB for one entity.
+Nativiely fo a polystore environment we want to identify which setup will produce better results, hence is suitable for which situation.
+Consequently we want to observe how the order of the stores imapcts the response time per benchmark.\\
+Again to have a foundation to compare our changes to we will compare the configurations if both stores are defined as eager and Further
+respectiviely define each store as lazy as well.\\
+Ultimately \ref{fig:psqlhsqlresponse} shows that regarding the lazy approaches, we again see the common behaviour that HSQLDB performs a little better as an eagerly replicated
+store compared to PostgreSQL.
+Additionally the Figure in \ref{fig:overall_comp} puts the average latency in perspective to the execution times described before.
+AS one can observe the eager replications again pefrom the best while the PostgreSQL variation posing a eager perfroms the worst.
+This not only allows to compare the different setups but again aids us to choose suitable combinations for our designated tasks.\\
 
-
-
-\begin{figure}
-    \centering
-    \begin{minipage}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{Figures/2hsql.PNG}
-      \captionof{figure}{Avg. Latency of 2x HSQLDB. EAGER vs. LAZY}
-      \label{fig:2hsql}
-    \end{minipage}%
-    \begin{minipage}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{Figures/PSQL.PNG}
-      \captionof{figure}{Avg. Latency of 2x PostgreSQL. EAGER vs. LAZY}
-      \label{fig:2psql}
-    \end{minipage}
-    \end{figure}
-
-Maybe combine teh four images
-AVG HSQL 2x EAGER and LAZY
-AVG PSQL 2x EAGER and LAZY
-\todoMissing{Make the scale equal everywhere that to images are comparable}
-\begin{figure}
-    \centering
-    \begin{minipage}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{avg_response-hsql.PNG}
-      \captionof{figure}{A figure}
-      \label{fig:test1}
-    \end{minipage}%
-    \begin{minipage}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{Figures/abg_response-psql.PNG}
-      \captionof{figure}{Another figure}
-      \label{fig:test2}
-    \end{minipage}
-    \end{figure}
-
-
-
-DML onlyReponse time comparison HSQL and PSQL with switching stores
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/PSQ_HSQL_DML_only.PNG}
@@ -242,18 +252,100 @@ DML onlyReponse time comparison HSQL and PSQL with switching stores
     \label{fig:psqlhsqlresponse}
 \end{figure}
 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/psq_hsql_avg.response2.PNG}
+    \caption{DML onlyAvg. Response Time Comparison of 2 store sizes and swithcing Roles}
+    \label{fig:overall_comp}
+\end{figure}
 
 
-Identify that it makes a difference whihc store is eager and which one is lazy in terms of the  average respone time
+However, the presented possibilities so far only considered the execution on two stores. Therefore, \ref{fig:24storecomp} aims
+to compare the execution on two and four stores. Again this is done in an interleaved fashion, switching the role of lazy and eager strategy between the participating stores.
+During theses tests only one is eagerly replicated the remaining are all configured as lazy placements. Eagerly and lazily replicated stores in this scenario are inherently
+defined to be different stores.\\
+The graphs indicate that although they differ in terms of average response times, the gap between both configurations is comparably equal.
+In both cases the execution with the eagerly replicated HSQLDB is roughly 500ms faster in terms of the average response time.\\
 
-Talk about and suspect why lazy replication is so much slower.
-And identify that is is caused by the high and queue replication time
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{psql_hsql_switched_lazy.PNG}
+      \caption{Comparison of 2 Stores HSQLDB and PostgreSQL. Switching Roles.}
+      \label{fig:2store}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+      \centering
+      \includegraphics[width=.9\linewidth]{Figures/4psql_hsql_switched_lazy.PNG}
+      \caption{Comparison of 4 Stores HSQLDB and PostgreSQL. Switching Roles.}
+      \label{fig:4store}
+    \end{subfigure}
+    \caption{Comparison of different store sizes and swithcing Roles}
+    \label{fig:24storecomp}
+\end{figure}
+
+
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/24_avg_psql_hsql_switched_lazy.PNG}
+    \caption{Avg. Response Time Comparison of different store sizes and swithcing Roles}
+    \label{fig:24storecomp_avg}
+\end{figure}
+
+
+As summarized and visualized more densely in Figure \ref{fig:24storecomp_avg},
+its rather counter intuitive that the configurations in \ref{fig:24storecomp} (a) and (b) deviate at all. 
+In general they both only contain one primary placement that is even targeted for the primary transaction. 
+However, as described before, the primary transaction is responsible for capturing, as well as queing the changes to be replicated asynchronously.
+While the procedure is always executed equally, the second approach with four stores, has more replication targets that require the change. 
+Since the generation of replication objects as well as the queueing are all still done during the commit of the priamry transaction, the observed
+deviations are reasonable.\\
+
+
+
+
+Based on this observation we specifically wanted to compare how a growth in stores will impact this deviation.
+To have a more uniform result this test will be executed with two HSQLDB stores, to have a simple foundation to compare each deviation .
+Without a secind store chararcteristic that could interfere with the final result.\\
+In this evaluation \ref{fig:stores_comp} illustrates, the average response time of two to eight stores, where one store is eagerly replicated and the rest
+is configured as lazy.
+
+
+
+
+
+
+HSQL only
+Compare execution time with different number of stores 1 Eager n Lazy   
+(Because for Lazy there 
+are more replications to put into the queue per pending operation)
+Check the average repsonse Time
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/hsql_avg_response_stores.PNG}
+    \caption{DML only multiple STore comparison  Response Time}
+    \label{fig:stores_comp}
+\end{figure}
+
+
+\subsubsection{Queue Replication}
+Mixed 60-40
+
+Shows the impact the queu operations have on the overall performance
+
+
+As ellaborated and suggested multiple times before, the deviation between eagerly and lazily replicated deviates quite a bit.
+Therefore we want to identify per operation what actuallay influences the lower resposne time.
+
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/dml_comp.PNG}
     \caption{Execution-Time comparision of a decompossed  single write-operation with and without data active data capture }
     \label{fig:write_decomposition}
 \end{figure}
+
 
 Therefore show how this deviates in General. What happens if we disable the replication queue or teh capture in geenral.
 To immitate an on-demand processing where entities and placements are purposely kept at a given point
@@ -270,42 +362,6 @@ Mixed 60-40
 
 
 
-Even difference which of these stores is considered to be faster in priamry and faster as secondary
-
-\begin{figure}
-    \centering
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{psql_hsql_switched_lazy.PNG}
-      \caption{Comparison of 2 Stores HSQLDB and PostgreSQL. Switching Roles.}
-      \label{fig:2store}
-    \end{subfigure}%
-    \begin{subfigure}{.5\textwidth}
-      \centering
-      \includegraphics[width=.9\linewidth]{Figures/4psql_hsql_switched_lazy.PNG}
-      \caption{Comparison of 4 Stores HSQLDB and PostgreSQL. Switching Roles.}
-      \label{fig:4store}
-    \end{subfigure}
-    \caption{COmparison of different store sizes and swithcing Roles}
-    \label{fig:24storecomp}
-\end{figure}
-
-
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/24_avg_psql_hsql_switched_lazy.PNG}
-    \caption{Avg. Response Time Comparison of different store sizes and swithcing Roles}
-    \label{fig:}
-\end{figure}
-
-
-
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/psq_hsql_avg.response2.PNG}
-    \caption{DML onlyAvg. Response Time Comparison of 2 store sizes and swithcing Roles}
-    \label{fig:}
-\end{figure}
 
 
 
@@ -332,21 +388,25 @@ Mixed Worklaod?
 Average Repsonse Time accumulated with the Extension of teh Replicaiton Queue as well as the shrinking
 to mimic the convergence time. 
 
+
 \begin{figure}
     \centering
-    \begin{minipage}{.5\textwidth}
+    \begin{subfigure}{.5\textwidth}
       \centering
       \includegraphics[width=.9\linewidth]{Figures/2latency_queue.PNG}
-      \captionof{figure}{2 Stores Execution Time and Replication Convergence}
+      \caption{2 Stores}
       \label{fig:converge_2}
-    \end{minipage}%
-    \begin{minipage}{.5\textwidth}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
       \centering
       \includegraphics[width=.9\linewidth]{Figures/4latence_queue.PNG}
-      \captionof{figure}{4 Stores Execution Time and Replication Convergence}
+      \caption{4 Stores}
       \label{fig:converge_4}
-    \end{minipage}
+    \end{subfigure}
+    \caption{Execution Time and Replication Convergence}
+    \label{fig:converge_24}
 \end{figure}
+
 
 
 
@@ -356,6 +416,11 @@ to mimic the convergence time.
     \caption{Replication Queue Convergence}
     \label{fig:converge24}
 \end{figure}
+
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -365,22 +430,24 @@ to mimic the convergence time.
 
 DQL only
 
+Even with mixed workload without freshness as illustrated in Figure \ref{fig:dqldml_no_fresh}, it is obvious 
+we see that the store consteallation does have an impact on the overall latency.
+Whereas no freshness queries will always target the primary playement we see
+again that the store with HSQLDB as a priamry node is slightly faster than the PostgreSQL Eager variation. This again proves the
+point that the Store selection will have an impact.
+However know compared to a query with freshness, we essentially see very flipped roles.
+. This is essentially caused by the target of the select statetemntes. Since we are ratehr in a 
+read-heavy environemnt the select to have quite the impact on the final result.
+in contrast \ref{fig:fresh10}in that case targeting the secondary node. Where again the lazy replicated HSQL Node is better
+
+\todoMissing{Compare with both EAGER}
 No Freshness 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/psq_hsql_avg_response_no_fresh_dql.PNG}
-    \caption{DQL No freshness}
-    \label{fig:}
+    \includegraphics[width=0.7\textwidth]{Figures/avg_response-hsql-psql-dql_no_fresg.PNG}
+    \caption{Mixed Workload 60-40 No freshness}
+    \label{fig:dqldml_no_fresh}
 \end{figure}
-
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{avg_response-hsql-psql-dql_no_fresg.PNG}
-    \caption{}
-    \label{fig:}
-\end{figure}
-
-
 
 
 100 \% Freshness
@@ -388,76 +455,31 @@ No Freshness
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/100_fresh_dql.PNG}
     \caption{DQL 100\% Freshness }
-    \label{fig:}
+    \label{fig:fresh100}
 \end{figure}
 
 
+\todoMissing{Introduce 0\% Freshness}
 DQL 50\% Freshness
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/50_fresh_dql.PNG}
     \caption{DQL 50\% Freshness}
-    \label{fig:}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsubsection{Response Time impact on number of stores } 
-
-Compare execution time with different number of stores 1 Eager n Lazy   (Because for Lazy there are more replications to put into the queue per pending operation)
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/hsql_eager_stores.PNG}
-    \caption{}
-    \label{fig:}
+    \label{fig:fresh50}
 \end{figure}
 
 
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/hsql_lazy_stores.PNG}
-    \caption{}
-    \label{fig:}
-\end{figure}
 
-
-Stores in general stay rather stable how does this chaneg if 
-Freshness impact if we have multiple partitions
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/partioned_freshness.PNG}
-    \caption{}
-    \label{fig:}
-\end{figure}
-
-
-Check the average repsonse Time
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/hsql_avg_response_stores.PNG}
-    \caption{}
-    \label{fig:}
-\end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsubsection{Locking } 
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
-    \caption{}
-    \label{fig:}
-\end{figure}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Freshness Evaluation Type Filer} 
+\subsubsection{Freshness Evaluation Type Filter} 
 Show how each filter impacts the store differently, but all in all roughly the same
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/freshness_comp.PNG}
-    \caption{}
-    \label{fig:}
+    \caption{Avg. Response Time comparison of the available Evaluation Type Filter Functionality }
+    \label{fig:eval_type}
 \end{figure}
 
 
