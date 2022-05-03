@@ -3,13 +3,17 @@
 \label{c:evaluation}
 
 This chapter is separated into two sections. The first section aims to validate and verify the implementation in terms of their
-correct execution. It focuses on the core contributions, such as the lazy replicaiton algorithm as well as the freshness constraint.
-Further it ensures the described constraints and establishes certain test cases to identify possibile failures that can occur 
-during execution as well as failure handling scenarios..
+correct execution. It focuses on the core contributions, such as the lazy replicaiton algorithm as well as the freshness filter capability.
+Further it ensures the correct handling of the described constraints and establishes certain test cases to identify possibile failures that can occur 
+during execution as well as suitable failure handling scenarios.
 
 The second part of this chapter focuses on benchmarking the implementation on the basis of the described motivational scenario itself.
+Since one of the main goals was to relax the consistency and allow 
 This is followed by comparing the performance of several cases to identify how the system will behave in certain situations.
 Further it will compare several executions to determine how the impleemntation affect the providede requirements.
+
+Furthermore the performance of the individual functionalities is benchmarked and compared against slightly adjusted variations 
+to give an comprehensive overview of the impact.
 
 
 \section{Goal}
@@ -74,7 +78,69 @@ The following steps outline the procedure for benchmarking data freshness within
 
 \todoMissing{Schuldt FAS Evaluation possibilities}
 
+\todoMissing{Also number of nodes-stores will have impact on query times replication time etc.}
+
 \todoMissing{Execute on two stores, one time store is eager second tiem store 1 is lazy. Show how a mixed workload impacts the total processing time of a fixed benchmark }
+
+\todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
+
+
+\subsubsection{Locking } 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \caption{Execution-Time comparision of a single write-operation on different stores.}
+    \label{fig:store_comparision}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsubsection{TERMINAL 1 vs TERMINAL 50 } 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \caption{Execution-Time comparision of a single write-operation on different stores.}
+    \label{fig:store_comparision}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{PSQL vs HSQL } 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \caption{Execution-Time comparision of a single write-operation on different stores.}
+    \label{fig:store_comparision}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Locking } 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \caption{Execution-Time comparision of a single write-operation on different stores.}
+    \label{fig:store_comparision}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\subsubsection{Locking } 
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \caption{Execution-Time comparision of a single write-operation on different stores.}
+    \label{fig:store_comparision}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \subsection{Results}
 \label{sec:discussion}
