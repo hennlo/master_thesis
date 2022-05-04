@@ -1,16 +1,13 @@
 % !TEX root = ../Thesis.tex
-
 \chapter{Related work}
 \label{c:related}
 
-\todoMissing{Cite from Marco Dis \cite{vogt_dis_2022} }
-\todoMissing{ this compares the work of other systems }
 
+%\todoMissing{abreviation of OLTP and OLAP}
 
-\todoMissing{Check abreviation of OLTP and OLAP}
-
-This chapter aims to provide a background for the given topics as well as talking about the related and recent research 
-activities in this field. In the context of this thesis, we consider five topics, which are necessary to establish 
+This chapter aims to provide a background for the topics revolving around data freshness and compares existing approaches 
+as well as related and recent research activities in this field. 
+In the context of this thesis, we consider five topics, which are necessary to establish 
 freshness-awareness inside a Database Management System (DBMS).
 It is therefore separated into five sections, were each part contributes to a characteristic, needed to 
 provide Data Freshness. This includes a definition of Data Freshness in general ($\rightarrow$ Section \ref{sec:definition}), 
@@ -24,29 +21,18 @@ Finally, this is concluded by a discussion, how users can actually specify their
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\todoMissing{Check necessity}
 
-To ensure the overall consistency of a system, current approaches in cloud environments use well-established protocols with unified blocking behaviours. 
-This includes Strict two phase locking (SS2PL) for correct serializability treatment as well as two-phase commit (2PC) for global atomicity in a distributed database 
-setup. Such mechanisms are mainly utilized when updates and changes to the system are replicated eagerly to every available replica to maintain a consistent state
-while complying with the common ACID properties \cite{tamer:2005}.
-However, these  directly impact and ultimately mitigate the availability and response time 
-agreements of most service providers.
-Hence, different approaches were introduced which aim to relax the strict \textit{ACID} properties towards 
-a \textit{BASE} assumption \cite{base2008}.
-\textit{BASE} in this context stands for \textbf{B}asically \textbf{A}vailable \textbf{S}oft 
-State and \textbf{E}ventual Consistency \cite{shapiro:2011}.
-To implement this concept, updates on data items do not need to be executed immediately on every participating node.
-It is sufficient to apply the change only on a few nodes and deferring the data replication to a point in time when the workload on the system is low and 
-resources are not occupied by client requests. This form of lazily replication can drastically increase the performance while also reducing the costs of maintaining
-all replicas at once. However, since these client requests are not serialized anymore this could lead to users accessing outdated and stale data items
-which have not been updated yet.
-As a consequence of lazy replication the system now persists multiple versions of data objects which logically reflect the data freshness.
-Voicu et al. \cite{voicu:2010} suggest that since not all applications need the most up-to-date data, one could easily exploit 
-this side effect by keeping several replicas of a datum as different levels of freshness.
-This notion of or recency can then be utilized to ease the selection of correct replicas to fulfil individual client requests which even tolerate stale data as well.
-For cloud providers this combination of eager and lazy replication together with the resulting different stages of freshness 
-offers a great trade off between latency and access time for freshness and enables efficient usage of available resources.
+%To implement this concept, updates on data items do not need to be executed immediately on every participating node.
+%It is sufficient to apply the change only on a few nodes and deferring the data replication to a point in time when the workload on the system is low and 
+%resources are not occupied by client requests. This form of lazily replication can drastically increase the performance while also reducing the costs of maintaining
+%all replicas at once. However, since these client requests are not serialized anymore this could lead to users accessing outdated and stale data items
+%which have not been updated yet.
+%As a consequence of lazy replication the system now persists multiple versions of data objects which logically reflect the data freshness.
+%Voicu et al. \cite{voicu:2010} suggest that since not all applications need the most up-to-date data, one could easily exploit 
+%this side effect by keeping several replicas of a datum as different levels of freshness.
+%This notion of or recency can then be utilized to ease the selection of correct replicas to fulfil individual client requests which even tolerate stale data as well.
+%For cloud providers this combination of eager and lazy replication together with the resulting different stages of freshness 
+%offers a great trade off between latency and access time for freshness and enables efficient usage of available resources.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -61,12 +47,6 @@ This thought was also shared by the author of \cite{redman:1996} who defined the
 collection of data values and a source agreed to be correct".
 Hence, it can be considered as the precision of such data elements in respect to their most up-to-date version.
 
-
-\todoMissing{Check}
-This approach is now commonly used among distributed systems which compare replicas with a designated \emph{single source of truth} or some defined 
-primary or leader nodes in such a setup. Referring to freshness as a measure of the divergence between a replica and the current value \cite{cite}.
-Such strong application driven requirements call for a dedicated data model which represents the handling of data in a system which has
-freshness related requirements on arbitrary data items.
 
 
 Peralta \cite{peralta:2006} also summarized freshness as an implication of how old data is, and referred this to an user's expectation on the actuality of an object. 
@@ -212,7 +192,7 @@ fulfil future requests along the requirements.
 
 Wei et al. \cite{wei:2004} follow a different approach by analyzing the \emph{Access Update Ratio} (AUR) for any data object \textit{d}. 
 \begin{equation}
-AUR(d) = \frac{AccessFrequency(d)}{UpdateFrequency(d)}
+AUR(d) := \frac{AccessFrequency(d)}{UpdateFrequency(d)}
 \end{equation}
 As depicted above, any item beyond an AUR of 1 is considered to be accessed at least as frequently as it is updated.
 Hence, it is considered as \emph{hot} and shall be updated as soon as possible for applications to receive the real-time value. 

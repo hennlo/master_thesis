@@ -17,7 +17,7 @@ to give an comprehensive overview.
 
 \section{Goal}
 The evaluation has three goals: The first goal is to verify the correctness of the solution, the second goal
-is identifying the impact freshness-aware aspects have on different worklaods and finally the identification of suitable workloads.\\
+is identifying the impact freshness-aware aspects have on different workloads and finally the identification of suitable workloads.\\
 
 We therefore want to verify and validate the correctness as well as the completeness of the implementation based on several characteristics.
 These include the correct execution of lazy replication, the possibility to refresh statements on demand as well as correct freshness filter.
@@ -39,10 +39,10 @@ In general we aim to assess different situation to obtain a comprehensive insigh
 The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly,
 and if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
 a replication update. Rather we compare metadata of two replicasa on a high level 
-(i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node) . 
+(i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node). 
 
 The second part of the validation process focuses on the retrieval of outdated nodes. Although we always have a fall back to the primary placements as described in 
-section \ref{sec:freshness_selection}, we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.\\
+section \ref{sec:fresh_select}, we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.\\
 
 As mentioned within the implementation chapter, several constraints (see \ref{sec:constraints}) will already be enforced with the execution itself. 
 We have e.g. established a dependency between the replication strategy as well as the designated palcement state. When altering the strategy of teh object we
@@ -81,14 +81,15 @@ These benchmark progressiviely build on top of each other and are finally summar
 
 
 \subsection{Evaluation Environment}
+\label{sec:env}
 
 For all executed tests a base set of tools an functionality has been used to ensure the rerpoducibility of the benchmarks.
 
 If not explicitly stated otherwise, the benchmarks will be executed using two underlying stores.
 For these stores HSQLDB and PostgreSQL are used. While HSQLDB will run nativiely on the system, PostgreSQL is configured within a virtualized
-container environment with limited resources. \\
+container environment with limited resources immitating a waeker store. \\
 
-During the evaluation only a predefined set of workloads will be used to obtain insight on various setups.
+During the evaluation only a predefined set of workloads will be used to obtain insights on various setups.
 As suggested in \ref{tab:workload table} these inherently differ in terms of their focus on write- or read-operations as well the
 degree of utilized freshness queries. 
 
@@ -110,6 +111,7 @@ degree of utilized freshness queries.
 
 Although not explictly mentioned, each test will always be pre-configured to match the required replication strategy.  
 
+These benchmarks will be executed using a number of tools.
 
 \subsubsection{Chronos}
 
@@ -135,7 +137,8 @@ These can be used to retrieve performance metrics and obtain indications regardi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Results} 
+\subsection{Results}
+\label{sec:results}
 In this section we will present the results of the performance evaluation.
 
 If not stated otherwise the generated tables within the benchmarks will contain 100000 entries and will be executed using
@@ -242,7 +245,7 @@ Since the replication solely focuses on replicating captured changes, the next b
     \label{fig:singlepsqlhsql}
 \end{figure}
 
-As stated in the evaluation environement \todoMissing{ref section}, these benchmarks will be mainly executed with an embedded version of HSQLDB and PostgreSQL running within a virtualized 
+As stated in the evaluation environment \ref{sec:env}, these benchmarks will be mainly executed with an embedded version of HSQLDB and PostgreSQL running within a virtualized 
 container environment. To have a general base line for comparison Figure \ref{fig:singlepsqlhsql} presents a single store execution, comparing theses two stores against each other.
 As motivated in the beginning, it is crucil for a system to utilize the key benefits of each store. For our scenario this is important to determine which 
 store configuration is more suitable to be used as an eagerly replicated primary placement, due to its lower latency and better reponse time.\\

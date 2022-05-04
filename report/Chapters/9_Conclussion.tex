@@ -2,181 +2,66 @@
 \chapter{Conclusion}
 \label{c:conclusion}
 
-
-With this implementation Polypheny-DB now provides functionalities to adjust itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
-To let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
-Due to this asynchrony it now efficiently supports hybrid workload. 
-
-
+In this thesis we have presented a concept as well as a solution for freshness-aware data management within a polystore system.
 With this implementation we have introduced a possibility to allow system administrators or operators in general to define their replication requirements as needed. 
-With the introduced replication strategies and states we can define on a table-level basis how updates are propagated within the system and can therefore directly influence 
+With the established replication strategies and states, we can define on a table-level basis how updates are propagated within the system and can therefore directly influence 
 the availability and consistency per object.\\
-This immediately enables us to use possibly outdated nodes containing stale data to be used during retrieval to support analytical queries even in the presence of transactional load.
-This does not only improve parallel processing but also allows the efficient usage of all available stores.
+The presented metrics allow to flexibly define a tolerated level of freshness depending on varying use cases and requirements.
+This immediately enables us to use possibly outdated nodes, containing stale data, to be used during retrieval to support analytical queries even in the presence of 
+transactional workload.\\
+This does not only improve parallel processing in general, but also allows to leverage the inherent redundancy of polystore systems
+to efficiently utilize the key benefits of the underlying stores.\\
 
 
-With this implementation we have introduced a fault tolerant replication algorithm which can be used to lazily replicate changes to outdated replicas,
-while ensuring the correct consistency of each placemnts by enforcing the natural execution order. All while autoamtically rescheduling failed replications and removing left over
-replications from suspended or removed placments, hence cleansing the environemnt during runtime.
 
-The results presented in section \ref{sec:results} show that allthough freshness can greatly improve the performance of 
-already the differentiation between eager and lazy replication, helped to drastically reduce the average repsonse time of the system.
-Furthermore it now enables Polypheny-DB to decide per entity how the trade-off betwwen latency and consistency should look like, in accordance with the CAP theorem. 
 
-When partial replication is used, several of the underlying stores may qualify
-for the execution of these queries. In order to avoid that single stores are overloaded, query processing and optimization
+Since our freshness filter is analyzed and evaluated centrally within the polystore layer, it can be applied to arbitrary underlying stores.
+When the stores are partialy replicated, several of the underlying stores may qualify for the execution of these queries. 
+In order to avoid that single stores are overloaded, query processing and optimization
 can effectively consider version selection and load balance the access among relevant replicas.
-
-Although this work has shown in \ref{sec:benchmark} that is greatly improves the throughput of this inherently distributed system, the usage should still be considered with care.
-Despite that we established certain counter measures 
-
-Despite that the performance as well as the convergence time is better within the eagerly replicated case, the lazy approach allows to efficiently use all remaining resources.
-
-At the end this work introduced several nuances of freshness to support varying use cases and requirements.
-Albeit not being able to support Serializable Snapshot Isolation, the implementation still offers 
-
-Since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
-Even the freshness specification without any determined tolerated level, promises a certain level of freshness by design.
+Because our appraoch further allows to compare different placements disregarding their actual physical representation. We can therefore compare them simply on the basis of their
+update information despite that they might contain different column placements. 
+This again allows to use the polystore system to dynamically process the freshness specification independently.\\
+In general we can even reduce the data footprint since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
+This even allow the freshness specification without any determined tolerated level, and promises a certain level of freshness by design.
+Although not all entities have to support freshness users can act agnostic of the underlying architecture and specify the freshness either way, 
+since we can always fallback and route the query towards a primary placement.\\
 
 
 
-\todoMissing{Allthough not all entities have to support freshness, but since we allowing a fallback to the respedtive priamry placements, users can act agnostic of the 
-underlying architecture and specify the
-freshness eitehr way. Since we can always fallback and route the query towards the priamry placements. This enables user agnostic access and 
-further allows to configure these freshness
-values within an application. That would then autoamtically evaluate the freshness once it actually has different versions of data.}
-
-\todoMissing{In regards to CDC, if we observe that the number of pending update operations exceed a certain threshold for example 50\% of the total number of modifications of the master
-we can directly remove all pending updates and execute a primary snapshot copy because this is faster then reexecuting the operation again. }
+Despite that the performance as well as the convergence time is better within the eagerly replicated case, 
+the lazy approach allows to efficiently use all remaining resources. 
+Further we have introduced a reliable fault tolerant replication algorithm, which can be used to lazily replicate changes to outdated replicas,
+while ensuring the correct consistency of each placemnts by enforcing the natural execution order. All while automatically rescheduling failed replications 
+and removing remaining replications from suspended or removed placements, hence cleansing the environemnt at runtime.\\
 
 
-\todoMissing{Explain potential optimization steps that we can analyze the queue and can aggregate certain steps or avoid 
-certain operations if we execute batch wise and one UPDATE operation e.g. updates the same primary key}
 
-\todo{partition placments are filtered and compared. although as stated in constraints, the primary and lazy palcement do not have to be equal in terms of there representation (can contian different columns) 
-, we therefore just require to compare a partition placement with another eagerly partitoin palcement associated with the same partition.
-Allthough the columns good differ, the update and commit is always considered the same since they are based on the same partition. 
+Depending on the workload the system is still able to provide great results due to the introduced nuances of freshness to support various scenarios.
+Albeit not being able to support all workloads equally the implementation still offers a broad field of application.
+Polypheny-DB therefore now provides functionalities to adjust itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
+To let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
+Due to this asynchrony it now efficiently supports hybrid workload. Further it now provides underlying systems with the capability to accept freshness queries to efficiently
+utilize all available resources of the entire system.\\
 
-Since we allow the comparision of freshness on the basis of partition update times alone we do not need to consider  that priamry and secondary placements need to have the same configuration e.g. the same set of column placmeents we can do this simply on the basis of comparing the update informationof two distinct partition placements}
+
+
+Although, the capture-queue currently negativiely impacts the overall performance of the system,
+it could be easily improved by deferring the creation of replication objects from the commit time.
+Instead of creating the designated target replications within the primary transaction, we can pass them to an intermediate process, 
+which will transform the change objects to replication events for us.
+Additionallly this can be further optimized by investigating the queue periodically to refrain from replicating operation-wise.
+The system could therefore be easily adjusted to inspect the queue first, then try to aggregate as many subsequent operations as possible
+and replicate them jointly.
+
 
 
 %%%% LAST part 
-Of course there are obvious choices to improve such as teh queue persistency. While enabling a fast access when storing replicaiton in memeory it is prone to failures and outages,
-losing relevant data to be replicated. In order to remove the workarounds during startup, teh replication queues as well as the data have to be persisted.
-Despite slower processing times for priamry update transactions, we would increase the stability and the receoverability of the system immensely 
+Of course there are more possibilities to improve the system, such as the queue persistency. While enabling a fast access when storing replicaiton in memory it is prone to 
+failures and outages, losing relevant data to be replicated. In order to remove the workarounds during startup, the replication queues as well as the data have 
+to be persisted. Despite slower processing times for priamry update transactions, we would increase the stability and the receoverability of the system immensely .
 At the end this again is a trade-off between availability and consistency, dependening on indidivdual requirements.
 This is however is an obvious extension for this work and introduces a foundation for future work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Outlook}
-
-\subsection{Tuneable Consistency}
-The introduced implementation sketched in section \ref{c:implementation} reduces the overall consistency of the primary transaction,
-to improve the overall response time of the system.\\ 
-But since this trade-off between availability and consistency certainly depends on the use case or service requirements, it would be beneficial.
-Hence, an extension to the described model could easily allow to adjust the required consistency as needed. 
-This could be either done by the mentioned usage of policies, described in section \ref{sec:polcies} or with.
-
-Instead of labeling fixed data placements to receive updates eagerly, we could allow a more flexible approach that ts is sufficient if already placement 
-shall receive the update, disregarding its role. The predefined replication state can be therefore omitted. 
-Such approaches can then be easily combined with tuneable consistency to allow self adjusting data placements  adapting to individual use cases.
-
-\subsection{Locking}
-Reduce locking to a physical partition level  (partition placement)
-
-\todoMissing{When a refresh transaction  is executed no more locks on secondary nodes can be applied, if there is still a shared lock on that outdated node
-they will first be commited before the refresh takes place  (avoid deadlock) if we do not hinder the system to build more shared locks refresh operations might starve}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\tocless\section{Global Replication Strategies}
-This implementation has only introduced the specification of table-level entities like entire data placements to be defined as eagerly or lazily replicated.
-Although this introduces a high degree of flexibility, it still might be desirable to define certain policies that entire schemas or even databases automatically 
-receive a lazy replication, while still ensuring the overall placement constraints.\\
-This concept could be intended even further by applying it to a distributed setup of Polypheny, that replicates data autonomously to certain regions based on the given 
-This extension could leverage the introduced freshness-awareness to consider off-site locations for even more parallel workload.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Policies}
-\label{sec:polcies}
-
-According to the idea, to generally relax consistency or allow a fine grained way of letting data owners decide what kind of consistency shall be desired for their object. 
-Since freshness can be considered a trade-off between availability and consistency it is only fair to let users decide which level of consistency to enforce and 
-how the freshness should be handled. We therefore propose the notion of policies to guide the system.
-Policies are essentially intentions and desired states how the system should behave in various situations. 
-The system can apply them when manual or automatic system maintenance is performed.
-They shall therefore be introduced for any kind of configurable behaviour to allow any custom tailored behaviour. \\
-
-Policies can be inherented and applied to any kind of object. When applied to a schema all entities inherent that polcies.
-However, a different kind of policy with the same type can be applied to an entity overriding the one inherented by the parent.
-Policies are about background processing how metadata and constraints on different objects are enforced. 
-They provide a lightweight version of UDFs (User-Defined-Functions) to build custom-tailored behaviours into the system.
-Other than the central configuration which is used to define core system behaviours. 
-Such policies can be defined as:\\
-
-
-\textbf{Consistency Policies}\\
-Provide a notion of tuneable consistency, where users should be able to decide which levels to fulfill.
-In such a case an administrator could choose to define how many primary replicas an object should always contain.
-This would directly impact the constraints on the table restricting users to remove more placements than defined by that policy.\\
-
-
-\textbf{Freshness Policies}\\
-Can be utilized to define behaviour on freshness related actions. As \cite{fekete:2018} stated it is crucial to define how far a replica can diverge from the true
-and up-to-date value before a refresh transaction has to be critically executed.
-Additionally, we could use these types of policies to let object owners define how their data shall be identified and consequently updates are propagated.
-In such a way the system would stay customizable and would allow any methods discussed in \ref{stale} to be used dependent on the use case.
-Considering how refreshes are triggered one policy for example might has chosen to defer a propagation transaction entirely hence it won't try again and
-essentially waits for another chance when a new update-transaction is being executed and will trigger the service again. Another policy could suit other use cases better 
-and assist by constantly querying the storage's performance metrics to decide if an update should be executed.\\
-
-Due to the inherent heterogenous nature of the polystore systems itself, use cases may widely vary. Hence, in gerneal there is no need to impose a 
-general notion of freshness that is valid for all applications. Some might consider using CDC, while other prefer a partition approach or materialized views.
-However, with policies these can all be implemented.\\
-
-
-%\subsection{Policy usage}
-
-Since applications that are being served by polystores are very different to each other, they might have different requirements. 
-Therefore, different object types shall be supported.
-
-A policy shall generally be created inside a database.
-\begin{verbatim}
-CREATE POLICY policy_name as <configuration>;
-\end{verbatim}
-
-These policies can then be added to any object.
-\begin{verbatim}
-ALTER TABLE dummy ADD POLICY policy_name;
-\end{verbatim}
-
-Users should always be able to list information on all applied policies on any object.
-\begin{verbatim}
-SHOW POLICIES ON (DATABASE | SCHEMA | TABLE ) object_name;
-\end{verbatim}
-
-
-Furthermore they should be able to view the content of any policy: 
-\begin{verbatim}
-DESCRIBE POLICIY policy_name ON (DATABASE | SCHEMA | TABLE ) object_name; 
-\end{verbatim}
-
-To complement the idea of policies we also need a central \emph{Policy Manager} which ensures that the specified intentions are ensured.
-The manager shall be added as an additional central component and acts as a verification layer whenever meta information on objects will change.
-
-
-\subsection{Session-Wide Freshness}
-Another addiitona to freshness could be the extension to also allow the specification
-of freshness per session. This avoids specifiyng the freshness for individual statements.
-This is especially useful if the freshness requirements do not really change, allowing a quick
-possibility to adapt the requirements. Although, they could we extented for individual stateemntes,
-that indeed erquire a more strict form of freshness, it provides a good base line to operate on freshness.
-This is espeicially interesting for applications that usually establish one session,
-for the majority of its lifetime. 
-\todo{Essentially for every configurabel freshness related paramteres as with modification deviation or time deviation, or if modification deviation than total or per entitiy}
-
-\todo{Add spacing in chapters to avoid entire blocks of data}

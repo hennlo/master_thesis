@@ -72,13 +72,13 @@ Because polystore systems orginally were introduced to support heterogenous data
 Since these systems are inherently distributed the data will be stored redundantly across these stores. 
 In order for such systems to utilize the different underlying engines and consequently improve the read-performance, 
 the data also needs to be consistently written to all relevant stores to leverage their unique benefits.
-This however, limits the performance of such write-operations essentially to be bound to the slowest performing node in such a setup \todoMissing{figure}.
+This however, limits the performance of such write-operations essentially to be bound to the slowest performing node in such a setup.
 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \includegraphics[width=0.7\textwidth]{Figures/stores.png}
     \caption{Execution-Time comparision of a single write-operation on different stores.}
-    \label{fig:store_comparision}
+    \label{fig:stores}
 \end{figure}
  
 As depicted in Figure \ref{fig:store_comparision}, the utilized stores write the same data very differently, leading to large deviations in their execution time. 
@@ -125,7 +125,8 @@ to allow the possibility to decouple primary from secondary transactions.
 This thesis is structured as follows:
 In Chapter \ref{c:related} the foundations and concepts of data freshness characteristics and requirements are presented.
 Further, we give an overview over the current state of research in the field of data freshness. 
-Chapter \ref{c:Foundation} illustrates existing fundamental concepts in the context of distributed data management systems. 
+Chapter \ref{c:Foundation} illustrates existing fundamental concepts in the context of distributed data management systems 
+which are necessary for the remainder of this thesis. 
 Followed by Chapter \ref{c:concept} which describes the functional requirements, necessary to introduce the notion of freshness inside a polystore system. 
 Additionally, it discusses and proposes possible approaches how to implement them in a polystore system. 
 In Chapter \ref{c:implementation} these concepts including all requirements and building blocks will be applied to Polypheny-DB, a specific polystore system.

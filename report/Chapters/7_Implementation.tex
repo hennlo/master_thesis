@@ -40,7 +40,7 @@ different workload demands.\\
 Instead, it acts as a higher-order DBMS which provides a single-point of entry to 
 a variety of possible databases like 
 \textit{MongoDB}\footnote{https://www.mongodb.com/}, 
-\textit{Neo4j}\footnote{https://neo4j.com/},
+\textit{HSQLDB}\footnote{https://hsqldb.org/},
 \textit{PostgreSQL}\footnote{https://www.postgresql.org/} 
 and \textit{MonetDB}\footnote{https://www.monetdb.org/}. 
 These can be integrated, attached and managed by Polypheny-DB which will incorporate the underlying 
@@ -57,8 +57,6 @@ This leverages Polypheny-DB to a data orchestration platform towards an actual P
 
 
 
-\todoMissing{polypheny support multi-model databsaes for relational, document, graph in memroy ...}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Placements}
@@ -68,7 +66,7 @@ Entities are therefore a genereal definition encompassing tables, collection or 
 They act as an abstraction between the polystore layer and the physical representation of an entity. 
 Mostly used within the PolyDBMS itself they help to assist the logical routing process of Polypheny-DB.
 
-\todoMissing{remove replication strategy from image}
+
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\textwidth]{Figures/data_placement.png}
@@ -175,10 +173,10 @@ which introduces a bottleneck for this layer, that is inherently dependend on th
 
 This section discusses all implementations along with the introduced components and services to establish 
 multi versioning and the possibility to refresh specific replicas. This serves as a foundation in order to use those distinct versions
-to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing mixed workload to exist in parallel.
+to be used within query retrieval. Which again shall help to reduce the overall latency of the system by allowing mixed workload to exist in parallel.\\
 
-\todoMissing{In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
-as well as the on-demand approach using primary Snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))}
+In correspondence to the section \ref{sec:propagation} update propagtion in concept we focussed on implementing the CDC approach ($\rightarrow$ \ref{sec:algo}) 
+as well as the on-demand approach using primary snapshot Copy ($\rightarrow$ \ref{sec:manual_refresh}))
 
 
 \subsection{Placement Versioning}
@@ -206,7 +204,7 @@ That is why we remain with SS2PL and refrain from using the automatic versioning
 However, as already mentioned in chapter \ref{c:concept}, multiple versions are automatically created when using a lazy update propagation among the participating nodes. 
 This will directly loosen the constraints, imposed on replicas to update. 
 The update in these cases will then only be targeted towards the primary replicas, drastically reducing the reponse time of a write-operation,
-but lowering the consistency at the same time.  \todoMissing{Besserer Übergang}
+but lowering the consistency at the same time. 
 Furthermore, to provide freshness-awareness as well, we do not only require several versions for updates to be applied quicker,
 but also be able to actually utilize these versions to efficiently operate on the entire system.
 These versions therefore also allow us to compare and find suitable candidates in freshness related queries.\\
@@ -302,7 +300,7 @@ Since the internal partitioning should be rather user agnostic one should only b
 As with the replication strategy, the changes are then propagated downwards to all linked partiton placements.\\
 
 However they cannot be set freely and have to follow certain constraints (see \ref{sec:constraints}).
-Although Placements containing REFRESHABLE can be set to INFINITELY OUTDAZED and vice versa, the state UPTODATE can only be influenced by the replication strategy.
+Although Placements containing \emph{REFRESHABLE} can be set to \emph{INFINITELY OUTDATED} and vice versa, the state \emph{UPTODATE} can only be influenced by the replication strategy.
 Trying to change this manually will result in an error since it is controlled by the system.
 
 \begin{lstlisting}[language=sql, caption={SQL Statement Syntax to change the designated Replication State of data placement.},label={lst:state}]
@@ -602,7 +600,8 @@ Finally, despite its ability to remain operational during failure situations, th
 Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
 shuts down for any reason. Since we rely on the fast registration process to commit the primary transaction as fast as possible we need to mitigate this behaviour.
 Since we always know which placments are updates lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
-The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as INFINITELY OUTDATED, 
+The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as 
+\emph{INFINITELY OUTDATED}, 
 and therefore suspending any more replications. Users can either choose to update the system manually or refreshing is on read as proposed in \ref{sec:refresh_strategies}.
 The second approach however results in a much slower startup time by refreshing all placements first, before the system will even start.
 
@@ -745,7 +744,7 @@ the locking mechanism that targets primary copies. When there is currently a sha
 this disables the possibility for any new upcoming freshness transactions to add itself to the existing shared lock. Instead they are treated and added to the dependency graph 
 of the refresh operation an its Refresh-Lock, as if there would already be an exclusive lock in place. 
 This would avoid starving the refresh operation while still being able to serve freshness queries on different placements.
-This can be further enhanced by centrally configuring \todoMissing{implement} a threshold, which defines after how many retries the refresh operation can finally force itself 
+This can be further enhanced by centrally configuring a threshold, which defines after how many retries the refresh operation can finally force itself 
 to be executed.\\
 While the previous approaches simply tried to provide any possible combination
 and construct a result out of different independent versions, the last charcteristic goes a step further and allows to specify a referential integrity enforcement. 

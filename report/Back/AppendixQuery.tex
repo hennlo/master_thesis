@@ -26,59 +26,59 @@ They are attached as an optional leaf expression for every \emph{SELECT} stateme
 
 \tocless\subsection{Absolute Timestamp}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS TIMESTAMP '2022-07-04 06:30';
-\end{verbatim}
+\end{lstlisting}
 
 
 \tocless\subsection{Relative Timestamp - Absolute Delay}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 SECOND ABSOLUTE;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 HOUR ABSOLUTE;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs ABSOLUTE;
-\end{verbatim}
+\end{lstlisting}
 
 \tocless\subsection{Relative Delay}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 SECOND DELAY;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 HOUR DELAY;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs DELAY;
-\end{verbatim}
+\end{lstlisting}
 
 
 
 \tocless\subsection{Freshness Index}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 0.6;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     SELECT * FROM dummy WITH FRESHNESS 60%;
-\end{verbatim}
+\end{lstlisting}
 
 
 
 \tocless\subsection{Refresh Operations}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     ALTER TABLE dummy REFRESH ALL PLACEMENTS;
-\end{verbatim}
+\end{lstlisting}
 
-\begin{verbatim}
+\begin{lstlisting}[language=sql]
     ALTER TABLE dummy REFRESH ALL PLACEMENTS ON STORE storeName;
-\end{verbatim}
+\end{lstlisting}
