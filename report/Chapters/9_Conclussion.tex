@@ -30,6 +30,7 @@ can effectively consider version selection and load balance the access among rel
 Although this work has shown in \ref{sec:benchmark} that is greatly improves the throughput of this inherently distributed system, the usage should still be considered with care.
 Despite that we established certain counter measures 
 
+Despite that the performance as well as the convergence time is better within the eagerly replicated case, the lazy approach allows to efficiently use all remaining resources.
 
 At the end this work introduced several nuances of freshness to support varying use cases and requirements.
 Albeit not being able to support Serializable Snapshot Isolation, the implementation still offers 

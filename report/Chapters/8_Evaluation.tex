@@ -76,6 +76,7 @@ The following steps outline the procedure for benchmarking data freshness within
 
 
 progressiviely build on top of each other, test after test.
+Each building block is checked separetely and then put into perspective.
 
 \todo{Check how fast the replication is compared to the primary execution. Benchmark on two equal stores and measure the time}
 \todo{ Execute benchmarks on multimodal dbs. as well as different kind of }
@@ -84,11 +85,13 @@ progressiviely build on top of each other, test after test.
 \todoMissing{Schuldt FAS Evaluation possibilities}
 \todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
 
+\subsection{Results } 
+
 
 \subsubsection{Overhead} 
 Polystore systems and specifically Polypheny-DB uniformly collect all incoming requests, process them and then
 route the resulting queries to the designated stores, where they will be finally executed. 
-However, due to this centralized processing, addtional introduced overhead will directly impact the performance of the system.
+However, due to this centralized processing, addtional introduced overhead within this layer will directly impact the performance of the system.
 Although, Polypheny-DB aims to provide cost- and workload-aware self-adaptiveness, to provide the best possible query results,
 its internal processing is executed on top of the actual execution of the underlying store.
 This can have a crucial impact on the entire throughput of the system.\\
@@ -110,7 +113,7 @@ they do not form the main pursuit of polystore systems, which are more suitably 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Locking } 
+\subsubsection{Locking-Mechanism} 
 
 As described in Section \ref{sec:strategy}, one of the prerequisites to establish multiple refresh strategies and hence lazy replication,  
 was the refactoring of the locking mechanism. Although, not completely reworked, the locking-module of Polyphenys SS2PL 
@@ -123,7 +126,7 @@ The evaluation was executed with gradually increasing numbers of partitions, whi
 for $n$ partitions to observe any changes on the locking and therefore the throughput.\\
 To get a general overview of the impact, the benchmark was executed using a mixed workload.\\
 
-\begin{figure}
+\begin{figure}[t]
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
@@ -163,7 +166,10 @@ Furthermore it shows that again with a growing number of stores, the gap between
 
 
 \subsubsection{Baseline Identification} 
-\todoMissing{Single PSQL vs HSQL}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Single Store performance of HSQL and PSQL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Since the Lazy Replication algorithm is not only fundamental to generate multiple versions to be used within freshness-awareness
 but also a core functionality how data is propagated throughout the system. 
@@ -177,10 +183,10 @@ Since the replication solely focuses on replicating captured changes, the next b
     \label{fig:singlepsqlhsql}
 \end{figure}
 
-As stated in the evaluation environement \todoMissing{ref section}, these benchmarks will be mainly executed with HSQLDB and PostgreSQL running within a virtualized 
+As stated in the evaluation environement \todoMissing{ref section}, these benchmarks will be mainly executed with an embedded version of HSQLDB and PostgreSQL running within a virtualized 
 container environment. To have a general base line for comparison Figure \ref{fig:singlepsqlhsql} presents a single store execution, comparing theses two stores against each other.
 As motivated in the beginning, it is crucil for a system to utilize the key benefits of each store. For our scenario this is important to determine which 
-store configuration is more suitable to be used as an eagerly replicated priamry placement, due to its lower latency and better reponse time.\\
+store configuration is more suitable to be used as an eagerly replicated primary placement, due to its lower latency and better reponse time.\\
 This illustreated comparison clearly shows that Due to its limited resources the PostgreSQL store cannot directly compete with this HSQLDB configuration.
 This provides us with the intuitive decission to use HSQLDB for the priamry transactions.
 
@@ -193,7 +199,10 @@ This provides us with the intuitive decission to use HSQLDB for the priamry tran
 
 
 \subsubsection{Lazy Replication} 
-\todoMissing{TERMINAL 1 vs TERMINAL 50 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Terminal 1 vs. Terminal 50
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 As previously stated, the replication strategies will impact the processing capability of the system immensly.
 A placement with a configured lazy replication strategy automatically enables the system, to start tracking changes for this entity, impacting the duration of a query.
@@ -204,10 +213,10 @@ To extend the baseline discovered before, we again want to demonstrate the behav
 against a parallel environment with 50 clients.\\
 Figure \ref{fig:terminal} shows the evaluation across two stores, providing the possible throughput per second. Which is given as the number of modifications that can be 
 applied to the system per second. As before HSQLDB obviously achieves better results then PostgreSQL. However what is surprising is that disregarding the store,
-and not, apparent when only considering  \ref{fig:terminal50}, the eagerly replicated configuration performs much better in all tests.
-Considering that he collection of changes within a llazy setup, indeed imposes additional costs on the processing time, such deviations are expected.
+the eagerly replicated configuration performs much better in all tests which is not apparent when only considering \ref{fig:terminal50}.
+Considering that the collection of changes within a llazy setup, indeed imposes additional costs on the processing time, such deviations are expected.
 
-\begin{figure}
+\begin{figure}[t]
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
@@ -232,18 +241,17 @@ conventional environment.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\todoMissing{PSQL vs HSQL DML only} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% HSQL and PSQL vs. Eager
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Now focussing on a mixed setup of two stores containing PostgreSQL as well as HSQLDB for one entity.
-Nativiely fo a polystore environment we want to identify which setup will produce better results, hence is suitable for which situation.
+Nativiely for a polystore environment we want to identify which setup of underlying stores will produce better results, hence is suitable for which situation.
 Consequently we want to observe how the order of the stores imapcts the response time per benchmark.\\
 Again to have a foundation to compare our changes to we will compare the configurations if both stores are defined as eager and Further
 respectiviely define each store as lazy as well.\\
 Ultimately \ref{fig:psqlhsqlresponse} shows that regarding the lazy approaches, we again see the common behaviour that HSQLDB performs a little better as an eagerly replicated
 store compared to PostgreSQL.
-Additionally the Figure in \ref{fig:overall_comp} puts the average latency in perspective to the execution times described before.
-AS one can observe the eager replications again pefrom the best while the PostgreSQL variation posing a eager perfroms the worst.
-This not only allows to compare the different setups but again aids us to choose suitable combinations for our designated tasks.\\
 
 \begin{figure}[t] 
     \centering 
@@ -251,6 +259,12 @@ This not only allows to compare the different setups but again aids us to choose
     \caption{DML only - Avg. Latency comparsion PostgreSQL vs. HSQLDB. With switching Roles}
     \label{fig:psqlhsqlresponse}
 \end{figure}
+
+Additionally the Figure in \ref{fig:overall_comp} puts the average latency in perspective to the execution times described before.
+As one can observe the eager replications again pefrom the best while the PostgreSQL variation posing a eager perfroms the worst.
+This not only allows to compare the different setups but again aids us to choose suitable combinations for our designated tasks.\\
+
+
 
 \begin{figure}[t] 
     \centering 
@@ -260,15 +274,20 @@ This not only allows to compare the different setups but again aids us to choose
 \end{figure}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Store Scale 2 vs. 4 HSQL and PSQL
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 However, the presented possibilities so far only considered the execution on two stores. Therefore, \ref{fig:24storecomp} aims
-to compare the execution on two and four stores. Again this is done in an interleaved fashion, switching the role of lazy and eager strategy between the participating stores.
-During theses tests only one is eagerly replicated the remaining are all configured as lazy placements. Eagerly and lazily replicated stores in this scenario are inherently
-defined to be different stores.\\
+to compare the execution on two and four stores to identify any deviations the lazy replicaiton algorithm has. 
+Again this is done in an interleaved fashion, switching the role of lazy and eager strategy between the participating stores.
+During theses tests only one is eagerly replicated the remaining are all configured as lazy placements. Eagerly and lazily replicated stores
+in this scenario are inherently defined to be different stores.\\
 The graphs indicate that although they differ in terms of average response times, the gap between both configurations is comparably equal.
 In both cases the execution with the eagerly replicated HSQLDB is roughly 500ms faster in terms of the average response time.\\
 
 
-\begin{figure}
+\begin{figure}[t]
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
@@ -297,22 +316,22 @@ In both cases the execution with the eagerly replicated HSQLDB is roughly 500ms 
 
 As summarized and visualized more densely in Figure \ref{fig:24storecomp_avg},
 its rather counter intuitive that the configurations in \ref{fig:24storecomp} (a) and (b) deviate at all. 
-In general they both only contain one primary placement that is even targeted for the primary transaction. 
-However, as described before, the primary transaction is responsible for capturing, as well as queing the changes to be replicated asynchronously.
+In general they both only contain one primary placement that is even targeted for the primary transaction.
+All other stores will be updated asynchronously and therefore not directly involved.
+However, as described before, the primary transaction is also responsible for capturing, as well as queing the changes to be replicated asynchronously.
 While the procedure is always executed equally, the second approach with four stores, has more replication targets that require the change. 
-Since the generation of replication objects as well as the queueing are all still done during the commit of the priamry transaction, the observed
+Since the generation of replication objects as well as the queueing are all still done during the commit of the primary transaction, the observed
 deviations are reasonable.\\
 
 
-
-
-Based on this observation we specifically wanted to compare how a growth in stores will impact this deviation.
-To have a more uniform result this test will be executed with two HSQLDB stores, to have a simple foundation to compare each deviation .
-Without a secind store chararcteristic that could interfere with the final result.\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Store Scale 2-8
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Based on this observation we specifically wanted to compare how a growth in stores will impact this deviation and how it compares against its eager counterpart. 
+To have a more uniform result this test will be executed only HSQLDB stores, to have a stable foundation for comparison
+without a seconds store that could interfere with the final result.\\
 In this evaluation \ref{fig:stores_comp} illustrates, the average response time of two to eight stores, where one store is eagerly replicated and the rest
 is configured as lazy.
-
-
 
 
 
@@ -331,13 +350,18 @@ Check the average repsonse Time
 
 
 \subsubsection{Queue Replication}
-Mixed 60-40
 
-Shows the impact the queu operations have on the overall performance
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Single operation comparison
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+As presented during the implementation and now ellaborated and suggested multiple times during evaluation, 
+the capture of modifications to be propagated to the secondary placements, introduces some overhead. Although some overhead
+is resobale due to the additional processing steps the response times differ 
+especially when compared to regular eagerly replicated scenarios. This directly impacts the overall performance,
+resulting in generally higher response times for lazy replication scenarios.
+Therefore we want to identify for a single write-operation what actually influences these runtime deviations.
 
-As ellaborated and suggested multiple times before, the deviation between eagerly and lazily replicated deviates quite a bit.
-Therefore we want to identify per operation what actuallay influences the lower resposne time.
 
 \begin{figure}[t] 
     \centering 
@@ -347,20 +371,26 @@ Therefore we want to identify per operation what actuallay influences the lower 
 \end{figure}
 
 
-Therefore show how this deviates in General. What happens if we disable the replication queue or teh capture in geenral.
-To immitate an on-demand processing where entities and placements are purposely kept at a given point
-
-We see exactly the delay starting after 1 5se minute because afterwards the first placement could fulfil the freshness request and had to fallback to the primary who have might been locked
-This graph exactly corresponds to the graph depicted in \ref{fig:write_decomposition} 
-Mixed 60-40
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/deviation_with_active_que.PNG}
-    \caption{Mixed Workload 60-40 with 100\% Freshness with relative read 1 minute }
-    \label{fig:replication Impact}
-\end{figure}
-
-
+The comparison in Figure \ref{fig:write_decomposition} analyzes the execution time of two independent write operations, respectiviely executed on two equal stores.
+One configuration is a simple eager replicated entity on two stores without any replication, the other one is an operation that needs to capture 
+the modification within the global replication queue.\\
+Since the lazy approach only needs to involve one store for processing, the baseline of the lazy approach is indeed slightly faster than its eager counterpart.
+However, considering that at commit time this approach also needs to extract the captured change, convert it into a replication object and ultimately queue 
+it for the remaining store, the actual execution deviates quite heavily. With the queue time being almost equal to its the base execution time.\\
+However, since the capture part is only executed once at commit time of a transaction it drastically impacts the performance 
+of one single operation.
+As we have seen before, this introduced capture gap remains quite stable even with additional targets or capture objects to transform.
+Therefore the queueing process negativiely impacts the efficiency for transactions containing only one or few operations.
+In contrast it gets neglected further the more operations are actually executed within one transaction.\\
+Additionally, although not directly considered to be part of the execution time, is the convergence window. As mentioned before, as soon
+as a replication worker will have free resources it will replicate the pending object from the queue onto the secondary store.
+As we can see the replication duration actually takes a little bit longer than the actual execution. This is caused by the introduced
+validation constraints for each worker to assess the queue and reconstruct each opeartion individually. 
+However since the replication is done operation-wise the replication time is considered to be fixed per operation.
+Therfore the entire bar immitates the time it takes for one operation to be executed and replicated across all participating store, 
+considering the aforementioned constraints of the queue time.
+Since the eagerly replicated approach is executed within one single transaction targeting both underlying stores, the entity is 
+considered to be immediately consistent and will not need to converge. 
 
 
 
@@ -370,12 +400,9 @@ Mixed 60-40
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\subsubsection{Compare Total Replica Convergence Time DML only } 
+\subsubsection{Replica Convergence} 
+\todoMissing{Story-concrete example}
 
-BOTH eager  -- PSQL EAGER HSQL LAZY -- HSQL EAGER PSQL --LAZY
-In terms of their execution and replication time which one finishes faster
-Also does the numbe rof stores have an impact
-Mixed Worklaod?
 
 \begin{figure}[t] 
     \centering 
@@ -384,12 +411,36 @@ Mixed Worklaod?
     \label{fig:store_comparision}
 \end{figure}
 
+As we have seen before the versions can deviate quite heavily during a mixed workload. 
+Furthermore we have already identified that configuring the faster perfoming store to be replicate eagerly, proofs that this will positiviely impact 
+the availability due to its lower repsonse time of the inital transaction.
+However as important as the throughput of initial transaction might be, choosing the faster node to be eagerly replicated intuitively leaves the slower node
+to apply the updates asynchronously. 
+However, because it highly depends on the requirements which configuration to choose, we also want to establish a setup that focuses on reaching
+a consistent state without using an eager-only replication setup.
 
-Average Repsonse Time accumulated with the Extension of teh Replicaiton Queue as well as the shrinking
-to mimic the convergence time. 
 
 
-\begin{figure}
+Therefore we want to observe the actual replication time until two stores reach an equilibrium in terms of their received updates.\\
+The plot in \ref{fig:store_comparision} visualizes the comparison based on a different number of stores.
+
+Due to the fact that HSQLDB was before identifed as the store with the better throughput, 
+it also generally manages to converge faster if configured to be the secondary store. 
+Since HSQLDB in our scenario is able to replicate the operations faster than the primary transaction can queue new events,
+it does not only converge faster but has a lower execution time in general.\\
+Therefore we have established that with our introduced algorithm, indeed
+the better performing store is also more suitable when we want to reach consistency faster, hence providing a smaller convergence time.\\
+
+
+
+
+Although that the convergence time is not essentially impacted by the executing store, but also by the number of designated stores that shall asynchronously 
+receive the operation. 
+Further we want to identify how the queue behaves if the secondary system is generally slower and therefore not able to replicate 
+the pending changes as fast as new ones are added to the queue.
+
+
+\begin{figure}[t]
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
@@ -408,7 +459,11 @@ to mimic the convergence time.
 \end{figure}
 
 
-
+Figure \ref{fig:converge_24} visualizes the expansion- as well as the shrinking-phase of the replication queue
+and puts it into perspective along with the actual test execution. During theses tests one worker continuously processed the queue and replicated 
+the changes operation-wise. As illustrated in both cases the worker is not really able to apply the changes faster than they are coming in.
+The breakeven point is reached as soon as the test execution has finished. For both configurations the algorithm can now quickly propagate all pending
+changes.\\
 
 \begin{figure}[t] 
     \centering 
@@ -418,55 +473,10 @@ to mimic the convergence time.
 \end{figure}
 
 
+Because captured change operations are transformed $1-n$ for $n$ lazy replicated stores, the size of the queues is essentially influenced by the number of replicas that
+require the change as summarized in Figure \ref{fig:converge24}. This directly influences the earlier described convergence time of our system.
 
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-
-\subsection*{Reponse Time DQL in General}
-
-DQL only
-
-Even with mixed workload without freshness as illustrated in Figure \ref{fig:dqldml_no_fresh}, it is obvious 
-we see that the store consteallation does have an impact on the overall latency.
-Whereas no freshness queries will always target the primary playement we see
-again that the store with HSQLDB as a priamry node is slightly faster than the PostgreSQL Eager variation. This again proves the
-point that the Store selection will have an impact.
-However know compared to a query with freshness, we essentially see very flipped roles.
-. This is essentially caused by the target of the select statetemntes. Since we are ratehr in a 
-read-heavy environemnt the select to have quite the impact on the final result.
-in contrast \ref{fig:fresh10}in that case targeting the secondary node. Where again the lazy replicated HSQL Node is better
-
-\todoMissing{Compare with both EAGER}
-No Freshness 
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/avg_response-hsql-psql-dql_no_fresg.PNG}
-    \caption{Mixed Workload 60-40 No freshness}
-    \label{fig:dqldml_no_fresh}
-\end{figure}
-
-
-100 \% Freshness
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/100_fresh_dql.PNG}
-    \caption{DQL 100\% Freshness }
-    \label{fig:fresh100}
-\end{figure}
-
-
-\todoMissing{Introduce 0\% Freshness}
-DQL 50\% Freshness
-\begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/50_fresh_dql.PNG}
-    \caption{DQL 50\% Freshness}
-    \label{fig:fresh50}
-\end{figure}
 
 
 
@@ -474,7 +484,13 @@ DQL 50\% Freshness
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Freshness Evaluation Type Filter} 
-Show how each filter impacts the store differently, but all in all roughly the same
+
+The benchmarks so far merely focussed on the replication as well as the write operations.
+Therefore the next evaluations will concentrate on testing the introduced freshness capabilities.\\
+
+Despite the actual usage of freshness operations in general, also the chosen evaluation type will influence the performance.
+Although, that the filter comparison itself is always executed equally, the filter generation itself can differ between the available types.
+
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/freshness_comp.PNG}
@@ -482,28 +498,169 @@ Show how each filter impacts the store differently, but all in all roughly the s
     \label{fig:eval_type}
 \end{figure}
 
+While a timestamp can be directly used as it is, an index first needs to aggregate the total number of modifications per placement and 
+calculate the comparison-index based on the deviation from the master.
+Albeit, that this is not a very costly operation, it will have a significant impact when executed multiple times.
+To obtain comparable results, the benchmarks have been executed with the most liberal degree of freshness per type, to avoid any side affects or fallback to the priamry nodes.\\
+
+Figure \ref{fig:eval_type} therefore presents the overall latency of a mixed workload accompanied by the different evaluation types.
+As already suggested all types provide a very similar response time. A difference becomes only really obvious when e.g. comparing a natively usable
+timestamp to a relative time delay. While the first one can be applied directly the later first
+needs to extract the commit time of all possible placments and apply the deviation before it is actually able to filter.\\
+This plot shows that although only marginally different the utilized filter will still slightly impact the overall performance
+
+Furthermore also the respective freshness degree will impact the choice which of the proposed candidates actually fulfils the requirements of the query.
+\todoMissing{Add degreee comparison}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Freshness-Aware Read Operations}
+
+As with write only operations also the freshness can directly indicate a suitable store combination.
+While write-operations focus on a trade-off between latency of the priamry transaction and a faster convergence time,\\
+the read operations will consequently focus on the target where the read is applied. While regular read operaitons exclusively target
+primary placements, freshness-queries will mainly be redirected towards possibly outdated secondary replicas.\\
+
+
+As described before, since freshness related results are essentially influenced by the entity composition, we need an independent measurement.
+Therefore we will  compare two equal stores (HSQLDB) to again allow a base comparison and observe how the freshness specification fundamentally impacts the results.\\
+
+
+Therefore \ref{fig:fresh0} shows a comparison of different degrees of freshness used within a pure read-only environement.
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/fresh0.PNG}
+    \caption{DQL only comparison, with varying degree of freshness}
+    \label{fig:fresh0}
+\end{figure}
+These results generally show that the utilized freshness alone is already sufficient to provide better read results than if no freshness is used at all.
+As before this is inherently caused by the targeted store of the query. While all queries without a freshness specification will directly contact a primary node,
+hence needing to apply a lock. Although in general shared-locks can be easily applied for regular read-operations, they still need to be formally acquired impacting
+the throughput. The most benefit can tehrefore be gained by combining the freshness with regular operations. As depicted above, these combinations provide by far 
+the best results. Despite that regular reads still need to acquire a lock, these different query types will conseqeuntly also target different stores. 
+This allows an efficient load distribution across the utilized stores, to harvest the benefits of a distributed environement.\\
+
+
+Even with a mixed workload without freshness it is obvious that the store constellation does have an impact on the overall latency.
+While regular queries (without freshness) will always target the primary placement, the selection which store to choose as a secondary
+is crucial to provide better response times.\\
+
+
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/mixed.PNG}
+    \caption{Mixed Workload HSQLDB vs. PostgreSQL}
+    \label{fig:mixed}
+\end{figure}
+
+The illustration in \ref{fig:mixed}, therefore indicates the impact a store selection has on the overall throughput.
+While regular operations perform better in the configuration targeting HSQLDB as the priamry node,
+whereas queries with freshness target the secondary, which essentially flips the roles.
+This is again caused by the target of the select statements. 
+Since we are rather in a read-heavy environemnt the selection has quite the impact on the final result.
+This again proves the point that the store selection will have a major impact.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Mixed Worklaod} 
 
+Now with every building block evaluated independently, we will combine and assess them jointly using a mixed workload.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Mixed with Freshness comparison
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Based on the elementary comparison in Figure \ref{fig:write_decomposition} we have ALREADY established the impact on the capture-queue as well as the 
+replication have on a single operation.
+
+As mentioned in the implementation, depending on the current load on the system, we might observe contentions since the replication is done in parallel.
+Furthremore we might even come across situations where an administrator will directly define a placement as \emph{INFINITELY OUTDATED} to not receive any more updates
+and retain its current version.\\
+For the next benchmark we therefore want to see how the workload behaves if the replicaton is done in parallel, if the replication distribution is suspeneded
+and if the entire queue-capture is suspended.
+This is again done using two HSQLDB stores, to reduce possible deviations across stores. 
+Additionally this benchmark introduces freshness queries, to observe how it influences the overall response time even when there is no active replication. 
+The freshness evaluation utilizes a freshness-index of $0.7$ to filter and identify possible candidates based on the number of received modifications.
+
+
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/60_40_fresh_100.PNG}
-    \caption{60 R 40 W 100\% Freshness}
-    \label{fig:}
+    \includegraphics[width=0.7\textwidth]{Figures/deviation_with_active_que.PNG}
+    \caption{Mixed Workload 60-40 with 100\% Freshness with relative read 1 minute }
+    \label{fig:replication_impact}
+\end{figure}
+
+As provided by \ref{fig:replication_impact} we can again observe that the overal response time improves if there is no active replication running in the background.
+Furthermore, the system performs best if it does not need to capture any changes at all, 
+which essentially corresponds to the observations we have described in Figure \ref{fig:write_decomposition}.
+Although this is rather a corner case, the replicaiton suspension on the other hand is more likely to occur and still provide good response times.\\
+
+What is further interesting are the spikes on the active replication graph. While the graphs without replication and capture mechanisms are more narrow,
+the active replication queue oscilates quite heavily, negativiely impacting the average response time.\\
+Further, we observe that these spikes start occuring after roughly one minute.
+Since we used a modification deviation for our freshness specification, the system is able to quickly identify suitable placements in the beginning of the benchmark.
+However, after some time the versions start deviating quite heavily from its eager version.
+Since the updates are only propagated operation-wise, the replications cannot catch up with the primary operations anymore.
+Hence the system is not able to fulfil the tolerated freshness-level and
+causes the algorithm to fall back to its primary placement, again investing additional time to combine and select a suitable combination of placements.\\
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Partition
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Our freshness and replication implementation essentially revolves around the handling of individual partition placements.
+However, so far all tests only really considered unpartitioned entites to visualize basic differences. 
+
+Accompanied with the introduced locking changes described in Figure \ref{fig:lock_comp} we will compare the mixed workload in 
+a partitioned environement. For one we partition the table into four horizontal partitions. 
+For one scenario we place all partitions on the eager node and then each partition respectiviely on four lazy replicated stores.
+The second scenario will place all four partitions across two stores, where exactly one is eagerly and the other lazily replicated. 
+These two variations are ultimately compared against an entire unpartitioned setup across two stores which is visualized in \ref{fig:partition_result}.
+
+
+\begin{figure}[t] 
+    \centering 
+    \includegraphics[width=0.7\textwidth]{Figures/partioned_freshness.PNG}
+    \caption{Impact of partitioning on freshness}
+    \label{fig:partition_result}
 \end{figure}
 
 
+Consequently these results indicate analogously to the results obtained from the locking mechanism, that we achieve the best performance
+if we indeed partition the entity and place all partitions each entity across both stores. Therefore the system will have the most possible 
+flexibility in locking and acessing the individual data fragements. Although 
+it is still a comparably good alternative comapred to teh unpartitioned configuration.\\
 
 
-Show that the workload has a direct impact on the performance
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Concluding with the evaluations as illustrated with the last examples and benchmarks, the results of using freshness, inherently differs by means of the utilized workload.
+Figure \ref{fig:workload_comp} therefore ultimately presents the impact of the workload on freshness-aware data management in general. 
+
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/different_ workloads.PNG}
-    \caption{}
-    \label{fig:}
+    \caption{Worklaod comparison of Freshness related queries}
+    \label{fig:workload_comp}
 \end{figure}
 
+As we have identified before the most extreme cases like read-only and write-only workloads achieve the best results,
+since there are no negativiely impacting concurrent operations.
+However, becuase these are not common workloads the next best operation is considered to be a write-heavy worklaod focussing.
+This essentially mimics a highly transactional workload using the reads mainly for analytical purposes.
+
+
+This shows that freshness-aware data management can indeed allow to improve mixed workloads during write-heavy situations.
+
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -512,10 +669,21 @@ Show that the workload has a direct impact on the performance
 
 
 
-\subsection{Results}
+\section{Discussion}
 \label{sec:discussion}
 
-The result generally shows
+The results generally show that although the replication will slightly mitigate the overall performance of the system, it still is able to correctly fulfil the 
+requirements without largely interfering with the underlying systems. 
+Despite that the operation-wise execution will gradually progress each state\\
+
+The results shows that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of read and write-operations.
+
+Although, the freshness queries provided promissing results, they still suffered from a rather static freshness specification. 
+Therefore it would make sense to extend and adapt the utilized benchmarks to adaptively adjust the degree of freshness during runtime
+as needed and still providing reproducible results.
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
