@@ -111,7 +111,7 @@ degree of utilized freshness queries.
 
 Although not explictly mentioned, each test will always be pre-configured to match the required replication strategy.  
 
-These benchmarks will be executed using a number of tools.
+To assist the execution of the benchmarks tests a number of tools are used to standardize the procedure.
 
 \subsubsection{Chronos}
 
@@ -127,8 +127,7 @@ per target. This runtime information can then be used to compare and visualize t
 For all considered tests \textit{OLTPBench}\footnote{https://github.com/oltpbenchmark/oltpbench} 
 has been used. This benchmarking framework bundles several workload classes and 
 encompasses multiple benchmarking tools to seamlessly provide benchmarking for various DBMS \cite{oltp_2013}.\\
-
-To get a more in-depth view how the implementation affected the overall performance, all of thefollowing tests have been executed 
+To get a more in-depth view how the implementation affected the overall performance, all following tests have been executed 
 using \textit{YCSB}\footnote{https://github.com/brianfrankcooper/YCSB}.
 YCSB not only offers a fundamental correctness test but additionally simulates workload on a single table to obtain essential performance baselines ~\cite{ycsb_2010}.
 These can be used to retrieve performance metrics and obtain indications regarding correct statement execution and query handling.\\
@@ -142,14 +141,14 @@ These can be used to retrieve performance metrics and obtain indications regardi
 In this section we will present the results of the performance evaluation.
 
 If not stated otherwise the generated tables within the benchmarks will contain 100000 entries and will be executed using
-50 parallel clieant threads, using YCSB andthe workloads as defined in table \ref{tab:workload table}.
+50 parallel client threads, using YCSB and the workloads as defined in table \ref{tab:workload table}.
 During the evaluation it will only be referred to the respective workload names.
 
-
-\todo{ Execute benchmarks on multimodal dbs. as well as different kind of }
-\todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
-
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           HERE
+%\todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
+%
+%%%%%%%%%%%%%%
 \subsubsection{Overhead} 
 Polystore systems and specifically Polypheny-DB uniformly collect all incoming requests, process them and then
 route the resulting queries to the designated stores, where they will be finally executed. 
@@ -157,14 +156,14 @@ However, due to this centralized processing, addtional introduced overhead withi
 Although, Polypheny-DB aims to provide cost- and workload-aware self-adaptiveness, to provide the best possible query results,
 its internal processing is executed on top of the actual execution of the underlying store.
 This can have a crucial impact on the entire throughput of the system.\\
-Hence we used Chronos  a benchmarking tool that allows us to define several evaluation steps per storage engine.
+Hence we used Chronos, a benchmarking tool that allows us to define several evaluation steps per storage engine,
 to measure the overhead. For this evaluation the introduced implementation is compared against the current state of Polypheny-DB.\\
 
 As depicted in Figure \ref{fig:overhead}, the results indeed show that the implementation introduced a little overhead for single store operations.
-However with multiple stores the actual average execution time was indeed slightly reduced. Although, single store executions should not be entirely negelcted
+However with multiple stores the actual average execution time was indeed slightly reduced. Although, single store executions should not be entirely neglected
 they do not form the main pursuit of polystore systems, which are more suitably visualized by the multistore runtime.
 
-\todoMissing{Contain overhead as much as possible otherwise the freshness eveluation will negativiely impact regular operations}
+
 
 \begin{figure}[t] 
     \centering 
@@ -186,7 +185,7 @@ Since the locking module was changed from a table-wise locking towards a partiti
 a single table using YCSB. 
 The evaluation was executed with gradually increasing numbers of partitions, which are placed on one store or distributed across $n$-Stores 
 for $n$ partitions to observe any changes on the locking and therefore the throughput.\\
-To get a general overview of the impact, the benchmark was executed using a mixed workload.\\
+To get a general overview of the impact, the benchmark was executed using a mixed workload using HSQLDB only.\\
 
 \begin{figure}[t]
     \centering
@@ -214,7 +213,7 @@ To get a general overview of the impact, the benchmark was executed using a mixe
 
 As visualized in Figure \ref{fig:oldlock} and \ref{fig:newlock}, for both cases the overall situation is quite similiar.
 While the distribution of the partitions across several stores gets gradually worse, the single store performance actually improves the more partitions are added to the table.
-This behaviour is essentially caused by the Polyphenys need to join and union several stores together, when querying multiple partitions across several stores.
+This behaviour is essentially caused by Polyphenys need to join and union several stores together, when querying multiple partitions across several stores.
 Since more stores need to be connected and considered, it is a rather costly approach and as stated before gets increasingly harder the more stores are involved.\\
 
 Because the single store variations prove to be more reliable, they are summarized in \ref{fig:oldandnewlock}.
@@ -391,18 +390,11 @@ deviations are reasonable.\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Based on this observation we specifically wanted to compare how a growth in stores will impact this deviation and how it compares against its eager counterpart. 
 To have a more uniform result this test will be executed only HSQLDB stores, to have a stable foundation for comparison
-without a seconds store that could interfere with the final result.\\
+without a second store that could interfere with the final result.\\
 In this evaluation \ref{fig:stores_comp} illustrates, the average response time of two to eight stores, where one store is eagerly replicated and the rest
 is configured as lazy.
 
 
-
-
-HSQL only
-Compare execution time with different number of stores 1 Eager n Lazy   
-(Because for Lazy there 
-are more replications to put into the queue per pending operation)
-Check the average repsonse Time
 \begin{figure}[t] 
     \centering 
     \includegraphics[width=0.7\textwidth]{Figures/hsql_avg_response_stores.PNG}
@@ -410,6 +402,8 @@ Check the average repsonse Time
     \label{fig:stores_comp}
 \end{figure}
 
+This indicates that although the repsonse time increases, it does so in a stable manner. As compared with its eager approach we can see that it evolves roughly towards teh same direction plus
+previously observed offset, providing a good scalability.
 
 \subsubsection{Queue Replication}
 
@@ -419,7 +413,7 @@ Check the average repsonse Time
 
 As presented during the implementation and now ellaborated and suggested multiple times during evaluation, 
 the capture of modifications to be propagated to the secondary placements, introduces some overhead. Although some overhead
-is resobale due to the additional processing steps the response times differ 
+is reasonable due to the additional processing steps, the response times differ 
 especially when compared to regular eagerly replicated scenarios. This directly impacts the overall performance,
 resulting in generally higher response times for lazy replication scenarios.
 Therefore we want to identify for a single write-operation what actually influences these runtime deviations.
@@ -463,7 +457,12 @@ considered to be immediately consistent and will not need to converge.
 
 
 \subsubsection{Replica Convergence} 
-\todoMissing{Story-concrete example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           HERE
+%\todoMissing{Story-concrete example}
+%
+%%%%%%%%%%%%%%
+
 
 
 \begin{figure}[t] 
@@ -564,15 +563,16 @@ While a timestamp can be directly used as it is, an index first needs to aggrega
 calculate the comparison-index based on the deviation from the master.
 Albeit, that this is not a very costly operation, it will have a significant impact when executed multiple times.
 To obtain comparable results, the benchmarks have been executed with the most liberal degree of freshness per type, to avoid any side affects or fallback to the priamry nodes.\\
-
 Figure \ref{fig:eval_type} therefore presents the overall latency of a mixed workload accompanied by the different evaluation types.
 As already suggested all types provide a very similar response time. A difference becomes only really obvious when e.g. comparing a natively usable
 timestamp to a relative time delay. While the first one can be applied directly the later first
-needs to extract the commit time of all possible placments and apply the deviation before it is actually able to filter.\\
-This plot shows that although only marginally different the utilized filter will still slightly impact the overall performance
-
+needs to extract the commit time of all possible placments and apply the deviation before it is actually able to filter.
+This plot shows that although only marginally different the utilized filter will still slightly impact the overall performance.
 Furthermore also the respective freshness degree will impact the choice which of the proposed candidates actually fulfils the requirements of the query.
-\todoMissing{Add degreee comparison}
+
+%%%%%%%%%%%%%%%%%% HERE
+%%%%%%%%%
+%\todoMissing{Add degreee comparison}
 
 
 
@@ -635,7 +635,7 @@ Now with every building block evaluated independently, we will combine and asses
 % Mixed with Freshness comparison
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Based on the elementary comparison in Figure \ref{fig:write_decomposition} we have ALREADY established the impact on the capture-queue as well as the 
+Based on the elementary comparison in Figure \ref{fig:write_decomposition} we have already established the impact on the capture-queue as well as the 
 replication have on a single operation.
 
 As mentioned in the implementation, depending on the current load on the system, we might observe contentions since the replication is done in parallel.
@@ -675,6 +675,7 @@ causes the algorithm to fall back to its primary placement, again investing addi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Partition
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Partitioning} 
 
 Our freshness and replication implementation essentially revolves around the handling of individual partition placements.
 However, so far all tests only really considered unpartitioned entites to visualize basic differences. 
@@ -695,7 +696,7 @@ These two variations are ultimately compared against an entire unpartitioned set
 
 
 Consequently these results indicate analogously to the results obtained from the locking mechanism, that we achieve the best performance
-if we indeed partition the entity and place all partitions each entity across both stores. Therefore the system will have the most possible 
+if we indeed partition the entity and place all partitions on each entity across both stores. Therefore the system will have the most possible 
 flexibility in locking and acessing the individual data fragements. Although 
 it is still a comparably good alternative comapred to teh unpartitioned configuration.\\
 
@@ -714,7 +715,7 @@ Figure \ref{fig:workload_comp} therefore ultimately presents the impact of the w
 
 As we have identified before the most extreme cases like read-only and write-only workloads achieve the best results,
 since there are no negativiely impacting concurrent operations.
-However, becuase these are not common workloads the next best operation is considered to be a write-heavy worklaod focussing.
+However, because these are not common workloads the next best operation is considered to be a write-heavy worklaod focussing.
 This essentially mimics a highly transactional workload using the reads mainly for analytical purposes.
 
 
@@ -736,9 +737,9 @@ This shows that freshness-aware data management can indeed allow to improve mixe
 
 The results generally show that although the replication will slightly mitigate the overall performance of the system, it still is able to correctly fulfil the 
 requirements without largely interfering with the underlying systems. 
-Despite that the operation-wise execution will gradually progress each state\\
+Despite that the operation-wise execution will gradually progress each state the capture-queue inherently impacts the preformance.\\
 
-The results shows that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of read and write-operations.
+However, the compound results shows that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of read and write-operations.
 
 Although, the freshness queries provided promissing results, they still suffered from a rather static freshness specification. 
 Therefore it would make sense to extend and adapt the utilized benchmarks to adaptively adjust the degree of freshness during runtime
