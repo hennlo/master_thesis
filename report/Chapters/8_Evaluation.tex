@@ -5,87 +5,146 @@
 This chapter is separated into two sections. The first section aims to validate and verify the implementation in terms of their
 correct execution. It focuses on the core contributions, such as the lazy replicaiton algorithm as well as the freshness filter capability.
 Further it ensures the correct handling of the described constraints and establishes certain test cases to identify possibile failures that can occur 
-during execution as well as suitable failure handling scenarios.
+during execution as well as suitable failure handling scenarios.\\
 
 The second part of this chapter focuses on benchmarking the implementation on the basis of the described motivational scenario itself.
-Since one of the main goals was to relax the consistency and allow 
-This is followed by comparing the performance of several cases to identify how the system will behave in certain situations.
-Further it will compare several executions to determine how the impleemntation affect the providede requirements.
+This is followed by comparing the performance of several scenarios to identify how the system will behave in certain situations.
+Further it will compare these executions to determine how the implementation affects the provided requirements.
 
-Furthermore the performance of the individual functionalities is benchmarked and compared against slightly adjusted variations 
-to give an comprehensive overview of the impact.
+Finally the performance of the individual functionalities is benchmarked and compared against slightly adjusted variations 
+to give an comprehensive overview.
 
 
 \section{Goal}
-The evaluation has two goals the correctness as well as the impact of data freshness onto different kinds of workloads.
+The evaluation has three goals: The first goal is to verify the correctness of the solution, the second goal
+is identifying the impact freshness-aware aspects have on different worklaods and finally the identification of suitable workloads.\\
 
-Verify and validate the correctness as well as the completeness of the implementation based on several characteristics.
-These include the correct execution of lazy replication, the possibility to refresh statements on demand.
+We therefore want to verify and validate the correctness as well as the completeness of the implementation based on several characteristics.
+These include the correct execution of lazy replication, the possibility to refresh statements on demand as well as correct freshness filter.
 
-Impact of the replication engine on the underlying performance, if freshness indeed increases the overall parallel writes on the system.
-Or if it is just marginally lower than before. Also compare this to the overall introduced overhead. And if the change was wort it
+Since one of the main goals was to relax the consistency and allow parallel workloads,
+we want to identify possible impacts of the replication engine on the overall performance, if freshness indeed increases the possibility
+for parallel workload on the system.
+Finally we want to observe if the solution allows harvesting benefits of the underlying stores to adapt to various situations
+to assess the benefits of the polystore in total.\\
 
+In general we aim to assess different situation to obtain a comprehensive insight on the introduced implementation.
 
-
-Compare underlying stores to assess the deviations of the polystore in total.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Correctness}
+\label{sec:correctness}
+
 
 The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each lazy replication is carried out correctly,
 and if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
-a replication update. Rather we compare on a high level the metadata 
-(i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node) of two replicas. 
+a replication update. Rather we compare metadata of two replicasa on a high level 
+(i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node) . 
 
-The second part of the validation process focuses on the retrieval of outdated nodes. Although we always have a fall back to the primary placements as described in section \ref{sec:freshness_selection},
-we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.
+The second part of the validation process focuses on the retrieval of outdated nodes. Although we always have a fall back to the primary placements as described in 
+section \ref{sec:freshness_selection}, we still want to avoid excessive locking to parallelize requests to ultimately speed up the average response time.\\
+
+As mentioned within the implementation chapter, several constraints (see \ref{sec:constraints}) will already be enforced with the execution itself. 
+We have e.g. established a dependency between the replication strategy as well as the designated palcement state. When altering the strategy of teh object we
+automatically ensure that the state is altered as well. This does not only ensure that the placements will be addressed correctly but also ensures that no data is lost.
+For example it avoids that if a lazy replicated placement that still has pending replications can be switched to now receive updates eagerly.\\
+
+Furthermore since we have to make sure that no data will be lost in general, we have established the strong dependency queue that will apply the update operation-wise in terms of the execution order.
+Since we cannot avoid that stores might fail, we have ensured that failing updates will not block the replicaiton queue or will be applied in a wrong order.
+Accompanied with a failure-threshols and the placement role \emph{INIFINITELY OUTDAED}, we can instruct the system to mark this placement as permanentely outdated 
+avoiding further updates. 
+This ensures that all statements labeled as \emph{INIFINITELY OUTDAED} will always be treated correctly.
+
+The freshness specification in general ensures that only acceptable values are considered for the respective evaluation type to propose the correct results and translate it into
+a given tolerance value.
+Since freshness operations violate the ACID guarantees and we will read stale data, we ensured that these can only be executed within read-only operations, 
+such that they do not override data.
 
 
-\todo{Also checks for freshness specification if this can for one be even applied to the system , due to ongoing constraints or if it is even posssible to specify a freshness index >1.0}
-\todoMissing{\ref{sec:constraints, lazy -> eager and outdated -> refreshable}}
-\todoMissing{As already suggested within constrianst we have to ensure that data will not be lost}
+Additionally, to guarantee the correctness of the implementation, several unit-tests have 
+been created to ensure correct handling of data, when using freshness-awareness or replication approaches in general.
+These logically include a purposely false execution of the described constrainst to ensure that they will correctly treated.\\
 
-\todoMissing{How to ensure that cached freshness objects are not falesely executed and secertly violating the specified freshness (It is rechecked)}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Benchmarks}
 
+The second part of this chapter focuses on the performance impacts of the introduced solutions.
+The following steps outline the procedure for benchmarking data freshness within Polypheny-DB.\\
+Each evaluation step will subsequently address each required building block to provide data freshness.
+Each building block is checked separetely and then put into perspective of the entire context.
+These benchmark progressiviely build on top of each other and are finally summarized with a compound benchmark.\\
 
 
-\todo{Explain why it is necessary to verify the solution with different combinations}
+
 
 \subsection{Evaluation Environment}
-\todo{Elaborate and thoroughly explain why the environment was chosen and how the test was executed for the sake of rerpoducibility}
 
-If not explititly stated otherwise, the benchmarks will be executed using two underlying stores.
+For all executed tests a base set of tools an functionality has been used to ensure the rerpoducibility of the benchmarks.
 
-Define that we have HSQLDB fast and PSQL slow because on docker.
+If not explicitly stated otherwise, the benchmarks will be executed using two underlying stores.
+For these stores HSQLDB and PostgreSQL are used. While HSQLDB will run nativiely on the system, PostgreSQL is configured within a virtualized
+container environment with limited resources. \\
 
-First show single Performance on the Store to see which one is the slower one of these stores in our setup.
-This will also show which stores logically bound the primary transaction time. PSQL on Docker. Since Docker Containers use a limited shared set of resources 
-this store immitating a slower performinh node in oru setup.
+During the evaluation only a predefined set of workloads will be used to obtain insight on various setups.
+As suggested in \ref{tab:workload table} these inherently differ in terms of their focus on write- or read-operations as well the
+degree of utilized freshness queries. 
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+    \textbf{Workload}        & \textbf{Read \%} & \textbf{Write \%} & \textbf{Freshness}  \\ \hline
+    \textbf{Write Only}      & 0                & 100               & 0                             \\ \hline
+    \textbf{Mixed Workload}  & 60               & 40                & 0                             \\ \hline
+    \textbf{Read Only}       & 100              & 0                 & 0                             \\ \hline
+    \textbf{Freshness Only} & 100              & 0                 & 100                           \\ \hline
+    \textbf{Mixed Freshness} & 60              & 40                 & 100                           \\ \hline
+    \textbf{Partial Freshness} & 100              & 0                 & 100                           \\ \hline
+    \end{tabular}
+    \caption{Available Workloads}
+    \label{tab:workload table}
+\end{table}
+
+Although not explictly mentioned, each test will always be pre-configured to match the required replication strategy.  
 
 
-Define Workload Environement
-DQL DML
-Mixed Worklaod if not stated otherwise is  60\% read-operations and 40\% write-operations
+\subsubsection{Chronos}
 
-\subsection{Evaluation Procedure}
-The following steps outline the procedure for benchmarking data freshness within Polypheny-DB.
+Chronos\footnote{https://chronos-eaas.org/} is a toolkit which enables users to define, 
+monitor and analyze the results of an evaluation for several database systems ~\cite{vogt_chronos_2020}.
+It encompasses several tests and evaluation steps, which will be accumulated in terms of the runtime 
+per target. This runtime information can then be used to compare and visualize the differences between different exectution environemnts.  
 
 
-progressiviely build on top of each other, test after test.
-Each building block is checked separetely and then put into perspective.
 
-\todo{Check how fast the replication is compared to the primary execution. Benchmark on two equal stores and measure the time}
+\subsubsection{OLTPBench}
+
+For all considered tests \textit{OLTPBench}\footnote{https://github.com/oltpbenchmark/oltpbench} 
+has been used. This benchmarking framework bundles several workload classes and 
+encompasses multiple benchmarking tools to seamlessly provide benchmarking for various DBMS \cite{oltp_2013}.\\
+
+To get a more in-depth view how the implementation affected the overall performance, all of thefollowing tests have been executed 
+using \textit{YCSB}\footnote{https://github.com/brianfrankcooper/YCSB}.
+YCSB not only offers a fundamental correctness test but additionally simulates workload on a single table to obtain essential performance baselines ~\cite{ycsb_2010}.
+These can be used to retrieve performance metrics and obtain indications regarding correct statement execution and query handling.\\
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Results} 
+In this section we will present the results of the performance evaluation.
+
+If not stated otherwise the generated tables within the benchmarks will contain 100000 entries and will be executed using
+50 parallel clieant threads, using YCSB andthe workloads as defined in table \ref{tab:workload table}.
+During the evaluation it will only be referred to the respective workload names.
+
+
 \todo{ Execute benchmarks on multimodal dbs. as well as different kind of }
-\todo{ Talk about implementation of freshness characteristic in many query languages}
-\todoMissing{Check if freshness could even be used, or if we would always fallback to primary or when is the turining point when the freshness now works.}
-\todoMissing{Schuldt FAS Evaluation possibilities}
 \todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
-
-\subsection{Results } 
 
 
 \subsubsection{Overhead} 
@@ -95,7 +154,7 @@ However, due to this centralized processing, addtional introduced overhead withi
 Although, Polypheny-DB aims to provide cost- and workload-aware self-adaptiveness, to provide the best possible query results,
 its internal processing is executed on top of the actual execution of the underlying store.
 This can have a crucial impact on the entire throughput of the system.\\
-Hence we used Chronos\todoMissing{cite} a benchmarking tool....
+Hence we used Chronos  a benchmarking tool that allows us to define several evaluation steps per storage engine.
 to measure the overhead. For this evaluation the introduced implementation is compared against the current state of Polypheny-DB.\\
 
 As depicted in Figure \ref{fig:overhead}, the results indeed show that the implementation introduced a little overhead for single store operations.
@@ -121,7 +180,7 @@ poses as a core component of the system. It therefore  impacts correct serializa
 the concurrency which directly influences the overall performance of the system.\\
 For the evaluation again the current state of Polypheny-DB is compared against this implementation.
 Since the locking module was changed from a table-wise locking towards a partition-wise locking we will validate the impact on the basis of 
-a single table using YCSB\todoMissing{cite}. 
+a single table using YCSB. 
 The evaluation was executed with gradually increasing numbers of partitions, which are placed on one store or distributed across $n$-Stores 
 for $n$ partitions to observe any changes on the locking and therefore the throughput.\\
 To get a general overview of the impact, the benchmark was executed using a mixed workload.\\
@@ -178,7 +237,7 @@ Since the replication solely focuses on replicating captured changes, the next b
 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/store_comparision.png}
+    \includegraphics[width=0.7\textwidth]{Figures/hsql_psql.png}
     \caption{Single DML PostgreSQL vs. Single HSQLDB}
     \label{fig:singlepsqlhsql}
 \end{figure}
