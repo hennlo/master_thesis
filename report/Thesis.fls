@@ -463,46 +463,25 @@ INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\8_Evaluation.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\PSQ_HSQL_DML_only.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\PSQ_HSQL_DML_only.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\PSQ_HSQL_DML_only.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\PSQ_HSQL_DML_only.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\PSQ_HSQL_DML_only.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4psql_hsql_switched_lazy.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\2latency_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\2latency_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\2latency_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\2latency_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\2latency_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4latence_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4latence_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4latence_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4latence_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\4latence_queue.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\queuesize24.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\queuesize24.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\queuesize24.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\queuesize24.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\queuesize24.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\fresh0.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\fresh0.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\fresh0.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\fresh0.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\fresh0.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\deviation_with_active_que.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\deviation_with_active_que.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\deviation_with_active_que.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\deviation_with_active_que.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\deviation_with_active_que.PNG
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\psqlhsqlresponse.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\psqlhsqlresponse.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\psqlhsqlresponse.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\24storecomp.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\24storecomp.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\24storecomp.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\24storecomp.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\converge24.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\fresh0.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\fresh0.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\fresh0.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\replication_impact.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\replication_impact.dat
+INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Plot\replication_impact.dat
 INPUT Chapters\9_Conclussion.tex
 INPUT Chapters\9_Conclussion.tex
 INPUT Chapters\10_Outlook.tex

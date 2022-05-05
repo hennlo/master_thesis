@@ -105,9 +105,9 @@ degree of utilized freshness queries.
     \textbf{Read Only}       & 100              & 0                 & 0                             \\ \hline
     \textbf{Freshness Only} & 100              & 0                 & 100                           \\ \hline
     \textbf{Mixed Freshness} & 60              & 40                 & 100                           \\ \hline
-    \textbf{Partial Freshness} & 100              & 0                 & 100                           \\ \hlineB{2}    
+    \textbf{Partial Freshness} & 100              & 0                 & 50                           \\ \hlineB{2}    
     \end{tabular}
-    \caption{Available Workloads}
+    \caption{Available Benchmark Workloads}
     \label{tab:workload table}
 \end{table}
 
@@ -196,7 +196,7 @@ they do not form the main pursuit of polystore systems, which are more suitably 
             \legend{Old,New}
         \end{axis}
     \end{tikzpicture}
-\caption{Overhead Comparison of Old vs. New Implemation.}
+\caption{Overhead Comparison of Old vs. New Implementation.}
 \label{fig:overhead}
 \end{figure}
 
@@ -228,7 +228,7 @@ To get a general overview of the impact, the benchmark was executed using a mixe
         \begin{axis}[
             width  = 0.9*\textwidth,
             ymajorgrids = true,
-            ylabel = {Throughput (requests/s)},
+            ylabel = {Throughput (requests/sec)},
             xlabel = {Number of Partitions ($n$)},
             symbolic x coords={2,4,8},
             xtick = data,
@@ -262,7 +262,7 @@ To get a general overview of the impact, the benchmark was executed using a mixe
         \begin{axis}[
             width  = 0.9*\textwidth,
             ymajorgrids = true,
-            ylabel = {Throughput (requests/s)},
+            ylabel = {Throughput (requests/sec)},
             xlabel = {Number of Partitions ($n$)},
             symbolic x coords={2,4,8},
             xtick = data,
@@ -297,7 +297,7 @@ To get a general overview of the impact, the benchmark was executed using a mixe
             \begin{axis}[
                 width  = 0.7*\textwidth,
                 ymajorgrids = true,
-                ylabel = {Throughput (requests/s)},
+                ylabel = {Throughput (requests/sec)},
                 xlabel = {Number of Partitions ($n$)},
                 symbolic x coords={2,4,8},
                 xtick = data,
@@ -320,7 +320,7 @@ To get a general overview of the impact, the benchmark was executed using a mixe
                 \legend{Old,New}
             \end{axis}
         \end{tikzpicture}
-        \caption{Old vs. New Locking}
+        \caption{Old vs. New Locking on a Single Store}
         \label{fig:oldandnewlock}
       \end{subfigure}
     \caption{Impact of Locking on the Overall Throughput per Second.}
@@ -383,7 +383,7 @@ Since the replication solely focuses on replicating captured changes, the next b
 
         \end{axis}
     \end{tikzpicture}
-    \caption{Single Write Time Comparison. PostgreSQL vs. Single HSQLDB.}
+    \caption{Distinct Write Time Comparison of HSQLDB and PostgreSQL.}
     \label{fig:singlepsqlhsql}
 \end{figure}
 
@@ -499,7 +499,7 @@ Considering that the collection of changes within a llazy setup, indeed imposes 
       \caption{50 processes}
       \label{fig:terminal50}
     \end{subfigure}
-    \caption{Concurrency Comparison}
+    \caption{Throughput Impact of Concurrency in a Replicated Setup.}
     \label{fig:terminal}
 \end{figure}
 
@@ -522,12 +522,52 @@ respectiviely define each store as lazy as well.\\
 Ultimately \ref{fig:psqlhsqlresponse} shows that regarding the lazy approaches, we again see the common behaviour that HSQLDB performs a little better as an eagerly replicated
 store compared to PostgreSQL.
 
+
 \begin{figure}[t] 
-    \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/PSQ_HSQL_DML_only.PNG}
-    \caption{DML only - Avg. Latency comparsion PostgreSQL vs. HSQLDB. With switching Roles}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.9*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=9,
+            xmin=0,
+            xmax=300,
+            ymin=2000,
+            ymax=5000,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                        at={(1,1.05)},
+                        anchor=south east,
+                        column sep=1ex
+                },
+            legend cell align=left,
+        ]
+            \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+                table [x=time, y=hsql]{Plot/psqlhsqlresponse.dat};
+    
+            \addplot[style={rred,mark=none}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=psql]{Plot/psqlhsqlresponse.dat};
+    
+            \addplot[style={ppurple,mark=none}, mark options={scale=0.5}] %[thin]
+                table [x=time, y=both]{Plot/psqlhsqlresponse.dat};     
+    
+            \legend{   
+                HSQLDB (Eager) - PostgreSQL (Lazy),   
+                PostgreSQL (Eager) - HSQLDB (Lazy),           
+                PostgreSQL (Eager) - HSQLDB (Eager)
+                }
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Response Time Comparsion of various Store Configurations -- Write Only.}
     \label{fig:psqlhsqlresponse}
-\end{figure}
+    \end{figure}
+
 
 Additionally the Figure in \ref{fig:overall_comp} puts the average latency in perspective to the execution times described before.
 As one can observe the eager replications again pefrom the best while the PostgreSQL variation posing a eager perfroms the worst.
@@ -556,8 +596,12 @@ This not only allows to compare the different setups but again aids us to choose
             ymax=4500,
             minor y tick num=4,
             major tick style={thick},
-            legend pos=outer north east,
             legend cell align=left,
+            legend style={
+                            at={(1,1.05)},
+                            anchor=south east,
+                            column sep=1ex
+                    },
         ]
             \addplot[style={bblue,fill =bblue,mark=none}]
                 coordinates {(1, 2598.875133)};    
@@ -579,11 +623,11 @@ This not only allows to compare the different setups but again aids us to choose
                 PostgreSQL x2 (Eager),
                 PostgreSQL (Eager) - HSQLDB (Eager),
                 PostgreSQL (Eager) - HSQLDB (Lazy), 
-                HSQLDB(Eager) - PostgreSQL(Lazy),
+                HSQLDB (Eager) - PostgreSQL (Lazy),
                 }
         \end{axis}
     \end{tikzpicture}
-    \caption{DML onlyAvg. Response Time Comparison of 2 store sizes and swithcing Roles}
+    \caption{Response Time Comparsion of Various Store Compositions -- Write Only.}
     \label{fig:overall_comp}
 \end{figure}
 
@@ -605,26 +649,105 @@ In both cases the execution with the eagerly replicated HSQLDB is roughly 500ms 
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{psql_hsql_switched_lazy.PNG}
-      \caption{Comparison of 2 Stores HSQLDB and PostgreSQL. Switching Roles.}
+      \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.95*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=9,
+            xmin=0,
+            xmax=300,
+            ymin=2000,
+            ymax=7000,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                        at={(1,1.05)},
+                        anchor=south east,
+                        column sep=1ex,
+                        text width=3.5cm
+                },
+            legend cell align=left,
+        ]
+            
+    
+            \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+            table [x=time, y=hsql_1]{Plot/24storecomp.dat};
+
+            \addplot[style={rred,mark=none}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=psql_1]{Plot/24storecomp.dat};      
+                \addlegendentry[minimum height=0.8cm]{HSQLDB (Eager) -\\ PostgreSQL (Lazy)}
+                \addlegendentry[minimum height=1.2cm]{PostgreSQL (Eager) -\\ HSQLDB (Lazy)}
+        \end{axis}
+    \end{tikzpicture}
+      \caption{2 Stores}
       \label{fig:2store}
     \end{subfigure}%
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{Figures/4psql_hsql_switched_lazy.PNG}
-      \caption{Comparison of 4 Stores HSQLDB and PostgreSQL. Switching Roles.}
+      \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.95*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=9,
+            xmin=0,
+            xmax=300,
+            ymin=2000,
+            ymax=7000,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                        at={(1,1.05)},
+                        anchor=south east,
+                        column sep=1ex,
+                        text width=3.5cm
+                },
+            legend cell align=left,
+        ]
+            
+    
+            \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+            table [x=time, y=hsql_3]{Plot/24storecomp.dat};
+
+            \addplot[style={rred,mark=none}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=psql_3]{Plot/24storecomp.dat};      
+    
+            \addlegendentry[minimum height=0.8cm]{HSQLDB (Eager) -\\ PostgreSQL (Lazy) x3}
+            \addlegendentry[minimum height=1.2cm]{PostgreSQL (Eager) -\\ HSQLDB (Lazy) x3}
+
+        \end{axis}
+    \end{tikzpicture}
+      \caption{4 Stores}
       \label{fig:4store}
     \end{subfigure}
-    \caption{Comparison of different store sizes and swithcing Roles}
+    \caption{Response Time Comparison Among Different Store Sizes with Interleaved Roles -- Write Only.}
     \label{fig:24storecomp}
 \end{figure}
+
+
+
+
+
+
+
 
 
 \begin{figure}[t] 
     \centering 
     \begin{tikzpicture}
         \begin{axis}[
-            width  = 0.9*\textwidth,
+            width  = 0.8*\textwidth,
             height = 7cm,
             x=120pt,
             major x tick style = transparent,
@@ -654,12 +777,12 @@ In both cases the execution with the eagerly replicated HSQLDB is roughly 500ms 
             \addplot[style={rred,fill=rred,mark=none}]
                 coordinates {(2, 4018.661833) (4,5771.588467) };
 
-            \legend{HSQLDB(Eager) - PostgreSQL(Lazy),
+            \legend{HSQLDB (Eager) - PostgreSQL (Lazy),
                 PostgreSQL (Eager) - HSQLDB (Lazy) 
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Avg. Response Time Comparison of different store sizes and swithcing Roles}
+    \caption{Avg. Response Time Comparison of Different Store Sizes -- Write Only}
     \label{fig:24storecomp_avg}
 \end{figure}
 
@@ -715,7 +838,7 @@ is configured as lazy.
                 \legend{Eager,Lazy}
             \end{axis}
         \end{tikzpicture}
-    \caption{Replication Strategy Comparison with Increased Stores}
+    \caption{Replication Strategy Comparison with Increasing Stores -- Write Only.}
     \label{fig:stores_comp}
 \end{figure}
 
@@ -776,7 +899,7 @@ Therefore we want to identify for a single write-operation what actually influen
                 }
         \end{axis}
     \end{tikzpicture}
-    \caption{Execution-Time comparision of a decompossed  single write-operation with and without data active data capture }
+    \caption{Execution Time Comparision of a Decompossed Distinct Write-Operation with and without Active Data Capture.}
     \label{fig:write_decomposition}
 \end{figure}
 
@@ -851,12 +974,12 @@ considered to be immediately consistent and will not need to converge.
             \addplot[style={rred,fill=rred,mark=none}]
                 coordinates {(2, 30.322) (4,36.9) };
 
-            \legend{HSQLDB(Eager) - PostgreSQL(Lazy),
+            \legend{HSQLDB (Eager) - PostgreSQL (Lazy),
                 PostgreSQL (Eager) - HSQLDB (Lazy) 
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Comparison of Convergence Time on different Store Constellations.}
+    \caption{Convergence Time Comparison on Different Store Constellations and Sizes -- Mixed Workload.}
     \label{fig:store_comparision}
 \end{figure}
 
@@ -889,23 +1012,127 @@ Further we want to identify how the queue behaves if the secondary system is gen
 the pending changes as fast as new ones are added to the queue.
 
 
-\begin{figure}[t]
+
+  \begin{figure}[t]
     \centering
+
+    \begin{tikzpicture}
+        \begin{customlegend}[
+            legend columns=2,
+            legend style={align=left,column sep=2ex},
+            legend entries={Response Time (ms),
+                            Replication Queue
+                            }]
+            \addlegendimage{mark=none,solid,bblue, line legend}
+            \addlegendimage{mark=none,rred, solid}   
+            \end{customlegend}
+        \end{tikzpicture}
+
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{Figures/2latency_queue.PNG}
+      
+        \begin{tikzpicture}
+        \begin{axis}[
+            scale only axis,
+            width  = 0.6*\textwidth,
+            axis y line*=left,% the ’*’ avoids arrow heads
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=4,
+            xmin=0,
+            xmax=340,
+            ymin=2000,
+            ymax=6000,
+            ylabel shift=-4pt,
+            restrict x to domain=0:305,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                            at={(1,1.05)},
+                            anchor=south east,
+                            column sep=1ex
+                    },
+            legend cell align=left,
+        ]
+        \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+                    table [x=time, y=psql_1]{Plot/converge24.dat};
+            
+        \end{axis}
+        \begin{axis}[
+            scale only axis,
+            width  = 0.6*\textwidth,
+            xmin=0,
+            xmax=340,
+            ylabel shift = -4pt,
+            ymin=0,
+            ymax=800,
+            axis y line*=right,
+            axis x line=none,
+            ylabel=Queue Size
+          ]
+          \addplot[style={rred, fill=rred, fill opacity=0.4, mark=none}, mark options={scale=0.5}] %[thick]
+                    table [x=time, y=queue_2]{Plot/converge24.dat};
+        \end{axis}
+      \end{tikzpicture} 
       \caption{2 Stores}
       \label{fig:converge_2}
-    \end{subfigure}%
+    \end{subfigure}\hfill% 
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.9\linewidth]{Figures/4latence_queue.PNG}
+      \begin{tikzpicture}
+        \begin{axis}[
+            scale only axis,
+            width  = 0.6*\textwidth,
+            axis y line*=left,% the ’*’ avoids arrow heads
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=4,
+            xmin=0,
+            xmax=405,
+            ylabel shift=-4pt,
+            ymin=2000,
+            ymax=6000,
+            restrict x to domain=0:310,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+        ]
+        \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+                    table [x=time, y=psql_3]{Plot/converge24.dat};
+                
+        \end{axis}
+        \begin{axis}[
+            scale only axis,
+            width  = 0.6*\textwidth,
+            xmin=0,
+            xmax=405,
+            ymin=0,
+            ymax=4000,
+            ylabel shift = -4pt,
+            axis y line*=right,
+            axis x line=none,
+            ylabel=Queue Size
+          ]
+          \addplot[style={rred, fill=rred, fill opacity=0.4, mark=none}, mark options={scale=0.5}] %[thick]
+                    table [x=time, y=queue_4]{Plot/converge24.dat};
+
+        \end{axis}
+      \end{tikzpicture}
       \caption{4 Stores}
       \label{fig:converge_4}
     \end{subfigure}
-    \caption{Execution Time and Replication Convergence}
+    \caption{Execution Time along the Replication Queue Convergence -- Mixed Workload.}
     \label{fig:converge_24}
 \end{figure}
+
+
+
+%%%% %% %%
 
 
 Figure \ref{fig:converge_24} visualizes the expansion- as well as the shrinking-phase of the replication queue
@@ -916,8 +1143,40 @@ changes.\\
 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/queuesize24.PNG}
-    \caption{Replication Queue Convergence}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.8*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Queue Size},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=4,
+            xmin=0,
+            xmax=405,
+            ymin=0,
+            ymax=4000,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend pos=outer north east,
+            legend cell align=left, 
+        ]
+            \addplot[style={bblue, fill=bblue, fill opacity=0.6, mark=none}, mark options={scale=0.5}] 
+                table [x=time, y=queue_2]{Plot/converge24.dat};
+    
+            \addplot[style={rred, fill=rred, fill opacity=0.4, mark=none}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=queue_4]{Plot/converge24.dat};
+      
+    
+            \legend{   
+                2 Stores,   
+                4 Stores
+                }
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Replication Queue Convergence Over Time -- Mixed Workload.}
     \label{fig:converge24}
 \end{figure}
 
@@ -985,7 +1244,7 @@ Although, that the filter comparison itself is always executed equally, the filt
                 }
         \end{axis}
     \end{tikzpicture}
-    \caption{Avg. Response Time Comparison of the available Evaluation Typess}
+    \caption{Avg. Response Time Comparison of Available Evaluation Types -- Freshness Only}
     \label{fig:eval_type}
 \end{figure}
 
@@ -1022,10 +1281,55 @@ Therefore we will  compare two equal stores (HSQLDB) to again allow a base compa
 Therefore \ref{fig:fresh0} shows a comparison of different degrees of freshness used within a pure read-only environement.
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/fresh0.PNG}
-    \caption{DQL only comparison, with varying degree of freshness}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.9*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=9,
+            xmin=0,
+            xmax=300,
+            ymin=0,
+            ymax=2500,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                        at={(1,1.05)},
+                        anchor=south east,
+                        column sep=1ex
+                },
+            legend cell align=left,
+        ]
+            
+    
+            \addplot[style={bblue,mark=*}, mark options={scale=0.5}] 
+            table [x=time, y=100]{Plot/fresh0.dat};
+
+            \addplot[style={rred,mark=x}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=50]{Plot/fresh0.dat};      
+            
+            \addplot[style={ppurple,mark=diamond*}, mark options={scale=0.5}]% [thin]
+                table [x=time, y=both]{Plot/fresh0.dat};  
+    
+            \legend{  
+                100\% Freshness, 
+                50\% Freshness,
+                0\% Freshness   
+                }
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Response Time Comparision on Varying Proportions of Freshness.}
     \label{fig:fresh0}
 \end{figure}
+
+
+
+
 These results generally show that the utilized freshness alone is already sufficient to provide better read results than if no freshness is used at all.
 As before this is inherently caused by the targeted store of the query. While all queries without a freshness specification will directly contact a primary node,
 hence needing to apply a lock. Although in general shared-locks can be easily applied for regular read-operations, they still need to be formally acquired impacting
@@ -1073,12 +1377,12 @@ is crucial to provide better response times.\\
             \addplot[style={rred,fill=rred,mark=none}]
                 coordinates {(0\%, 2620) (100\%,2856.9465) };
 
-            \legend{HSQLDB(Eager) - PostgreSQL(Lazy),
+            \legend{HSQLDB (Eager) - PostgreSQL (Lazy),
                 PostgreSQL (Eager) - HSQLDB (Lazy) 
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Mixed Workload HSQLDB vs. PostgreSQL}
+    \caption{Impact of Store Selection based on Varying Proportions of Freshness -- Partial Freshness.}
     \label{fig:mixed}
 \end{figure}
 
@@ -1091,7 +1395,7 @@ This again proves the point that the store selection will have a major impact.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Mixed Worklaod} 
+\subsubsection{Compound Operations} 
 
 Now with every building block evaluated independently, we will combine and assess them jointly using a mixed workload.
 
@@ -1115,8 +1419,49 @@ The freshness evaluation utilizes a freshness-index of $0.7$ to filter and ident
 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/deviation_with_active_que.PNG}
-    \caption{Mixed Workload 60-40 with 100\% Freshness with relative read 1 minute }
+    \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.9*\textwidth,
+            height=6cm,
+            ymajorgrids = true,
+            ylabel = {Avg. Response Time (ms)},
+            xlabel = {Time (sec)},
+            scaled y ticks = false,
+            minor y tick num=4,
+            minor x tick num=9,
+            xmin=0,
+            xmax=300,
+            ymin=0,
+            ymax=7000,
+            grid,
+            grid style={dotted},
+            major tick style={very thick},
+            legend style={
+                        at={(1,1.05)},
+                        anchor=south east,
+                        column sep=1ex
+                },
+            legend cell align=left,
+        ]
+            
+    
+            \addplot[style={bblue,mark=*}, mark options={scale=0.5}] 
+            table [x=time, y=active]{Plot/replication_impact.dat};
+
+            \addplot[style={rred,mark=x}, mark options={scale=0.5}] %[thick]
+                table [x=time, y=replication]{Plot/replication_impact.dat};      
+            
+            \addplot[style={ppurple,mark=diamond*}, mark options={scale=0.5}]% [thin]
+                table [x=time, y=capture]{Plot/replication_impact.dat};  
+    
+            \legend{  
+                Replication Active,
+                Replication Suspended,
+                Capture + Replication Suspended,
+                }
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Impact of Replication Queue on Response Time using Freshness (Index=0.7) -- Partial Freshness.}
     \label{fig:replication_impact}
 \end{figure}
 
@@ -1190,7 +1535,7 @@ However, so far all tests only really considered unpartitioned entites to visual
             }
     \end{axis}
 \end{tikzpicture}
-    \caption{Impact of Partitioning on Freshness across Lazy Replicated Stores.}
+    \caption{Impact of Partitioning on Freshness, Across Lazy Replicated Stores -- Partial Freshness.}
     \label{fig:partition_result}
 \end{figure}
 
@@ -1201,7 +1546,7 @@ The second scenario will place all four partitions across two stores, where exac
 These two variations are ultimately compared against an entire unpartitioned setup across two stores which is visualized in \ref{fig:partition_result}.
 
 
-Analogously to the results obtained from the locking mechanism bechmarks, consequently
+Analogously, to the results obtained from the locking mechanism bechmarks, consequently
 these results indicate, that we achieve the best performance
 if we indeed partition the entity and place all partitions on each entity across both stores. Therefore the system will have the most possible 
 flexibility in locking and acessing the individual data fragements. Although 
@@ -1218,11 +1563,11 @@ Figure \ref{fig:workload_comp} therefore ultimately presents the impact of the w
     \begin{tikzpicture}
         \begin{axis}[
             width  = 0.9*\textwidth,
-            height = 7cm,
+            height = 6cm,
             ymajorgrids = true,
-            ylabel = {Throughput (requests/s)},
-            xlabel = {Workload (R/W)},
-            symbolic x coords={100,(80/20),(60/40),(50/50),(40/60),(20/80),(0/100)},
+            ylabel = {Throughput (requests/sec)},
+            xlabel = {Workload (R/W)\%},
+            symbolic x coords={(100/0),(80/20),(60/40),(50/50),(40/60),(20/80),(0/100)},
             xtick = data,
             scaled y ticks = false,
             enlarge x limits=0.1,
@@ -1234,9 +1579,9 @@ Figure \ref{fig:workload_comp} therefore ultimately presents the impact of the w
             legend cell align=left,
             smooth
         ]
-            \addplot[style={bblue,mark=*}]
+            \addplot[style={bblue,mark=*}] [thick]
                 coordinates {
-                    (100, 54.7044553) 
+                    ((100/0), 54.7044553) 
                     ((80/20),16) 
                     ((60/40),10.4) 
                     ((50/50),12.52163117) 
@@ -1247,7 +1592,7 @@ Figure \ref{fig:workload_comp} therefore ultimately presents the impact of the w
 
         \end{axis}
     \end{tikzpicture}
-    \caption{Worklaod Comparison of Freshness Related Queries}
+    \caption{Workload Comparison of Freshness Related Queries.}
     \label{fig:workload_comp}
 \end{figure}
 
@@ -1269,7 +1614,7 @@ This shows that freshness-aware data management can indeed allow to improve mixe
 
 
 
-
+\pagebreak
 \section{Discussion}
 \label{sec:discussion}
 
@@ -1278,6 +1623,7 @@ requirements without largely interfering with the underlying systems.
 Despite that the operation-wise execution will gradually progress each state the capture-queue inherently impacts the preformance.\\
 
 However, the compound results shows that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of read and write-operations.
+Especially the partitioned cases showed promising results to optimize routing decisions to finally improve the overall performance.
 
 Although, the freshness queries provided promissing results, they still suffered from a rather static freshness specification. 
 Therefore it would make sense to extend and adapt the utilized benchmarks to adaptively adjust the degree of freshness during runtime

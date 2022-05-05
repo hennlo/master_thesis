@@ -396,8 +396,17 @@
 \definecolor{ggreen}{HTML}{9BBB59}
 \definecolor{ppurple}{HTML}{9F4C7C}
 
-
-
+\usepackage{pgfkeys}
+    \newenvironment{customlegend}[1][]{%
+        \begingroup
+        \csname pgfplots@init@cleared@structures\endcsname
+        \pgfplotsset{#1}%
+    }{%
+        \csname pgfplots@createlegend\endcsname
+        \endgroup
+    }%
+    \def\addlegendimage{\csname pgfplots@addlegendimage\endcsname}
+    
 \usepackage{subcaption}
 \setcounter{tocdepth}{2}
 

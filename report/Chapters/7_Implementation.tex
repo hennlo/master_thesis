@@ -584,14 +584,14 @@ each column is represented by all available partitions at least once. Otherwise 
 This consequently needs to be considered for outdatedness as well. Since we have decoupled updates of eagerly and lazily replicated placements, we again could lose data. 
 Therefore we again have to ensure that at least the eagerly replicated placements are sufficently configured such that each column is available for all partitions at least once.
 The remaining secondary placements however can again be arbitrarly combined without any requirements.\\
-Because it is possible to switch freely between LAZY and EAGER strategies even after they already contain data, we again have to verify that no data is lost.
-Therefore when trying to switch from LAZY to EAGER, we have to ensure that this placement does not contain any pending updates, otherwise the operation will fail.
+Because it is possible to switch freely between \emph{LAZY} and \emph{EAGER} strategies even after they already contain data, we again have to verify that no data is lost.
+Therefore when trying to switch from \emph{LAZY} to \emph{EAGER}, we have to ensure that this placement does not contain any pending updates, otherwise the operation will fail.
 If there currently are no pending updates the system will lock the entire table, so it will not receive any updates while switching the strategy internally. 
 Since this is merely done by setting a flag, the impact of the blocking behaviour can be neglected.\\
 
-Furthermore, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from REFRESHABLE to 
-INFINITELY OUTDATED and vice versa.
-While the manual switch to INFINITELY OUTDATED is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
+Furthermore, as stated in \ref{sec:states} it is possible to switch the replication states of all partition placements of a given data placement from \emph{REFRESHABLE} to 
+\emph{INFINITELY OUTDATED} and vice versa.
+While the manual switch to \emph{INFINITELY OUTDATED} is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
 If this is not correctly ensured, and the replication starts propagting changes towards this placement again, we will lose data the data in between thos versions.
 In this scenario the system first will need to make sure that the placements on this store are all uptodate. If this is not the case the operation will fail. 
 This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. A subsequent change of states will then be accepted.\\
