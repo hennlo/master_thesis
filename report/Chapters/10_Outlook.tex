@@ -8,7 +8,7 @@ The introduced implementation offered a great foundation for additiona future wo
 
 
 
-\section{Tuneable Consistency}
+\tocless\section{Tuneable Consistency}
 The introduced implementation sketched in section \ref{c:implementation} reduces the overall consistency of the primary transaction,
 to improve the overall response time of the system.\\ 
 But since this trade-off between availability and consistency certainly depends on the use case or service requirements, it would be beneficial.
@@ -22,7 +22,7 @@ Such approaches can then be easily combined with tuneable consistency to allow s
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Global Replication Strategies}
+\tocless\section{Global Replication Strategies}
 This implementation has only introduced the specification of table-level entities like entire data placements to be defined as eagerly or lazily replicated objects.
 Although this introduces a high degree of flexibility, it still might be desirable to define certain policies, that entire schemas or even databases automatically 
 receive updates lazily, while still ensuring the overall placement constraints.\\
@@ -33,14 +33,14 @@ This could even include using a more adaptive freshness approach that evaluates 
 Since an outdated information fetched from a distant store, will become more outdated during transfer, we can
 extend this further to even measure the common round trip time to that store and integrate it into the query specification to identify suitable palcements.
 
-
+ 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
-\section{Session-Wide Freshness}
+\tocless\section{Session-Wide Freshness}
 Another addition to freshness could be the extension to also allow the specification
 of freshness per session, which avoids specifiyng the freshness for individual statements.
 This can be especially useful if the freshness requirements do not really change over time, allowing a quick
@@ -52,5 +52,6 @@ A session-wide freshness could therefore allow centrally changing the freshness 
 Together with adjustable freshness configurations that might automatically adapt towards recently provided freshness data it would allow
 to transform freshness-aware data management to a more adaptive configuration in general.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\todo{Add spacing in chapters to avoid entire blocks of data}%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\todo{Add spacing in chapters to avoid entire blocks of data}
