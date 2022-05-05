@@ -231,7 +231,7 @@ In order to reduce the update time per write-operation and increase the performa
 of OLTP workload, we need to enable Polypheny-DB to identify placements that need to receive updates immediately. 
 
 To allow the routing process to differentiate between such placements,
-we need the possibility to label data placments on how they are going to receive updates. This is defined as the \emph{Replication Strategy} $\Gamma \in \{EAGER,LAZY\}$.
+we need the possibility to label data placments on how they are going to receive updates. This is defined as the \emph{Replication Strategy} $\Upsilon \in \{EAGER,LAZY\}$.
 \emph{EAGER} means that DML operations are applied at once, while \emph{LAZY}
 allows data manipulation to be deferred, resulting in outdated data.\\
 
