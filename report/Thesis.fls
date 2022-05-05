@@ -309,6 +309,14 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\pgf\front
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\pgf\frontendlayer\tikz\libraries\tikzlibraryplotmarks.code.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\pgf\libraries\pgflibraryplotmarks.code.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\generic\pgf\libraries\pgflibraryplotmarks.code.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\pgf-pie\pgf-pie.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\pgf-pie\pgf-pie.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\pgf-pie\tikzlibrarypie.code.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\pgf-pie\tikzlibrarypie.code.tex
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\carlisle\scalefnt.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\carlisle\scalefnt.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\shipunov\boldline.sty
+INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\shipunov\boldline.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\subcaption.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\caption\subcaption.sty
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\tex\latex\todonotes\todonotes.sty
@@ -396,11 +404,6 @@ INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helve
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\public\cm\cmti10.tfm
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\stores.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\stores.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\stores.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\stores.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\stores.png
 INPUT Chapters\3_Related.tex
 INPUT Chapters\3_Related.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\jknappen\ec\tcrm1000.tfm
@@ -460,26 +463,6 @@ INPUT Chapters\8_Evaluation.tex
 INPUT Chapters\8_Evaluation.tex
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\vf\adobe\helvetic\phvr7t.vf
 INPUT C:\Users\i01002626\AppData\Local\Programs\MiKTeX 2.9\fonts\tfm\adobe\helvetic\phvr8r.tfm
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\overhead.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\overhead.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\overhead.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\overhead.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\overhead.png
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\new_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\new_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\new_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\new_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\new_locking.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_vs_new.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_vs_new.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_vs_new.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_vs_new.PNG
-INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\old_vs_new.PNG
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\hsql_psql.png
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\hsql_psql.png
 INPUT c:\Users\i01002626\OneDrive - Endress+Hauser\Uni\Research\DBIS\Master\thesis\report\Figures\hsql_psql.png

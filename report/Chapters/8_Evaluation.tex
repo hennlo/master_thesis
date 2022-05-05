@@ -93,17 +93,19 @@ During the evaluation only a predefined set of workloads will be used to obtain 
 As suggested in \ref{tab:workload table} these inherently differ in terms of their focus on write- or read-operations as well the
 degree of utilized freshness queries. 
 
+
 \begin{table}[h]
     \centering
-    \begin{tabular}{|l|l|l|l|l|}
-    \hline
-    \textbf{Workload}        & \textbf{Read \%} & \textbf{Write \%} & \textbf{Freshness}  \\ \hline
+    \def\arraystretch{1.5}
+    \begin{tabular}{V{2} l V{2} c|c|c V{2}}
+    \hlineB{3}
+    \textbf{Workload}        & \textbf{Read \%} & \textbf{Write \%} & \textbf{Freshness \%}  \\ \hlineB{2}
     \textbf{Write Only}      & 0                & 100               & 0                             \\ \hline
-    \textbf{Mixed Workload}  & 60               & 40                & 0                             \\ \hline
+    \textbf{Mixed Workload}  & 60               & 40         & 0                             \\ \hline
     \textbf{Read Only}       & 100              & 0                 & 0                             \\ \hline
     \textbf{Freshness Only} & 100              & 0                 & 100                           \\ \hline
     \textbf{Mixed Freshness} & 60              & 40                 & 100                           \\ \hline
-    \textbf{Partial Freshness} & 100              & 0                 & 100                           \\ \hline
+    \textbf{Partial Freshness} & 100              & 0                 & 100                           \\ \hlineB{2}    
     \end{tabular}
     \caption{Available Workloads}
     \label{tab:workload table}
@@ -144,11 +146,9 @@ If not stated otherwise the generated tables within the benchmarks will contain 
 50 parallel client threads, using YCSB and the workloads as defined in table \ref{tab:workload table}.
 During the evaluation it will only be referred to the respective workload names.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%           HERE
-%\todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
-%
-%%%%%%%%%%%%%%
+           
+\todoMissing{Story - konzept nicht Abstrakt und warum mit Polystore gut - mit Motivation verknüpfen}
+
 \subsubsection{Overhead} 
 Polystore systems and specifically Polypheny-DB uniformly collect all incoming requests, process them and then
 route the resulting queries to the designated stores, where they will be finally executed. 
@@ -167,10 +167,39 @@ they do not form the main pursuit of polystore systems, which are more suitably 
 
 \begin{figure}[t] 
     \centering 
-    \includegraphics[width=0.7\textwidth]{Figures/overhead.png}
-    \caption{Overhead comparison of the entire implemation.}
-    \label{fig:overhead}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.85*\textwidth,
+            height = 7cm,
+            x=120pt,
+            major x tick style = transparent,
+            ybar=.2cm,
+            bar width=30pt,
+            ymajorgrids = true,
+            ylabel = {Runtime (ms)},
+            xlabel = {Number of Stores},
+            symbolic x coords={1,2},
+            xtick = data,
+            scaled y ticks = false,
+            enlarge x limits=0.40,
+            ymin=0,
+            legend pos=outer north east,
+            legend cell align=left,
+        ]
+            \addplot[style={bblue,fill =bblue,mark=none}]
+                coordinates {(1, 1454546 ) (2,1712337)};
+
+            \addplot[style={rred,fill=rred,mark=none}]
+                coordinates {(1, 1569320) (2,1629462) };
+
+            \legend{Old,New}
+        \end{axis}
+    \end{tikzpicture}
+\caption{Overhead Comparison of Old vs. New Implemation.}
+\label{fig:overhead}
 \end{figure}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -187,29 +216,114 @@ The evaluation was executed with gradually increasing numbers of partitions, whi
 for $n$ partitions to observe any changes on the locking and therefore the throughput.\\
 To get a general overview of the impact, the benchmark was executed using a mixed workload using HSQLDB only.\\
 
+
+%%%%%%%
+
 \begin{figure}[t]
     \centering
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.7\linewidth]{Figures/old_locking.PNG}
+      \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.9*\textwidth,
+            ymajorgrids = true,
+            ylabel = {Throughput (requests/s)},
+            xlabel = {Number of Partitions ($n$)},
+            symbolic x coords={2,4,8},
+            xtick = data,
+            scaled y ticks = false,
+            enlarge x limits=0.40,
+            ymin=60,
+            ymax=140,
+            legend style={
+                    at={(1,1.05)},
+                    anchor=south east,
+                    column sep=1ex
+            },
+            legend cell align=left,
+            smooth
+        ]
+            \addplot[style={bblue,mark=*}]
+                coordinates {(2, 82.66787244) (4,110.0694971) (8,124.4930924)};
+
+            \addplot[style={rred,mark=x}]
+                coordinates {(2, 90.32423012) (4,85.38185074) (8,69.04305019)};
+
+            \legend{Single Store,$n$ Stores}
+        \end{axis}
+    \end{tikzpicture}
       \caption{Old Locking}
       \label{fig:oldlock}
     \end{subfigure}%
     \begin{subfigure}{.5\textwidth}
       \centering
-      \includegraphics[width=.7\linewidth]{Figures/new_locking.PNG}
+      \begin{tikzpicture}
+        \begin{axis}[
+            width  = 0.9*\textwidth,
+            ymajorgrids = true,
+            ylabel = {Throughput (requests/s)},
+            xlabel = {Number of Partitions ($n$)},
+            symbolic x coords={2,4,8},
+            xtick = data,
+            scaled y ticks = false,
+            enlarge x limits=0.40,
+            ymin=60,
+            ymax=140,
+            legend style={
+                    at={(1,1.05)},
+                    anchor=south east,
+                    column sep=1ex
+            },
+            legend cell align=left,
+            smooth
+        ]
+            \addplot[style={bblue,mark=square*}]
+                coordinates {(2, 83.56813262) (4,118.5016919) (8,136.0429577)};
+
+            \addplot[style={rred,mark=diamond*}]
+                coordinates {(2, 75.87686445) (4,90.53951027) (8,68.78432784)};
+
+            \legend{Single Store,$n$ Stores}
+        \end{axis}
+    \end{tikzpicture}
       \caption{New Locking}
       \label{fig:newlock}
     \end{subfigure}
     \begin{subfigure}{.7\textwidth}
         \centering
-        \includegraphics[width=.7\linewidth]{Figures/old_vs_new.PNG}
+        \begin{tikzpicture}
+            \begin{axis}[
+                width  = 0.7*\textwidth,
+                ymajorgrids = true,
+                ylabel = {Throughput (requests/s)},
+                xlabel = {Number of Partitions ($n$)},
+                symbolic x coords={2,4,8},
+                xtick = data,
+                scaled y ticks = false,
+                enlarge x limits=0.40,
+                minor y tick num=3,
+                ymin=60,
+                ymax=140,
+                legend pos=outer north east,
+                legend cell align=left,
+                smooth
+            ]
+                \addplot[style={bblue,mark=*}]
+                    coordinates {(2, 82.66787244) (4,110.0694971) (8,124.4930924)};
+    
+                \addplot[style={rred,mark=square*}]
+                    coordinates {(2, 83.56813262) (4,118.5016919) (8,136.0429577)};
+    
+                \legend{Old,New}
+            \end{axis}
+        \end{tikzpicture}
         \caption{Old vs. New Locking}
         \label{fig:oldandnewlock}
       \end{subfigure}
-    \caption{A figure with three subfigures}
+    \caption{Impact of Locking on the Overall Throughput per Seocnd}
     \label{fig:lock_comp}
 \end{figure}
+
 
 As visualized in Figure \ref{fig:oldlock} and \ref{fig:newlock}, for both cases the overall situation is quite similiar.
 While the distribution of the partitions across several stores gets gradually worse, the single store performance actually improves the more partitions are added to the table.
@@ -427,6 +541,7 @@ Therefore we want to identify for a single write-operation what actually influen
 \end{figure}
 
 
+
 The comparison in Figure \ref{fig:write_decomposition} analyzes the execution time of two independent write operations, respectiviely executed on two equal stores.
 One configuration is a simple eager replicated entity on two stores without any replication, the other one is an operation that needs to capture 
 the modification within the global replication queue.\\
@@ -457,11 +572,8 @@ considered to be immediately consistent and will not need to converge.
 
 
 \subsubsection{Replica Convergence} 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%           HERE
-%\todoMissing{Story-concrete example}
-%
-%%%%%%%%%%%%%%
+
+\todoMissing{Story-concrete example}
 
 
 
@@ -570,9 +682,8 @@ needs to extract the commit time of all possible placments and apply the deviati
 This plot shows that although only marginally different the utilized filter will still slightly impact the overall performance.
 Furthermore also the respective freshness degree will impact the choice which of the proposed candidates actually fulfils the requirements of the query.
 
-%%%%%%%%%%%%%%%%%% HERE
-%%%%%%%%%
-%\todoMissing{Add degreee comparison}
+
+\todoMissing{Add degreee comparison}
 
 
 
