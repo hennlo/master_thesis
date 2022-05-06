@@ -4,7 +4,7 @@
 
 
 In this chapter, we will define all functional requirements, necessary to establish freshness-aware data management in any system.
-We will therefore discuss the contents of Chapter~\ref{c:related} and propose solutions how these approaches and techniques can be applied to polystore systems.
+Consequently we will discuss the contents of Chapter~\ref{c:related} and propose solutions how these approaches and techniques can then be applied to Polystore systems.
 Hence, this chapter is separated into several sections where each represents a necessary building block to provide the notion of data freshness.
 
 
@@ -12,7 +12,7 @@ Hence, this chapter is separated into several sections where each represents a n
 
 Based on the provided discussion in Chapter~\ref{c:related} we have defined six fundamental functional
 requirements, which are necessary to provide the notion of freshness within a system.
-These prerequisites are however not unique to polystore systems and can be applied to any database system. 
+These prerequisites are however not unique to Polystore systems and can be applied to any database system. 
 
 \begin{enumerate}[(i)]
     \item \textit{Versioning} -                     The existence of multiple versions per data object is necessary to distribute the workload 
@@ -25,18 +25,18 @@ These prerequisites are however not unique to polystore systems and can be appli
                                                     All replicas should therefore be able to be updated independently.
 
     \item \textit{Version Consistency} -            Ensure the consistency of participating stores. Regardless of the role, each version always needs 
-                                                    to be consistent in regards to its primary. Even if the state of the versions defers, 
+                                                    to be consistent in regards to its primary. Even if the state of the versions defer, 
                                                     a given version must always be equivalent to the version the primary had at this time.
                                             
     \item \textit{Freshness-aware Read-operation} - The tolerated level of freshness needs to be expressed and specified to retrieve relevant information.
     
-    \item \textit{Isolate Freshness} -              Freshness related operations should not directly impact or interfere with the system, 
-                                                    we need additional transactional semantics to shield them against regular operations.                                    
+    \item \textit{Isolate Freshness} -              Freshness related operations should not directly impact or interfere with the system. 
+                                                    We need additional transactional semantics to shield them against regular operations.                                    
 
 \end{enumerate}
 
 Since there might be several possible approaches to fulfil the requirements listed above, 
-we will define and conceptualize several possibilities in the subsequent sections tailored to be solved by polystore systems. 
+we will define and conceptualize several possibilities in the subsequent sectionss, tailored to be solved by Polystore systems. 
 
 
 Except for the obvious existence of multiple replicas per data object ($\rightarrow$ Section~\ref{sec:data_replicas}), 
@@ -58,25 +58,25 @@ Only with these versions, we are even able to compare their state and define fre
 However, it should not be generally required for every data object having multiple versions, but is necessary as soon 
 as you want to consider it in the context of freshness.
 
-As already discussed in \ref{r:strategies} it is crucial to define and assign roles to loosen locking situations on nodes
+As already discussed in Section \ref{r:strategies} it is crucial to define and assign roles to loosen locking situations on nodes
 and minimize update times overall.
 The related work clearly distinguished between primary-update nodes and read-only nodes, where 
 read-only nodes cannot be directly updated by the user and will only receive refresh updates internally from the primary nodes.
 
-Since polystores inherently replicate or distribute their data across multiple stores we already have multiple replicas containing the data. 
+Since Polystores inherently replicate or distribute their data across multiple stores we already have multiple replicas containing the data. 
 Because we aim to reduce locking situations by decoupling primary updates from secondary transactions,
 we can simply use a lazy replication approach to propagate the updates asynchronously. 
 By definition this solution automatically creates multiple versions by deferring the update propagation to secondaries.
-This immediately leverages the nature of polystore systems in such a way that no additional replicas have to be artificially created
+This immediately leverages the nature of Polystore systems in such a way that no additional replicas have to be artificially created
 to support multiple versions for each data object \textit{(i)}, which will eventually converge. 
-The replication approaches are discussed in more detail in section \ref{sec:refresh_operations}.
+The respective replication approaches are discussed in more detail in Section \ref{sec:refresh_operations}.
 
 Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date replica. 
 This replica should contain relevant information to illustrate the deviation from another possibly outdated version on a different node.
-To achieve this in a polystore environment we need to be able to classify existing stores into specific groups or roles.
+To achieve this in a Polystore environment we need to be able to classify existing stores into specific groups or roles.
 Naively these could be \emph{up-to-date} and \emph{outdated}. Where the latter could become outdated over time, while the first one always needs to be up-to-date. \\
 Based on these roles we are then able to decide which replicas to consider for which use case.
-Alongside the idea of a polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
+Alongside the idea of a Polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
 based on the provided use case. E.g. label those stores as up-to-date that support highly transactional workload and will therefore be considered for every update as OLTP nodes.
 And configure replicas as outdated, when they are rather suitable for analytical queries which implicitly harvests the benefits of the encompassed stores as OLAP nodes. \\
 To consequently, compare those replicas, they need to be equipped with metadata of at least two timestamps. 
@@ -97,9 +97,9 @@ to determine the freshness of an object.
 As discussed in Section \ref{r:express_freshness}, freshness can be considered with several indications and nuances.
 There is no unified definition of data freshness or common freshness metrics.
 These rather depend on specific use cases and system requirements.
-While freshness extractions on value-based divergence is only really suitable for numerical values,
+While freshness extractions on value-based divergence are only really suitable for numerical values,
 to measure the deviation from a base item, time-based freshness on the other hand can be applied to arbitrary data types and can therefore be used 
-in a more general notion.\\
+in a more general notion.
 Because the perception of freshness is rather subjective and depends on the use case, the time-based constraints are often still not sufficient for very frequently
 updated replicas.
 The accuracy would differ greatly when one node has received an update within the last minute and might be considered fresh, but this one particular 
@@ -125,7 +125,7 @@ Given that the freshness filter function $F(d, \delta)$ is valid for all describ
 varies among the use cases.
 In general this function is defined to return a specific level of freshness for a particular data object $d$. 
 Where the object $d$ is available on all replicas and can vary in terms of freshness, due to different update times.
-While the individual freshness function returns a calculated freshness the filter function will remove any replica that does not meet the designated freshness-level $\delta$. 
+While the individual freshness function returns a calculated freshness, the filter function will remove any replica that does not meet the designated freshness-level $\delta$. 
 We only require that $\delta$ and the return value of $f(d)$ are of comparable types.
 
 
@@ -150,7 +150,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
     Although not directly specified as a timestamp, an absolute time delay will still generate a timestamp for comparison to be used in $\delta$.
     The delay is simply subtracted from $t_{now}$ to again generate $\delta$ as a lower bound timestamp used for comparison.
     The freshness evaluation is therefore equal to the equation \ref{eq:timestamp_freshness} and provides a different approach to specify the tolerated freshness.
-    Both construct a timestamp that enacts a lower bound of acceptable replicas.
+    Both construct a timestamp that act as a lower bound for acceptable replicas.
     This can be used as a filter to check for each candidate if it is fresher or respectively has received a state where its commit time is newer 
     than the lower bound. If not, the replica is removed from the list of possible candidates. 
 
@@ -166,7 +166,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
     Although intuitively these replicas are considered rather fresh in respect to their primary copy.\\
     Therefore, if we merely want to observe how much a secondary might deviate from the primary in terms of the update timestamp we need a new metric.
     We therefore also need to specify the accepted level of freshness based on the divergence from its eagerly replicated counterpart and therefore provide a relative time delay
-    used during comparison.\\
+    used during comparison.
     With this metric the specified relative time delay can directly be used as $\delta$. The freshness function $f(d)$ described in \ref{eq:relative_freshness}
     will essentially compare the current commit timestamp $t(d)$ against its primary replica $t(d_{primary})$.
         \begin{equation} \label{eq:relative_freshness}
@@ -180,13 +180,11 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
     \item [Replica Deviation] Although the first three metrics already provide some granularity to consider different nuances of freshness, we 
         do not yet involve the number of pending updates to any replica or can differ between the number of modifications each replica has received yet.
         For objects with a comparably high update frequency, the notion of timeliness can hardly be utilized to make an assumption on the freshness.
-        Therefore, we again want to provide another possibility to allow the specification, based on the divergence between primary and secondary.
-
+        Therefore, we again want to provide another possibility to allow the specification, based on the divergence between primary and secondary.\\
         This freshness can be specified by a freshness index as proposed by \cite{rohm:2002}.
         This ratio can be evaluated and consequently generated based on the number of modifications the primary and 
         secondary copy deviate from one another. Where $m(d)$ is defined by the number of modifications a data object $d$ has ultimately received on a given replica
         and $m(d_{primary})$ as the corresponding up-to-date copy to compare against. 
-
         Although a freshness index does not intuitively provide an observable threshold at first glance, it indicates how accurate a 
         given replica $d$ is with respect to the number of modifications of an up-to-date version $d_{primary}$.
 
@@ -199,7 +197,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
         It can also be used when multiple tables are \emph{JOIN}ed.
         We can sum the joint number of modifications and compare it against the current number of update transactions to give a joint accumulation.
 
-        Since it also might be desirable to specify a freshness index but to consider a time deviation as described in ~\cite{voicu:2010,hennemann_sw_2021}
+        Becasue it also might be desirable to specify a freshness index but to consider a time deviation as described in ~\cite{voicu:2010,hennemann_sw_2021}
         the freshness function can be adjusted as needed to also compare the effective commit timestamps as a \textbf{Commit Time Deviation}.
         Since we ensure that the commit timestamp of a primary replica will never be greater than its eager counterpart. We can define the time deviations as an index that is 
         generated with $t(d_{primary})$ being the commit timestamp of the up-to-date replica and $t(d)$ the timestamp of the possibly outdated replica.
@@ -214,10 +212,10 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
 All the mentioned freshness metrics can be used to compare different replicas that contain a data object $d$ and filtering them based on the provided function $F(d, \delta)$.
 This allows to specify the tolerated level of freshness $\delta$ from a type $\tau \in \{TIMESTAMP, \:TIME-DELAY, \:INDEX\}$ to be used within the query specification.
 
-Although as mentioned in section \ref{sec:data_replicas} some engines within a polystore might be more suitable for up-to-date replicas than others,
+Although as mentioned in Section \ref{sec:data_replicas}, some engines within a Polystore might be more suitable for up-to-date replicas than others,
 we don't limit the possibility of different freshness metrics to a subset of stores. Hence, every store can uniformly work with all levels of freshness.
-The Data Freshness shall always be evaluated within the polystore layer and is then used to compare the tolerated value against possible candidates that might fulfil such a request 
-(see \ref{r:read}). This enables us to use a polystore to fulfil the requirements of \textit{(ii)}, by centrally analyzing the freshness constraints and selecting possibly outdated 
+The Data Freshness shall always be evaluated within the Polystore layer and is then used to compare the tolerated value against possible candidates that might fulfil such a request 
+(see Section~\ref{r:read}). This enables us to use a Polystore to fulfil the requirements of \textit{(ii)}, by centrally analyzing the freshness constraints and selecting possibly outdated 
 candidates that conform to the specified constraints.
 
 
@@ -232,9 +230,9 @@ candidates that conform to the specified constraints.
 
 To generally allow a system to handle transactional and analytical workload in parallel, we need to reduce occurring locking situations,
 such that write and read operations do not drastically interfere with each other.
-Since a polystore system acts as an abstraction layer on top of the encompassed stores, we can leverage it to act as a coordination service 
+Since a Polystore system acts as an abstraction layer on top of the encompassed stores, we can leverage it to act as a coordination service 
 allowing us to restrict the eager replication and locking mechanisms to the primary nodes alone.
-Given the multiple versions described in section \ref{sec:data_replicas} we could consequently decouple primary transactions from 
+Given the multiple versions described in Section \ref{sec:data_replicas} we could consequently decouple primary transactions from 
 secondary transactions. In that sense any modification to an object will now only target and lock its primary copies which are labeled as \emph{up-to-date}.
 The secondary nodes could then be read without any further locking by a user transaction. 
 Nonetheless, we need an approach to how these outdated stores can converge their state towards the state of their primary copy.
@@ -246,30 +244,29 @@ Otherwise, we would have entirely outdated stores that would remain in their cur
 
 Since we have no longer access to an eager replication we need the possibility to apply the changes lazily to any outdated replica.
 Depending on the use case there might be different approaches needed to fulfil certain requirements.
-
 We, therefore, propose the following strategies to apply pending updates to the outdated nodes.
 
 \begin{description}
-    \item[Immediate Execution] This approach mainly pursues the decoupling of one single eagerly applied transaction, to two subsequent transactions.
+    \item[Immediate Execution] This approach mainly pursues the decoupling of one single eagerly applied transaction, into two subsequent transactions.
     While the eagerly applied modification is executed synchronously it is bound by the slowest performing node in a setup.
     That is why with a lazy update propagation we only have to wait for the up-to-date replicas to finish the transaction.
     Since these can be strategically placed on stores that are suitable for transactional workload, they are assumed to apply the operation faster.
     After this primary transaction has then committed and the locks are released, an asynchronously executed secondary update transaction can be executed, 
     applying the updates to the outdated nodes.\\
-    Since these secondary transactions are merely executed with a small processing delay and assuming that the update queue might not be very large and 
-    updates can be applied right away, the outdated nodes intuitively will not deviate much from its primary partner.
+    Since these secondary transactions are merely executed with a small processing delay, assuming that the update queue might not be very large, 
+    and updates can be applied right away, the outdated nodes intuitively will not deviate much from its primary partner.
 
-    \item[On-demand Refresh] Since a regular queue will not consider priorities, and we still have to obey the execution constraints of the primary transaction (see \ref{sec:consistency_concept})
+    \item[On-demand Refresh] Since a regular queue will not consider priorities, and we still have to obey the execution constraints of the primary transaction (see Section \ref{sec:consistency_concept})
     we always need to preserve the execution order of the primary transaction. Depending on the size of the update propagation-queue some replicas might stay outdated longer than others.
     That is why an on-demand approach is necessary to refresh outdated nodes at once and bring them up-to-date.
-    Applying such an approach, the queue has to remove all pending updates for that specific replica, to avoid that updates are not applied twice. 
+    To avoid that updates are not applied twice, executing such an approach will remove all pending updates for that specific replica from the queue.
     
     \item[Load-aware] Although an automatically scheduled and a manual execution will serve most use cases, it might not be desirable to do so.
     Neither an immediate execution after a primary transaction nor an on-demand triggered refresh, take the system load into account.
-    Since polystores consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
+    Since Polystores consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
     So while most of the underlying stores could apply the pending changes immediately, some might currently not be capable on handling the additional load and have to 
     be deferred yet again. Despite that the approach might slow down the convergence speed of the updated nodes, 
-    it will observe underlying stores and artificially limit the load on the system introduced through the propagation of updates hence keeping the system stable and available.
+    it will observe underlying stores and artificially limit the load on the system, introduced through the propagation of updates hence keeping the system stable and available.
 
     \item[Update on Read] So far, all proposed solutions suffer either from additional evaluation overhead or from manual interference. This will limit the overall 
     performance of the system. We could therefore again introduce a decoupled operation that is automatically triggered as soon as an outdated replica has been part of any query. 
@@ -293,12 +290,12 @@ We, therefore, propose the following strategies to apply pending updates to the 
 \label{sec:refresh_operations}
 
 The Update Propagation generally refers to the refresh operation that transforms possibly outdated objects towards an up-to-date state.
-Disregarding the described Refresh Strategies from section \ref{sec:refresh_strategies} we need to converge the outdated replicas towards their 
+Disregarding the described Refresh Strategies from Section \ref{sec:refresh_strategies} we need to converge the outdated replicas towards their 
 primary copies.
 There are several possibilities to achieve this and a system can choose to implement each of these cases in various ways. However, each implementation comes with its
 own trade-offs.
 We have several possibilities on how to handle and propagate the updates.
-Since we assume that every write-operation needs to go through the polystore-layer, we can easily keep track which operations have been applied to the primary node.
+Since we assume that every write-operation needs to go through the Polystore-layer, we can easily keep track which operations have been applied to the primary node.
 To ensure the overall consistency we require that the operations are executed in correct execution order and therefore need to apply all pending changes as they have been applied at the primary site.
 This imposes a natural execution order of any item in the queue to be delivered to the secondaries.
 
@@ -311,11 +308,11 @@ Therefore, we propose the following approaches: \\
     apply it to all relevant outdated nodes. 
     The idea of this approach is that all changes including the data could be temporarily stored either in-memory or persisted onto a disk.
     The choice of where to store it depends on the individual consistency-availability requirements and will not be part of this discussion.\\
-    For the CDC-Algorithm we consider that during an active transaction all changes will be tracked and written into a First-In-First-Out (FIFO) queue.
+    For the CDC-Algorithm we consider that during an active transaction all changes will be tracked and written into a FFIFO queue.
     Since this is only a preliminary step we will conveniently call this capture-collection: \emph{capture-queue}.
     As operations are being executed, each change along with its data and the corresponding parent transaction is stored within this capture-queue.
-    Although we could simply capture the executed statement in a Write-Ahead-Log (WAL) and re-execute it on the underlying stores, we now benefit from the polystore layer.
-    Since every query has to centrally pass the polystore layer to be executed, it will pre-compute and evaluate certain functions or constraints internally at runtime instead of
+    Although we could simply capture the executed statement in a Write-Ahead-Log (WAL) and re-execute it on the underlying stores, we now benefit from the Polystore layer.
+    Since every query has to centrally pass the Polystore layer to be executed, it will pre-compute and evaluate certain functions or constraints internally at runtime instead of
     deligating it to an underlying store. Therefore, we can ensure that the values received by a store are equal on all other stores as well.
     Thus, we can save further computations and store the end result that is pushed-down directly
     to the designated stores. As soon as this transaction has been successfully committed, all entries in this capture-queue are further enriched with the respective commit timestamp of their parent transaction.
@@ -361,17 +358,17 @@ Therefore, we propose the following approaches: \\
     Since materialized views are by nature considered to be precomputed-snapshots of data objects, we can simply leverage these semantics to create different versions of data, 
     represented by indvidual views.
     Because views are common in most databases there are an easy to use access without implementing an entire refresh algorithm.\\
-    In contrast to the benefits described in section \ref{sec:data_replicas} we now indeed need to artificially create new versions.
+    In contrast to the benefits described in Section \ref{sec:data_replicas} we now indeed need to artificially create new versions.
     However, instead of replicating the data operation-wise to another store, we can simply omit creating replicas that become outdated and create materialized views on these 
     stores instead. Hence, we are left with at least one true up-to-date replica and several outdated replicas, which are represented by views created on the underlying stores.
     Due to their flexibility we can decide per use case which degree of freshness a view supports. 
-    Analogously to the aforementioned approach, anytime a propagation or refresh operation is being executed a new materialized view is generated on basis of the up-to-date replica.
+    Analogously to the aforementioned approach, anytime a propagation or refresh operation is being executed, a new materialized view is generated on basis of the up-to-date replica.
     This also omits replicating single operations entirely, hence no bookkeeping of the queued updates is necessary. 
     The only needed reference would again be the commit timestamp of the primary node. 
 
     %As with the handling of internal partitions this can also be done entirely in the background. This limits the locking time to a minimum and is therefore only really 
     %necessary when switching the outdated with a refreshed view.
-    %Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for polystore systems, since they are
+    %Although, one of the biggest downsides of materialization is the large additional resource consumption on storage, it can be neglected for Polystore systems, since they are
     %inherently distributed and would otherwise store the entire content of the table. Therefore, it would even slightly reduce the data footprint on outdated placements.
 
 \end{description}
@@ -379,10 +376,7 @@ Therefore, we propose the following approaches: \\
 
 While all of these approaches can be used to replicate and refresh the data on outdated nodes,
 they all come with their own set of trade-offs and might be used in different scenarios.
-
 Since all replicas should be refreshed independently which not only again reduces the total update time but also eases rollback scenarios.
-
-
 However, all are sufficient to fulfil our requirements to even refresh replicas independently from each other \textit{(iii)}.
 This not only reduces the total update time but also eases rollback scenarios. 
 Otherwise, we might need to define complex countermeasures to undo certain refreshes if one store was already refreshed but another has failed.
@@ -399,23 +393,22 @@ Otherwise, we might need to define complex countermeasures to undo certain refre
 \section{Consistency Constraints}
 \label{sec:consistency_concept}
 
-As suggested in \ref{r:replication} there exist several techniques how outdated nodes can be updated lazily in the context of freshness.
+As suggested in Section \ref{r:replication} there exist several techniques how outdated nodes can be lazily updated in the context of freshness.
 Most of these presented distributed architectures follow a primary-copy approach for master-driven replication to all their secondary replicas.
 This eases the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly
-with a polystore we always have a single point of entry which can vaguely be compared to the polylayer acting as a master node
-when distributing or even routing queries. However, since any requests have to pass through the polylayer
+with a Polystore, we always have a single point of entry which can vaguely be compared to the polylayer acting as a master node
+when distributing or even routing queries. However, since any requests have to pass through the Polylayer
 we have full control how and where queries need to be routed allowing us to selectively route read-operations to outdated and up-to-date stores alike.
-This enables the system to take full control how different levels of data freshness are being accessed and which queries are allowed to be executed or not.\\
-
+This enables the system to take full control how different levels of data freshness are being accessed and which queries are allowed to be executed or not.
 
 Since we have decoupled the update from primary and secondary replicas we not only need to make sure that they converge towards the same state, but also that 
 all intermediate states conform with each other. This means that refresh operations can only be applied in such a way, that at any given time an outdated version always has
 to have the exact same state that its primary counterpart had when it was at that time. Without this serialization, it would not be possible to correctly operate and return 
 a comparable freshness-related state. 
 Disregarding the refresh algorithm, we require that all updates are propagated and applied in the exact execution order as they were at the up-to-date 
-replicas. This avoids inconsistencies even when handling outdated data \textit{(iv)}.\\
+replicas. This avoids inconsistencies even when handling outdated data \textit{(iv)}.
 
-Finally, as briefly mentioned in \ref{sec:refresh_operations} we require a \emph{Refresh-Lock} as a newly introduced locking capability.
+Finally, as briefly mentioned in Section \ref{sec:refresh_operations}, we require a \emph{Refresh-Lock} as a newly introduced locking capability.
 This lock shall only be applied whenever a refresh operation is currently in place and updates an outdated node. 
 This way the routing mechanism can avoid sending any queries to that replica for reads or a new refresh operation, which might have been triggered manually by an user.
 
@@ -426,37 +419,37 @@ This way the routing mechanism can avoid sending any queries to that replica for
 \section{Transaction Handling}
 \label{sec:tx_handling}
 
-As already mentioned, to allow the system to reduce the overall processing time, we need to reconstruct the initial update transaction such that it only 
-targets the replicas labeled as up-to-date. As briefly described in section \ref{sec:data_replicas} the usage of lazy replication is already enough to reduce the strong
+To allow the system to reduce the overall processing time, we need to reconstruct the initial update transaction such that it only 
+targets the replicas labeled as up-to-date. As previously described in Section \ref{sec:data_replicas} the usage of lazy replication is already enough to reduce the strong
 consistency towards an eventual consistency.
 
-Since polystores allow us to uniformly access all underlying stores through a centrally defined interface, 
+Since Polystores allow us to uniformly access all underlying stores through a centrally defined interface, 
 all requests have to go through this layer and we can easily choose where queries will be routed to. 
-
-With this abstraction layer on top of the stores we can leverage the polystore to act as a coordination service allowing us to restrict modifications to primary nodes only. 
+With this abstraction layer on top of the stores we can leverage the Polystore to act as a coordination service allowing us to restrict modifications to primary nodes only. 
 Instead of waiting until an update has been persisted everywhere.
-Therefore commonly used update transactions are logically divided into two separate transactions types to allow a deferred refresh of objects.
+Therefore, commonly used update transactions are logically divided into two separate transactions types to allow a deferred refresh of objects.
 Update transactions in this sense are transactions that contain at least one write-operation.
 \begin{itemize}
     \item \textbf{Update transaction}:  Consequently are write operations that are targeted to primary nodes only and still need to be routed. 
-                                        These originate from a user query in order to modify a data object.
+                                        These originate from a user-query in order to modify a data object.
 
     \item \textbf{Refresh transaction}: Associated with a refresh operation to replicate pending changes and consequently refresh the data on an arbitrary outdated node.
-                                        These transactions are normally generated system internally and cannot be directly invoked by any user. 
-                                        However, they alreBacause ady have a pre-defined execution plan with a pre-determined set of operations that is going to be executed on outdated replicas.               
+                                        These transactions are normally generated system internally, and cannot be directly invoked by any user. 
+                                        However, they already have a pre-defined execution plan with a pre-determined set of operations that is going to be executed on outdated replicas.               
 \end{itemize}
 
 
 Although, logically being used differently they are technically executed with the same capabilities and only really differentiate in terms of their target.
 Since they do not have technical differences they are rather used as an indication which part of the process is referred.
-For data objects that do not contain multiple versions, the update transaction behavior will not change.\\
-With this possibility we can treat regular queries and queries concerning freshness differently. Since a polystore can keep track on which 
+For data objects that do not contain multiple versions, the update transaction behavior will not change.
+With this possibility we can treat regular queries and queries concerning freshness differently.\\
+Since a Polystore can keep track on which 
 underlying store which part of the data resides, we can redirect all queries to fulfil our intention. Consequently this allows us to evaluate the freshness
 and send the queries towards accepted outdated replicas, and further dispatch modifications to designated replicas only.\\
 Since refresh operations are generated based on the original transaction, they already have designated targets and a predefiend set of operations.
 Because this is done prior to the execution, there is no need to route them or identify possible candidates.
 Consequently this enables us to employ another transaction aiming solely to refresh the outdated replicas while saving overhead in computation.\\
-Finally, to not interfere with the regular system operation we require that transactions containing freshness-related queries cannot conflict or break the ACID properties 
+Finally, to not interfere with the regular system operation we require that transactions containing freshness-related queries cannot conflict with the ACID properties 
 of primary nodes. Therefore no write-operations are allowed when specifying a freshness-level, transforming this transaction to a read-only transaction.
 This is necessary since we do not know during scheduling if the write operation has used results, obtained from an outdated replica.
 Analogously when a write-operation has already been executed within a transaction we can then no longer accept a freshness-aware query. 
@@ -471,31 +464,31 @@ Therefore the system always has to make sure that the system executes freshness-
 \section{Freshness-aware Read Access}
 \label{sec:read_access}
 
-As mentioned in Section \ref{sec:tx_handling} update transactions can now only be executed by users and will always target the primary versions of an object.
+As mentioned in the previous section, update transactions can now only be executed by users and will always target the primary versions of an object.
 Hence, they do not allow the specification of any freshness constraints, to ensure the integrity and consistency of the system.
 Therefore Freshness-aware read-operations are restricted to be used within read-only transactions.\\
-Based on the provided freshness metrics considered in section \ref{sec:freshne_metrics} and the different available versions per data object (see \ref{sec:data_replicas})
+Based on the provided freshness metrics considered in Section \ref{sec:freshne_metrics} and the different available versions per data object (see Section \ref{sec:data_replicas})
 we already have all prerequisites to allow freshness-aware read access. 
 We assume a simple extension of the query language, to allow users to hint or even guide the routing process to identify suitable versions, 
 by defining their tolerated level of outdatedness.
 Again this could be either done using a timestamp, a time delay or an artifical freshness-index considering a deviation from the up-to-date replica.
-On the basis of this specification the polystore is able to compare and filter all available versions of the requested object.
-Although most of the provided related research (see \ref{r:read}) did restrict the freshness-reads to designated read-only copies, we can leverage the benefits 
-of the polystore and access all queries uniformly through one single interface. Therefore, if a suitable candidate has been identified within the polylayer, 
+On the basis of this specification the Polystore is able to compare and filter all available versions of the requested object.
+Although most of the provided related research (see Section \ref{r:read}) did restrict the freshness-reads to designated read-only copies, we can leverage the benefits 
+of the Polystore and access all queries uniformly through one single interface. Therefore, if a suitable candidate has been identified within the polylayer, 
 the query can be directly routed towards this replica. Consequently this abstraction layer also enables us to always fallback to the up-to-date version
 if no sufficient freshness could be provided among the outdated candidate stores. This efficiently utilizes all sources available to the system \textit{(v)}
 and omits refreshing an outdated replica, before actually fulfilling the query as described by \cite{voicu:2010}.\\
 For this, we always require that there is at least one up-to-date replica that contains all neccesssary information or consequently as many up-to-date replicas 
 that they jointly contain all data and no data is lost when accepting outdatedness.
 This will be verified dynamically when the outdated replicas are labeled, and always enforces these constraints to keep the integrity of the data.
-Due to the advantage of a central polystore layer, the routing process can be extended further to support load balancing on the basis of these versions. 
-Given multiple possible candidate replicas for a given freshness selection, the polystore can monitor and observe 
+Due to the advantage of a central Polystore layer, the routing process can be extended further to support load balancing on the basis of these versions. 
+Given multiple possible candidate replicas for a given freshness selection, the Polystore can monitor and observe 
 if any of these candidates might be currently overloaded and can therefore choose to route the query to a different location.
-This again harvests the benefits of polystores and will reduce the latency of such a request.\\
+This again harvests the benefits of Polystores and will reduce the latency of such a request.\\
 As with most systems we might be exposed to different requirements to be even fulfilled by freshness related queries. 
 Although originally introduced to serve especially long-running analytical queries, they might be used in different contexts hence needing different constraints.
 One of this requirements is the usage of referential integrity.
-But despite that a polystore system might enforce primary-key constraints and hence referential integrity at run time, the usage of multiple versions does not automatically
+But despite that a Polystore system might enforce primary-key constraints and hence referential integrity at run time, the usage of multiple versions does not automatically
 ensure this for outdated versions as well. Although it might be possible to generate dependencies between data objects, such that they need to be refreshed jointly,
 it should not be generally enforced. Otherwise it will trigger cascading refresh operations of dependent data objects, neglecting the benefits of decoupling the transactions 
 in the first place. Furthermore, as previously stated, we do not require every data item to exist in several possibly outdated versions.  

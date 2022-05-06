@@ -3,21 +3,19 @@
 \label{c:related}
 
 
-\todoMissing{abreviation of OLTP and OLAP}
-\todoMissing{Due to the novelty of this work we will compare the baseline for freshness and put them into context}
 
-This chapter aims to provide a background for the topics revolving around data freshness and compares existing approaches 
+This chapter aims to provide a background for the topics revolving around \emph{Data Freshness}, and compares existing approaches 
 as well as related and recent research activities in this field. 
-In the context of this thesis, we consider five topics, which are necessary to establish 
-freshness-awareness inside a Database Management System (DBMS).
-It is therefore separated into five sections, were each part contributes to a characteristic, needed to 
-provide Data Freshness. This includes a definition of Data Freshness in general ($\rightarrow$ Section \ref{sec:definition}), 
-possible metrics to define cost functions which are used
-in the evaluation process to express and compare different freshness-levels ($\rightarrow$ Section \ref{r:freshness_metrics}), 
-how to correctly involve different versions of data items ($\rightarrow$ Section \ref{sec:consistency}). 
-Furthermore, which possibilities exist to replicate data ($\rightarrow$ Section \ref{r:replication}) 
-and propagate updates to outdated nodes in order to refresh them.
-Finally, this is concluded by a discussion, how users can actually specify their tolerated freshness to retireve data ($\rightarrow$ Section \ref{r:read}).
+In the context of this thesis, we consider six topics, which are necessary to establish 
+freshness-awareness inside a DBMS.
+This Chapter is therefore separated into seven sections, were each part contributes to a characteristic, needed to 
+provide the notion freshness. This includes a definition of Data Freshness in general ($\rightarrow$ Section \ref{sec:definition}), 
+possible metrics to define cost functions ($\rightarrow$ Section \ref{r:freshness_metrics}), which are used
+in the evaluation process to express and compare different freshness-levels ($\rightarrow$ Section \ref{r:express_freshness}) and
+how to correctly involve different available versions of data objects ($\rightarrow$ Section \ref{sec:consistency}). 
+Furthermore, how to identify existing possibilities to replicate data ($\rightarrow$ Section \ref{r:replication}) 
+and propagate updates to outdated nodes in order to refresh them ($\rightarrow$ Section \ref{r:strategies}).
+Finally, this is concluded by a discussion, how users can actually specify their tolerated freshness to retrieve data ($\rightarrow$ Section \ref{r:read}).
 
 
 
@@ -42,9 +40,9 @@ Finally, this is concluded by a discussion, how users can actually specify their
 \label{sec:definition}
 The consideration of data freshness is a widely used concept among database systems and intuitively introduces the idea of how old or stale data is.
 Nonetheless, there is no commonly agreed defintion, hence several different notions and interpretations exist, on how to characterize and measure data freshness.
-This was already described by Naumann et al. ~\cite{naumann:1999} in 1999, which further state that despite these variations, it is strongly related to the concept of accuracy. 
+This was already described by Naumann et al.~\cite{naumann:1999} in 1999, which further state that despite these variations, it is strongly related to the concept of accuracy. 
 The accuracy of a data object could therefore be loosely summarized as the percentage of objects without data change. 
-This thought was also shared by the Redman who defined the data accuracy as ``the degree of agreement between 
+This thought was also shared by Redman who defined the data accuracy as ``the degree of agreement between 
 collection of data values and a source agreed to be correct''~\cite{redman:1996}.
 Hence, it can be considered as the precision of such data elements in respect to their most up-to-date version.
 
@@ -52,7 +50,7 @@ Hence, it can be considered as the precision of such data elements in respect to
 
 Peralta \cite{peralta:2006} also summarized freshness as an implication of how old data is, and referred this to an user's expectation on the actuality of an object. 
 Consequently, using the last time objects were updated, to identify any accuracy measures. Peralta also distinguished between two data quality factors. 
-The \emph{Currency factor} which expresses how stale data is after it has been extracted and finally been
+The \emph{currency factor} which expresses how stale data is after it has been extracted and finally been
 delivered to the user. This concept is often considered within data warehousing systems, when already extracted materialized data is processed and delivered to the user.
 Because the extracted source data might have already been updated after it has initially been extracted, consequently resulting in stale data to be delivered.
 The second factor corresponds to the \emph{timeliness} of data, which essentially states how old data is and captures the gap between the last update and the actual delivery.
@@ -63,7 +61,7 @@ The second factor corresponds to the \emph{timeliness} of data, which essentiall
 \section{Freshness Analysis and Metrics}
 \label{r:freshness_metrics}
 A metric is a specific figure which can be used to compare and evaluate given quality factors with each other.
-Along the various definitions and approaches to define data freshness itself, the metrics to identify and measure the actual degree of freshness also varies.
+Along the various definitions and approaches to define data freshness itself, the metrics to identify and measure the actual degree of freshness also vary.
 Several metrics are summarized by \cite{cho:2000, pacitti:2000, peralta:2006} and can be categorized as follows:
 \begin{itemize}
     \item \textbf{Currency metric}: Measures the elapsed time since the source data changed without being reflected in a materialized view or a replica in distributed setups.
@@ -86,13 +84,13 @@ This is enriched further with the \emph{age-of-synchronization} (AoS) that corre
 \label{r:express_freshness}
 
 Along the various freshness metrics described in Section \ref{r:freshness_metrics}, essentially three types of freshness constraints
-suggesting a tolerated level of freshness can be summarized ~\cite{tamer:2005, hennemann_sw_2021}.
+suggesting a tolerated level of freshness can be summarized~\cite{tamer:2005, hennemann_sw_2021}.
 \begin{itemize}
     \item \textbf{Time-bound constraints}: Are used as timestamps that accept values which have been updated by younger transactions. 
 
-    \item \textbf{Value-bound constraints}: This is  more commonly used with numbers than with text and considers the percentual deviations from the current value.
+    \item \textbf{Value-bound constraints}: Are more commonly used with numbers than with text and considers the percentual deviations from the current value.
 
-    \item \textbf{Drift constraints on multiple data items}: These are especially relevant for transactions which read multiple data items. Tolerates if possible 
+    \item \textbf{Drift constraints on multiple data items}: Are especially relevant for transactions which read multiple data items. Tolerates if possible 
     update timestamps of all required data items are all within the same specified interval. Additionally, for aggregations, as long as a particular aggregate computation 
     is within a tolerable range it can be accepted. Even if some individual values of the data items are more out of sync than the compound operation.
 \end{itemize}
@@ -104,7 +102,7 @@ Here the \textit{Absolute Freshness} of a data item \textit{d} is characterized 
 of the most recent update transaction that has modified the item \textit{d}.
 These timestamps can be used by the client to individually define their freshness requirements. The younger a timestamp the fresher the data.
 Additionally, they use \textit{Delay Freshness} to define how old and outdated requested data objects $t(d)$ are, compared to the commit time of the current value $t(d_0)$.
-Defining their freshness function as 
+Defining their freshness function as:
 \begin{equation}
     f(d) = \frac{t(d)}{t(d_0)},  with f(d) \in [0,1]
 \end{equation} 
@@ -114,7 +112,7 @@ An index of \emph{1} intuitively means that the data is at its most recent state
 
 While \cite{xiang:2008} and \cite{fekete:2018} both consider the delay-based staleness in the time domain as well, they also consider constraints on 
 an acceptable value-based divergence $\delta$. This aims to measure the difference between two numerical values by analyzing their similarity on basis of their 
-absolute value $|d_0 - d| < \delta $. Low values between base and replicated data reflects a more up-to-date replica for a given object.
+absolute value $|d_0 - d| < \delta $, where low values between base and replicated data reflects a more up-to-date replica for a given object.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -123,24 +121,23 @@ absolute value $|d_0 - d| < \delta $. Low values between base and replicated dat
 \section{Update Propagation}
 \label{r:replication}
 An essential part to gain performance with freshness-aware data management is loosening the update situations by reducing the number of 
-replicas which need to be updated immediaetely. This decoupling between necessary updates on a primary site and deferred updates towards secondaries 
-reduces the total update time and in contrast increases the overall availability of the database system ~\cite{quorums:2003}.
+replicas which need to be updated immediately. This decoupling between necessary updates on a primary site and deferred updates towards secondaries, 
+reduces the total update time and in contrast increases the overall availability of the database system~\cite{quorums:2003}.
 This mechanism itself suggests to the user that the database system is updated eagerly while internally the updates are actually propagated lazily. 
-Although this has the side effect that the secondaries hold slightly outdated or stale data.
+However, this has the side effect that the secondaries hold slightly outdated or stale data.
 Due to the decoupling, these can now efficiently be utilized as read-only copies to speed up Online Analytical Processing (OLAP) workload while still performing 
 Online Transaction Processing (OLTP) workload
 at the primary level as \cite{psaroudakis:2015, rohm:2002, xiang:2008} have pointed out in their work.
 
-Depending on the given system architecture, different refresh-strategies have been proposed on how updates are propagated towards outdated nodes.
+Depending on the given system architecture, different replicaiton-strategies have been proposed on how updates are propagated towards outdated nodes.
 Wei et al. \cite{wei:2004} propose to replicate data in form of an update policy adaptation algorithm, that dynamically selects update policies
 for derived data items. Which are then executed based on internal system conditions. These conditions are defined as several layers of validation a transaction has to pass.
 E.g. in the validation stage, the system checks the freshness of the accessed data. If it is considered to be not fresh enough, the entire transactions will be restarted.
 This imposes a huge performance mitigation and wastes ressources since the transaction itself could be processed and re-queued multiple times before it might actually get executed.\\
-
 Psaroudakis et al. \cite{psaroudakis:2015} mention the existing design gaps between OLTP- and OLAP-oriented database management systems and describe the importance of 
 allowing workloads to be executed in parallel. However, they solely focus on a single table level rather than a replication scenario in a distributed 
 environment. Furthermore, they are interested in real-time processing and claim that even the slightest outdated data is unacceptable to provide real-time reporting.
-To fulfil these mixed workload requirements they summarized the idea of \emph{SAP HANA}footnote{https://www.sap.com/products/hana.html}, which offers a main area that contains the base data and a delta area 
+To fulfil these mixed workload requirements they summarized the idea of \emph{SAP HANA}\footnote{https://www.sap.com/products/hana.html}, which offers a main area that contains the base data and a delta area 
 which supports transactional operations and includes recently changed data. Read operations therefore need to query both main and delta area jointly to provide results. 
 Since the delta area could increase without bound, it is periodically merged into the main section. 
 
@@ -154,15 +151,15 @@ is therefore rather suited for values that can easily be derived.
 
 To increase the transactional throughput Pacitti et al. \cite{pacitti:2005} introduce concurrent replica refresh operations.
 They discuss the idea of a \emph{Preventive Replication} algorithm by using an asynchronous primary-copy replication approach, while still being able to enforce
-strong consistency. This is achieved by utilizing a First-In First-Out Queue (FIFO) queue to correctly serialize any updates which shall be delivered to secondary replicas.
+strong consistency. This is achieved by utilizing a First-In First-Out (FIFO) queue to correctly serialize any updates which shall be delivered to secondary replicas.
 
 The authors in \cite{voicu:2010} propose several multi-tier layers to handle replication and freshness scores. 
 Nodes are classified into two categories either as updatable or read-only and placed onto three levels.
 Level-1 nodes receive all updates immediately acting as the primary servers, level-2 nodes are read-only nodes containing as up-to-date data as possible while the
-level-3 read-only nodes are updated rather infrequently. These layered levels are composed as a tree receiving asynchronous updates from the lower level. 
+level-3 read-only nodes are updated rather infrequently. These layered levels are composed as a tree, receiving asynchronous updates from the lower level. 
 In this case the higher the level, the more outdated the data.
 
-In contrast, \cite{xiang:2008} approaches its replication pursuit by establishing a relationship between individual data items, represented as a directed acyclic graph (DAG).
+In contrast, \cite{xiang:2008} approaches its replication pursuit by establishing a relationship between individual data items, represented as a Directed Acyclic Graph (DAG).
 Their graph essentially denotes a dependency between data items. The root node of such graphs corresponds to a base data item and child nodes correspond 
 to its deviations over time, which as well corresponds to a multi-layer replication setup.
 
@@ -173,12 +170,12 @@ to its deviations over time, which as well corresponds to a multi-layer replicat
 
 \section{Refresh Strategies}
 \label{r:strategies}
-Based on the lazy propagation algorithms presented in \ref{r:replication}, three refresh and different propagation strategies could be identified when updates should be propagated 
+Based on the lazy propagation algorithms presented in Section \ref{r:replication}, three refresh and different propagation strategies could be identified when updates should be propagated 
 to replicas in order to refresh them.
 
-Despite that the authors of \cite{psaroudakis:2015} rather focused on table-level objects and not on comprehensive system replication scenarios, the up-date mechanism 
+Despite that the authors of \cite{psaroudakis:2015} rather focused on table-level objects and not on comprehensive system replication scenarios, the update mechanism 
 still follows the same requirements. To jointly support a mixed workload of OLTP- and OLAP-oriented transactions,
-it suggests a periodic approach to merge the main and delta areas. This essentially refers to updating an outdated base item, in this case the main area.
+it suggests a periodic approach to merge the main and delta areas. This essentially refers to updating an outdated base item, in this case represented as the main area.
 
 Röhm et al. \cite{rohm:2002} avoid scheduling such update propagations entirely. They suggest to simply decouple the primary update transactions from the read-only nodes
 and immediately executing the propagation afterwards. Although this aids the throughput of the initial update transactions, the secondaries 
@@ -209,9 +206,9 @@ Whereas a ratio below this threshold refers to \emph{cold} data and establishes 
 \label{sec:consistency}
 There are multiple constraints to enforce when trying to ensure the consistency in a distributed setup.
 The authors of \cite{wei:2004, xiang:2008} discussed data freshness together with the scheduling of update transactions from the 
-point of view of real time applications. They ellborated the concept of temporal validity with respect to value-based freshness,
+point of view of real time applications. They ellaborated the concept of temporal validity with respect to value-based freshness,
 such that specific values are only considered valid for a certain time interval before becoming outdated. Hence, they describe the necessity to classify objects into
-temporal data that can continuously change to reflect a real world state, and non-temporal objects that will not become outdated overtime like the validity of an ID card.
+temporal data that can continuously change to reflect a real world state, and non-temporal objects that will not become outdated overtime like the validity of an ID-card.
 This concept essentially pursues the fundamentals of temporal databases, which keep historic values as well as their validity-intervals, to allow the reconstruction of any 
 past value \cite{etzion:1998}. 
 
@@ -221,15 +218,14 @@ that refresh read-only nodes, followed by refresh transactions that are executed
 finally OLAP related read-only transactions.
 Furthermore, they require that data accessed within a transaction is consistent, independent of its freshness. To correctly serialize the updates
 they ensure that their update serialization order is the commit order of the initial update transactions.\\
-
 The authors of \cite{psaroudakis:2015} introduced a common data structure to provide access for both OLTP and OLAP. 
 They enabled the usage of delta and main storage together with the utilization of multi-version concurrency control (MVCC) to allow both workloads to be executed in parallel.
 This implicitly enables the system to keep several versions of a data item (see Section \ref{sec:concurrency_control}).
 These versions can be directly used as outdated replicas or to provide certain freshness guarantees.
-Although this would indeed improve update times and would support referential integrity, the implementation of MVCC is complex and needs more system resources than usual.
+Although, this would indeed improve update times and would support referential integrity, the implementation of MVCC is complex and needs more system resources than usual.
 
 Finally, the authors of \cite{akal:2005} propose freshness locks that are applied on stores which have been selected to fulfil the read requests. 
-These locks aim to provide fast response times for OLAP workload and essentially ensure that data is not refreshed aslong as it is being read by another transaction.
+These locks aim to provide fast response times for analytical workload and essentially ensure that data is not refreshed aslong as it is being read by another transaction.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

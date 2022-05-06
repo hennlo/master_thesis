@@ -548,13 +548,13 @@ store compared to PostgreSQL.
                 },
             legend cell align=left,
         ]
-            \addplot[style={bblue,mark=none}, mark options={scale=0.5}] 
+            \addplot[style={bblue,mark=*}, mark options={scale=0.5}] 
                 table [x=time, y=hsql]{Plot/psqlhsqlresponse.dat};
     
-            \addplot[style={rred,mark=none}, mark options={scale=0.5}] %[thick]
+            \addplot[style={rred,mark=x}, mark options={scale=0.5}] %[thick]
                 table [x=time, y=psql]{Plot/psqlhsqlresponse.dat};
     
-            \addplot[style={ppurple,mark=none}, mark options={scale=0.5}] %[thin]
+            \addplot[style={ppurple,mark=diamond*}, mark options={scale=0.5}] %[thin]
                 table [x=time, y=both]{Plot/psqlhsqlresponse.dat};     
     
             \legend{   
@@ -1258,9 +1258,6 @@ timestamp to a relative time delay. While the first one can be applied directly 
 needs to extract the commit time of all possible placments and apply the deviation before it is actually able to filter.
 This plot shows that although only marginally different the utilized filter will still slightly impact the overall performance.
 Furthermore also the respective freshness degree will impact the choice which of the proposed candidates actually fulfils the requirements of the query.
-
-
-\todoMissing{Add degreee comparison}
 
 
 
