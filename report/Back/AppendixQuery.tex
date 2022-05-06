@@ -48,15 +48,15 @@ They are attached as an optional leaf expression for every \emph{SELECT} stateme
 \tocless\subsection{Relative Delay}
 
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 SECOND DELAY;
+    SELECT * FROM dummy WITH FRESHNESS 3 SECOND RELATIVE;
 \end{lstlisting}
 
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 HOUR DELAY;
+    SELECT * FROM dummy WITH FRESHNESS 3 HOUR RELATIVE;
 \end{lstlisting}
 
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs DELAY;
+    SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs RELATIVE;
 \end{lstlisting}
 
 
