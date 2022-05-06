@@ -40,29 +40,32 @@ utilizing the remaining resources to be used for data retrieval.
 
 \section{Polystores}
 
-The decission which stucture to use for storing data, has a fundamental impact on the overall performance of a system~\cite{plattner2015}.\\
+The decission which stucture to use for storing data, has a fundamental impact on the overall performance of a system~\cite{plattner2015}.
 While row-oriented data stores might be useful and preferred for write-heavy transactional 
 workloads, they are rather insufficient for purely analytical workload which would rather benefit from a
 column-oriented data store with less write operations~\cite{sigmond2008}.\\
 Despite the fact that a variety of DBMS exist which were originally created with an intention to support specific scenarios,
 applications are getting more complex, influenced by various requirements and characteristics to serve multiple use cases at once.
 That is why modern day applications can not solely rely on one storage technology alone. 
-Consequently, Multi- and Polystore systems have emerged. \\
+Consequently, Multi- and Polystore systems have emerged.
 While Multistore database systems aim to combine and manage data across heterogeneous data stores,
-polystore systems are essentially based on the idea of combining multistores with
+Polystore systems are essentially based on the idea of combining multistores with
 \textit{polyglot persistence}~\cite{polypheny2020}.
 Polyglot persistence is a term which refers to a practice originated from the concept 
 of \textit{polyglot programming}, to utilize different 
-programming languages for different tasks following a best-fit approach~\cite{fowler2011}. \\
+programming languages for different tasks~\cite{fowler2011}. \\
 Along this paradigm, Polystores want to utilize multiple data storage technologies to
 fulfill different needs for different application components in order to cope
 with mixed and varying workloads.
+Although, possibly combining various DBMSs, Polystores generally still lack some features of a conventional DBMS.
+Therefore \emph{PolyDBMSs} have recently been introduced as an expanded specification to 
+regular Polystore systems, extending their abilities and transforming them to full-fledged database systems~\cite{polypheny2021}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Motivation}
 
-Due to the growth in data and complexity, polystore systems aim to provide fast response times for various use cases and applications of all kind.
+Due to the growth in data and complexity, Polystore systems aim to provide fast response times for various use cases and applications of all kind.
 These systems natively encompass several different stores, where each is capable of fulfilling a different requirement. 
 This enables an application to harvest the best possible response times for different workloads.
 Because Polystore systems orginally were introduced to support heterogenous data, they mostly do this by utilizing different stores at once.
@@ -111,7 +114,7 @@ As depicted in Figure \ref{fig:store_comparision}, the utilized stores write the
 This negativiely impacts the overall performance of such systems.
 Additionally this might also reduce the availability of the entire system, since it might not allow read-operations to be executed in parallel. 
 But because these stores differ in terms of there field of application, we cannot simply remove the slower performing stores to improve write-operations. 
-This would comprehensively neglect all benefits originally introduced by polystore systems.
+This would comprehensively neglect all benefits originally introduced by Polystore systems.
 Essentially the system needs to be able to allow transactional as well as analytical workload to be executed in parallel.\\
 This could be accomplished by decoupling updates on a system to only target specific stores. 
 These stores can then be used to asynchronously update
@@ -129,7 +132,7 @@ outdated data is acceptable.\\
 On the basis of Polystore systems we could now use this scenario to nativiely leverage the benefit of a heavily write-optimized store to 
 primarly receive any write-operation, which then distributes the received changes asnychronously to the remaining stores. This
 would immediately allow, using the notion of freshness to be able to utilize outdated data.
-Ultimately this loosens the constraints and downsides of polystore systems to efficiently utilize all available resources.
+Ultimately this loosens the constraints and downsides of Polystore systems to efficiently utilize all available resources.
 
 
 

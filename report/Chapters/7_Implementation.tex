@@ -22,7 +22,7 @@ Finally, all building blocks are gathered and put into perspective to describe a
 \label{sec:architecture}
 
 
-The implementation is based on the Polystore system Polypheny-DB\footnote{https://github.com/polypheny/Polypheny-DB}.
+The implementation is based on the PolyDBMS Polypheny-DB\footnote{https://github.com/polypheny/Polypheny-DB}, an extended Polystore system.
 In this chapter we briefly describe and illustrate a simplified version of Polypheny-DBs current architecture.
 As well as some fundamenetal components that will be discussed throughout this chapter.\\
 This extends the foundations laid out in Chapter \ref{c:Foundation} and sets them in context of the existing system model.
@@ -30,9 +30,9 @@ This extends the foundations laid out in Chapter \ref{c:Foundation} and sets the
 
 
 
-Polypheny-DB is an Open-Source project developed by 
+Polypheny-DB is an Open-Source project originally developed as a Polystore system, by 
 the \textit{Database and Information Systems} (DBIS) group of the University of Basel.
-It is a self-adaptive Polystore that provides cost- and workload aware access to heterogeneous data~\cite{poly2020}.
+It has since been transformed into a self-adaptive PolyDBMS that provides cost- and workload aware access to heterogeneous data~\cite{poly2020}.
 
 Compared to other systems like \textit{C-Store}~\cite{cstore_2005} or \textit{SAP HANA}~\cite{hana_2012}, 
 Polypheny-DB does not provide its own set of storage engines to support 

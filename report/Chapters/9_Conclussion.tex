@@ -2,26 +2,44 @@
 \chapter{Conclusion}
 \label{c:conclusion}
 
-In this thesis we have presented a concept as well as a solution for freshness-aware data management within a polystore system.
+In this thesis we have presented a concept as well as a solution for freshness-aware data management within a Polystore system.
 With this implementation we have introduced a possibility to allow system administrators or operators in general to define their replication requirements as needed. 
 With the established replication strategies and states, we can define on a table-level basis how updates are propagated within the system and can therefore directly influence 
 the availability and consistency per object.\\
-The presented metrics allow to flexibly define a tolerated level of freshness depending on varying use cases and requirements.
-This immediately enables us to use possibly outdated nodes, containing stale data, to be used during retrieval to support analytical queries even in the presence of 
-transactional workload.\\
-This does not only improve parallel processing in general, but also allows to leverage the inherent redundancy of polystore systems
-to efficiently utilize the key benefits of the underlying stores.\\
+Based on the established functional requirements for data freshness, we have presented metrics, that allow to flexibly define a tolerated level of freshness 
+depending on varying use cases and scenarios.
+This immediately enables us to use possibly outdated nodes, containing stale data, to be utilized during retrieval to support analytical queries even in the presence of 
+transactional workload.
+This does not only improve parallel processing in general, but also allows to leverage the inherent redundancy of a PolyDBMS
+to efficiently utilize the key benefits of the underlying stores.
 
-\todoMissing{We have established functional requirements}
 
 
-Since our freshness filter is analyzed and evaluated centrally within the polystore layer, it can be applied to arbitrary underlying stores.
+Despite that the performance as well as the convergence time is better within the eagerly replicated case, 
+the lazy approach allows to efficiently utilize all remaining resources.
+Further we have introduced a reliable fault tolerant replication algorithm, which can be used to lazily replicate changes to outdated replicas,
+while ensuring the correct consistency of each placement, by enforcing the natural execution order. All while automatically rescheduling failed replications 
+and removing remaining replications from suspended or removed placements, hence cleansing the environemnt at runtime.\\
+
+
+
+Depending on the workload, the system is however still able to provide great results due to the introduced nuances of freshness to support various scenarios.
+Albeit not being able to support all workloads equally, the implementation still offers a broad field of application.
+Polypheny-DB therefore now provides functionalities to adjust itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in Section \ref{sec:cap},
+to let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
+Due to this asynchrony it now efficiently supports hybrid workload. 
+Together with the adjusted locking capabilities it is able to achieve great results utilizing any freshness constraint in a partitioned setup.
+It now provides underlying systems with the opportunity to accept freshness queries to efficiently utilize all available resources of the entire system.
+
+
+
+Since our freshness filter is analyzed and evaluated centrally within the Polystore layer, it can be applied to arbitrary underlying stores.
 When the stores are partialy replicated, several of the underlying stores may qualify for the execution of these queries. 
-In order to avoid that single stores are overloaded, query processing and optimization
+In order to avoid that single stores are overloaded, the query processing and optimization steps
 can effectively consider version selection and load balance the access among relevant replicas.
-Because our appraoch further allows to compare different placements disregarding their actual physical representation. We can therefore compare them simply on the basis of their
+Because our approach further allows to compare different placements, disregarding their actual physical representation. We can therefore compare them simply on the basis of their
 update information despite that they might contain different column placements. 
-This again allows to use the polystore system to dynamically process the freshness specification independently.\\
+This again allows to use the Polystore system to dynamically process the freshness specification independently.\\
 In general we can even reduce the data footprint since we are certain, that we do not have infinitely available versions as in conventional multi-version database systems.
 This even allow the freshness specification without any determined tolerated level, and promises a certain level of freshness by design.
 Although not all entities have to support freshness users can act agnostic of the underlying architecture and specify the freshness either way, 
@@ -29,20 +47,7 @@ since we can always fallback and route the query towards a primary placement.\\
 
 
 
-Despite that the performance as well as the convergence time is better within the eagerly replicated case, 
-the lazy approach allows to efficiently use all remaining resources. 
-Further we have introduced a reliable fault tolerant replication algorithm, which can be used to lazily replicate changes to outdated replicas,
-while ensuring the correct consistency of each placemnts by enforcing the natural execution order. All while automatically rescheduling failed replications 
-and removing remaining replications from suspended or removed placements, hence cleansing the environemnt at runtime.\\
 
-
-
-Depending on the workload the system is still able to provide great results due to the introduced nuances of freshness to support various scenarios.
-Albeit not being able to support all workloads equally the implementation still offers a broad field of application.
-Polypheny-DB therefore now provides functionalities to adjust itself to the concepts revolving around \emph{CAP} and \emph{PACELC} described in \ref{sec:cap}.
-To let users choose between consistency and availability by decoupling primary and secondary updates and deferring refresh operations to a later point in time.
-Due to this asynchrony it now efficiently supports hybrid workload. Further it now provides underlying systems with the capability to accept freshness queries to efficiently
-utilize all available resources of the entire system.\\
 
 
 
@@ -57,11 +62,11 @@ and replicate them jointly.
 
 
 %%%% LAST part 
-Of course there are more possibilities to improve the system, such as the queue persistency. While enabling a fast access when storing replicaiton in memory it is prone to 
+Of course there are more possibilities to improve the system, such as the queue's persistency. While enabling a fast access when storing replicaiton in memory it is prone to 
 failures and outages, losing relevant data to be replicated. In order to remove the workarounds during startup, the replication queues as well as the data have 
-to be persisted. Despite slower processing times for priamry update transactions, we would increase the stability and the receoverability of the system immensely .
+to be persisted. Despite slower processing times for primary update transactions, we would increase the stability and the receoverability of the system immensely.
 At the end this again is a trade-off between availability and consistency, dependening on indidivdual requirements.
-This is however is an obvious extension for this work and introduces a foundation for future work.
+This is however an obvious extension for this work and introduces a foundation for future work.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
