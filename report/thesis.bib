@@ -13,7 +13,7 @@
 
 
 @book{dbre2017,
-    title={Database Reliability Engineering},
+    title={{Database Reliability Engineering}},
     booktitle={Designing and operating resilient database systems},
     author={Campbell, L. and Majors, C.},
     year={2017},
@@ -25,8 +25,8 @@
 @book{bernstein:1986,
 author = {Bernstein, P. and Hadzilacos, V. and Goodman, N.},
 title = {{Concurrency Control and Recovery in Database Systems}},
-year = {1986},
-isbn = {0201107155},
+year = {1987},
+isbn      = {0-201-10715-5},
 publisher = {Addison-Wesley Longman Publishing Co., Inc.},
 }
 
@@ -63,21 +63,22 @@ publisher = {Addison-Wesley Longman Publishing Co., Inc.},
 @article{abadi2012,  
 author={Abadi, D.},  
 journal={Computer},   
-title={Consistency Tradeoffs in Modern Distributed Database System Design: CAP is Only Part of the Story},   
-year={2012},  
+title={{Consistency Tradeoffs in Modern Distributed Database System Design: CAP is Only Part of the Story}},   
+year={2012},
+volume={45},
+number={2},
 publisher={IEEE},
-doi={http://doi.org/10.1109/MC.2012.33},
+doi={10.1109/MC.2012.33},
 pages={37-42},
 }
 
 
 @article{raut2018,  
     author={Raut, R.},  
-    title={Analyzing the factors influencing cloud computing adoption using three stage hybrid SEM-ANN-ISM (SEANIS) approach},   
+    title={{Analyzing the factors influencing cloud computing adoption using three stage hybrid SEM-ANN-ISM (SEANIS) approach}},   
     year={2018},  
     publisher={IEEE},
-    doi={http://doi.org/10.1016/j.techfore.2018.05.020},
-    pages={2},
+    doi={10.1016/j.techfore.2018.05.020},
 }
 
 
@@ -96,9 +97,10 @@ pages={37-42},
 @online{fowler2011,
   author = {M. Fowler},
   title = {Polyglot Persistence},
-  year = "2011 (accessed April 14, 2022)",
+  year = "2011 (accessed May 04, 2022)",
   url = {https://martinfowler.com/bliki/PolyglotPersistence.html},
-  urldate = {2022-04-14}
+  urldate = {2022-05-04},
+  lastvisited = {2022-05-04},
 }
 
 @INPROCEEDINGS{poly2020,
@@ -106,6 +108,7 @@ pages={37-42},
   booktitle={2018 IEEE International Conference on Big Data (Big Data)}, 
   title={Polypheny-DB: Towards a Distributed and Self-Adaptive Polystore}, 
   year={2018},
+  doi={10.1109/BigData.2018.8622353},
   pages={3364-3373},}
 
   
@@ -121,9 +124,7 @@ pages={37-42},
   pages     = {583--586},
   publisher = {OpenProceedings.org},
   year      = {2020},
-  url       = {https://doi.org/10.5441/002/edbt.2020.69},
   doi       = {10.5441/002/edbt.2020.69},
-  timestamp = {Mon, 15 Jun 2020 17:04:12 +0200}
 }
 
 
@@ -132,8 +133,12 @@ pages={37-42},
 author = {Stonebraker, M. and Abadi, D. and Batkin, A. and Chen, X. and Cherniack, M. and Ferreira, M. },
 year = {2005},
 pages = {553-564},
-title = {C-store: a column-oriented DBMS},
+isbn = {1595931546},
+publisher = {VLDB Endowment},
+title = {{C-store: a column-oriented DBMS}},
 volume = {2},
+series = {VLDB '05},
+location = {Trondheim, Norway},
 journal = {VLDB 2005 - Proceedings of 31st International Conference on Very Large Data Bases}
 }
 
@@ -142,23 +147,19 @@ journal = {VLDB 2005 - Proceedings of 31st International Conference on Very Larg
 author = {Abadi, J. and Madden, R. and Hachem, N.},
 title = {Column-Stores vs. Row-Stores: How Different Are They Really?},
 year = {2008},
-isbn = {9781605581026},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
-url = {https://doi.org/10.1145/1376616.1376712},
 doi = {10.1145/1376616.1376712},
 booktitle = {Proceedings of the 2008 ACM SIGMOD International Conference on Management of Data},
 pages = {967–980},
-series = {SIGMOD '08}
+series = {SIGMOD '08},
+location = {Vancouver, Canada},
 }
 
 @inproceedings{Agrawal_2004,
 author = {Agrawal, S. and Narasayya, V. and Yang, B.},
-title = {Integrating Vertical and Horizontal Partitioning into Automated Physical Database Design},
+title = {{Integrating Vertical and Horizontal Partitioning into Automated Physical Database Design}},
 year = {2004},
-isbn = {1581138598},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 doi = {10.1145/1007568.1007609},
 booktitle = {Proceedings of the 2004 ACM SIGMOD International Conference on Management of Data},
 pages = {359–370},
@@ -169,9 +170,8 @@ series = {SIGMOD '04}
 
 @inproceedings{horizontal_1982,
 author = {Ceri, S. and Negri, M. and Pelagatti, G.},
-title = {Horizontal Data Partitioning in Database Design},
+title = {{Horizontal Data Partitioning in Database Design}},
 year = {1982},
-isbn = {0897910737},
 publisher = {Association for Computing Machinery},
 doi = {10.1145/582353.582376},
 booktitle = {Proceedings of the 1982 ACM SIGMOD International Conference on Management of Data},
@@ -185,44 +185,34 @@ author = {Navathe, S. and Ceri, S. and Wiederhold, G. and Dou, J.},
 title = {Vertical Partitioning Algorithms for Database Design},
 year = {1984},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 volume = {9},
 number = {4},
 doi = {10.1145/1994.2209},
 journal = {ACM Trans. Database Syst.},
 pages = {680–710},
-numpages = {31}
 }
 
 
 @inproceedings{normalization_2012,
 author = {Darwen, H. and Date, C. and Fagin, R.},
-title = {A Normal Form for Preventing Redundant Tuples in Relational Databases},
+title = {{A Normal Form for Preventing Redundant Tuples in Relational Databases}},
 year = {2012},
-isbn = {9781450307918},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 doi = {10.1145/2274576.2274589},
 booktitle = {Proceedings of the 15th International Conference on Database Theory},
 pages = {114–126},
-numpages = {13},
-keywords = {essential tuple normal form, database design, fifth normal form, BCNF, relational database, redundancy, fourth normal form},
 location = {Berlin, Germany},
 series = {ICDT '12}
 }
 
 @inproceedings{ycsb_2010,
-author = {Cooper, F. and Silberstein, A. and Tam, E. and Ramakrishnan, R. and Sears, R.},
+author = {Cooper, B. and Silberstein, A. and Tam, E. and Ramakrishnan, R. and Sears, R.},
 title = {Benchmarking Cloud Serving Systems with YCSB},
 year = {2010},
-isbn = {9781450300360},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 doi = {10.1145/1807128.1807152},
 booktitle = {Proceedings of the 1st ACM Symposium on Cloud Computing},
 pages = {143–154},
-numpages = {12},
-keywords = {benchmarking, cloud serving database},
 location = {Indianapolis, Indiana, USA},
 series = {SoCC '10}
 }
@@ -231,25 +221,20 @@ series = {SoCC '10}
 author = {Difallah, D. and Pavlo, A. and Curino, C. and Cudre-Mauroux, P.},
 title = {OLTP-Bench: An Extensible Testbed for Benchmarking Relational Databases},
 year = {2013},
-issue_date = {December 2013},
 publisher = {VLDB Endowment},
 volume = {7},
 number = {4},
-issn = {2150-8097},
 doi = {10.14778/2732240.2732246},
 journal = {Proc. VLDB Endow.},
-month = dec,
 pages = {277–288},
-numpages = {12}
 }
 
 @INPROCEEDINGS{cloudpart_2012,
 author={Zhao, Y. and Wang, Y.},
-booktitle={2012 IEEE 2nd International Conference on Cloud Computing and Intelligence Systems}, 
-title={Partition-based cloud data storage and processing model}, 
+title={{Partition-based cloud data storage and processing model}}, 
 year={2012},
 volume={01},
-number={},
+doi={10.1109/CCIS.2012.6664400},
 pages={218-223},}
 
 @INPROCEEDINGS{polypheny2020,
@@ -263,7 +248,8 @@ Stiemer A. and
 Schuldt, H.},
 booktitle={Proceedings of the 3rd International Workshop on Polystore systems for heterogeneous data in multiple databases with privacy and security assurance (Poly' 2020)}, 
 title={Polypheny-DB: Towards Bridging the Gap Between Polystores and HTAP Systems}, 
-doi={ 10.1007/978-3-030-71055-2_2},
+doi={10.1007/978-3-030-71055-2_2},
+pages = {25–36},
 year={2020},
 }
 
@@ -271,13 +257,9 @@ year={2020},
 author = {F\"{a}rber, F. and Cha, S. and Primsch, J. and Bornh\"{o}vd, C. and Sigg, S. and Lehner, W.},
 title = {SAP HANA Database: Data Management for Modern Business Applications},
 year = {2012},
-issue_date = {December 2011},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 volume = {40},
 number = {4},
-issn = {0163-5808},
-url = {https://doi.org/10.1145/2094114.2094126},
 doi = {10.1145/2094114.2094126},
 journal = {SIGMOD Rec.},
 pages = {45–51},
@@ -336,15 +318,14 @@ doi = {10.1109/SOLI.2007.4383958}
   booktitle={21st International Conference on Data Engineering (ICDE'05)}, 
   title={{"One size fits all": an idea whose time has come and gone}}, 
   year={2005},
-  online={https://ieeexplore.ieee.org/document/1410100},
-  pages={2-11}
-  }
+  pages={2-11},
+  doi={10.1109/ICDE.2005.1}}
+
 
 @inproceedings{voicu:2010,
 author = {Voicu, L. and Schuldt, H. and Breitbart, Y. and Schek, H.},
 title = {{Flexible Data Access in a Cloud Based on Freshness Requirements}},
 year = {2010},
-isbn = {9780769541303},
 publisher = {IEEE Computer Society},
 doi = {10.1109/CLOUD.2010.75},
 booktitle = {Proceedings of the 2010 IEEE 3rd International Conference on Cloud Computing},
@@ -353,15 +334,14 @@ pages = {180–187},
 
 @article{claremont:2005,
 author = {Agrawal, R. and Ailamaki, A. and Bernstein, P. and Brewer, E. and Carey, M. and Chaudhuri, S.},
-title = {The Claremont Report on Database Research},
+title = {{The Claremont Report on Database Research}},
 year = {2009},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 volume = {52},
 number = {6},
-issn = {0001-0782},
 doi = {10.1145/1516046.1516062},
 pages = {56–65},
+journal = {Commun. ACM},
 }
 
 @INPROCEEDINGS{levandowski2013,
@@ -370,7 +350,9 @@ pages = {56–65},
   title={{Identifying hot and cold data in main-memory databases}}, 
   year={2013},
   pages={26-37},
-  doi={10.1109/ICDE.2013.6544811}
+  publisher = {IEEE Computer Society},
+  doi={10.1109/ICDE.2013.6544811},
+  series = {ICDE '13}
   }
 
 @book{tamer:2005,
@@ -388,19 +370,25 @@ pages = {236},
   booktitle={2011 IEEE 20th International Workshops on Enabling Technologies: Infrastructure for Collaborative Enterprises}, 
   title={{A Principled Approach to Eventual Consistency}}, 
   year={2011},
+  publisher = {IEEE Computer Society},
   doi={10.1109/WETICE.2011.76}}
 
 @inproceedings{naumann:1999,
 author = {Naumann, F. and Leser, U. and Freytag, J.},
 year = {1999},
-title = {Quality-driven Integration of Heterogeneous Information Systems}
+title = {Quality-driven Integration of Heterogeneous Information Systems},
+pages = {447–458},
+series = {VLDB '99},
+isbn = {1558606157},
+publisher = {Morgan Kaufmann Publishers Inc.},
 }
 
 @book{redman:1996,
-author = {Redman, T.},
-year = {1996},
-title = {Data Quality for the Information Age},
-publisher = {Artech House}
+author = {Redman, T. and Godfrey, A.},
+year = {1997},
+title = {{Data Quality for the Information Age}},
+publisher = {Artech House, Inc.},
+isbn = {0890068836},
 }
 
 @article{oliveira:2005,
@@ -412,7 +400,6 @@ journal = {Journal of Data and Information Quality - JDIQ}
 
 @INPROCEEDINGS{xiang:2008,  
 author={Xiang, J. and Li, G. and Xu, H. and Du, X.},  
-booktitle={2008 4th International Conference on Wireless Communications, Networking and Mobile Computing},   
 title={{Data Freshness Guarantee and Scheduling of Update Transactions in RTMDBS}},   
 year={2008},  
 pages={1-4},  
@@ -423,6 +410,7 @@ doi={10.1109/WiCom.2008.1324}}
 author = {Peralta, V. and Ruggia, R. and Bouzeghoub, M.},
 year = {2004},
 pages = {145-162},
+volume = {9},
 title = {{Analyzing and Evaluating Data Freshness in Data Integration Systems}},
 journal = {Ingénierie des Systèmes d'Information},
 doi = {10.3166/isi.9.5-6.145-162}
@@ -450,30 +438,28 @@ author = {Grandi, F. and Mandreoli, F and Martoglia, R. and Penzo, W.},
 
 @book{etzion:1998,
   editor         = {Etzion, O. and  Jajodia, S. and Sripada, S.},
-  title          = {Temporal Databases: Research and Practice},
-  volume         = {1399},
+  title          = {{Temporal Databases: Research and Practice}},
   year           = {1998},
+  isbn = {978-3-540-69799-1},
   publisher      = {Springer},
 }
 
 @inproceedings{wei:2004,
 author = {Wei, Y. and Son, S. and Stankovic, J.},
 year = {2004},
-pages = {251 - 260},
+pages = {251-260},
 title = {Maintaining data freshness in distributed real-time databases},
-volume = {16},
-isbn = {0-7695-2176-2},
 journal = {Proceedings - Euromicro Conference on Real-Time Systems},
 doi = {10.1109/EMRTS.2004.1311028}
 }
 
 @incollection{fekete:2018,
   author    = {Fekete, A.},
-  title     = {Replica Freshness},
+  title     = {{Replica Freshness}},
   booktitle = {Encyclopedia of Database Systems, Second Edition},
   publisher = {Springer},
   year      = {2018},
-  doi       = {10.1007/978-1-4614-8265-9\_1367}
+  doi       = {10.1007/978-1-4614-8265-9}
 }
 
 @inproceedings{rohm:2002,
@@ -502,8 +488,8 @@ doi={10.1109/ISIT.2016.7541763}}
 
 @inproceedings{psaroudakis:2015,
 author = {Psaroudakis, I. and Wolf, F. and May, N. and Neumann, T. and Böhm, A. and Ailamaki, A. and Sattler, K.},
-year = {2015},
-title = {Scaling Up Mixed Workloads: A Battle of Data Freshness, Flexibility, and Scheduling},
+year = {2014},
+title = {{Scaling Up Mixed Workloads: A Battle of Data Freshness, Flexibility, and Scheduling}},
 doi = {10.1007/978-3-319-15350-6_7},
 publisher="Springer International Publishing"
 }
@@ -514,7 +500,8 @@ year = {2005},
 title = {Preventive Replication in a Database Cluster},
 volume = {18},
 journal = {Distributed and Parallel Databases},
-doi = {10.1007/s10619-005-4257-4}
+doi = {10.1007/s10619-005-4257-4},
+pages = {223–251},
 }
 
 @article{pacitti:2000,
@@ -523,7 +510,8 @@ year = {2000},
 title = {{Update Propagation Strategies to Improve Freshness in Lazy Master Replicated Databases}},
 volume = {8},
 journal = {The VLDB Journal},
-doi = {10.1007/s007780050010}
+doi = {10.1007/s007780050010},
+pages = {305–318},
 }
 
 @article{cho:2000,
@@ -531,10 +519,8 @@ author = {Cho, J. and Garcia-Molina, H.},
 title = {{Synchronizing a Database to Improve Freshness}},
 year = {2000},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 volume = {29},
 number = {2},
-issn = {0163-5808},
 doi = {10.1145/335191.335391},
 journal = {SIGMOD Rec.},
 pages = {117–128},
@@ -555,16 +541,20 @@ author = {Akal, F. and Türker, C. and Schek, H. and Breitbart, Y. and Grabs, T.
 year = {2005},
 title = {{Fine-grained replication and scheduling with freshness and correctness guarantees}},
 volume = {2},
+publisher = {ACM},
+isbn = {1-59593-154-6},
+PAGES = {465 - 576},
 journal = {VLDB 2005 - Proceedings of 31st International Conference on Very Large Data Bases}
 }
 
 @INPROCEEDINGS{zhong:2018,  
 author={Zhong, J. and Yates, R.. and Soljanin, E.},  
 booktitle={2018 IEEE International Symposium on Information Theory (ISIT)},   
-title={Two Freshness Metrics for Local Cache Refresh},   
+title={{Two Freshness Metrics for Local Cache Refresh}},   
 pages={1924-1928}, 
 year = {2018},
 doi={10.1109/ISIT.2018.8437927}}
+
 
 @INPROCEEDINGS{huang:2020,
   author={Huang, C. and Cahill, M. and Fekete, A. and Röhm, Uwe},
@@ -578,12 +568,11 @@ doi={10.1109/ISIT.2018.8437927}}
 author = {Terry, D. and Prabhakaran, V. and Kotla, R. and Balakrishnan, M. and Aguilera, M. and Abu-Libdeh, H.},
 title = {Consistency-Based Service Level Agreements for Cloud Storage},
 year = {2013},
-isbn = {9781450323888},
 publisher = {Association for Computing Machinery},
-address = {New York, NY, USA},
 doi = {10.1145/2517349.2522731},
 booktitle = {Proceedings of the Twenty-Fourth ACM Symposium on Operating Systems Principles},
 pages = {309–324},
+location = {Farminton, Pennsylvania},
 series = {SOSP '13}
 }
 
@@ -601,21 +590,20 @@ series = {SIGMOD '00}
 
 @inproceedings{brinkmann:2015,
 author = {Brinkmann, F. and Schuldt, H.},
-title = {Towards Archiving-as-a-Service: A Distributed Index for the Cost-Effective Access to Replicated Multi-Version Data},
+title = {{Towards Archiving-as-a-Service: A Distributed Index for the Cost-Effective Access to Replicated Multi-Version Data}},
 year = {2015},
 doi = {10.1145/2790755.2790770},
 location = {Yokohama, Japan},
+publisher = {Association for Computing Machinery},
+pages = {81–89},
 series = {IDEAS '15},
 }
 
 @inproceedings{polypheny2021,
 author = {Vogt, M. and Lengweiler, D. and Geissmann, I. and Hansen, N. and Hennemann, M. and Mendelin, C. and Philipp, S. and Schuldt, H.},
-title = {Polystore Systems And DBMSs: Love Marriage Or Marriage Of Convenience?},
+title = {{Polystore Systems And DBMSs: Love Marriage Or Marriage Of Convenience?}},
 year = {2021},
-isbn = {978-3-030-93662-4},
 publisher = {Springer-Verlag},
-address = {Berlin, Heidelberg},
-url = {https://doi.org/10.1007/978-3-030-93663-1_6},
 doi = {10.1007/978-3-030-93663-1_6},
 booktitle = {Heterogeneous Data Management, Polystores, and Analytics for Healthcare: VLDB Workshops, Poly 2021 and DMAH 2021, Virtual Event, August 20, 2021, Revised Selected Papers},
 pages = {65–69},
@@ -645,11 +633,15 @@ doi = {10.1145/1394127.1394128}
 }
 
 
-@article{brewer:2000,
+@inproceedings{brewer:2000,
 author = {Brewer, E. },
 title = {{Towards robust distributed systems}},
 journal = {In Symposium on Principles of Distributed Computing (PODC)},
 year = {2000},
+doi = {10.1145/343477.343502},
+publisher = {Association for Computing Machinery},
+location = {Portland, Oregon, USA},
+series = {PODC '00},
 }
 
 
@@ -674,13 +666,14 @@ publisher = {Association for Computing Machinery},
 doi = {10.1145/800220.806699},
 booktitle = {Proceedings of the First ACM SIGACT-SIGOPS Symposium on Principles of Distributed Computing},
 pages = {209–215},
-series = {PODC '82}
+series = {PODC '82},
+location = {Ottawa, Canada},
 }
 
 
 @article{bernstein:1983,
 author = {Bernstein, P. and Goodman, N.},
-title = {Multiversion Concurrency Control—Theory and Algorithms},
+title = {{Multiversion Concurrency Control—Theory and Algorithms}},
 year = {1983},
 publisher = {Association for Computing Machinery},
 volume = {8},
@@ -700,7 +693,6 @@ year = {2015},
 publisher = {VLDB Endowment},
 volume = {8},
 number = {11},
-issn = {2150-8097},
 doi = {10.14778/2809974.2809981},
 journal = {Proc. VLDB Endow.},
 pages = {1190–1201},
@@ -718,7 +710,6 @@ number = {3},
 doi = {10.1145/937598.937601},
 journal = {ACM Trans. Database Syst.},
 pages = {257–294},
-numpages = {38},
 
 }
 
@@ -741,13 +732,14 @@ title = {{Lazy Database Replication with Snapshot Isolation}},
 year = {2006},
 booktitle = {Proceedings of the 32nd International Conference on Very Large Data Bases},
 pages = {715–726},
+location = {Seoul, Korea},
 series = {VLDB '06}
 }
 
 
 @article{berenson:1995,
 author = {Berenson, H. and Bernstein, P. and Gray, J. and Melton, J. and O'Neil, E. and O'Neil, P.},
-title = {A Critique of ANSI SQL Isolation Levels},
+title = {{A Critique of ANSI SQL Isolation Levels}},
 year = {1995},
 publisher = {Association for Computing Machinery},
 volume = {24},
@@ -755,6 +747,8 @@ number = {2},
 doi = {10.1145/568271.223785},
 journal = {SIGMOD Rec.},
 pages = {1–10},
+location = {San Jose, California, USA},
+series = {SIGMOD '95}
 }
 
 @article{fekete:2005,
@@ -774,6 +768,7 @@ pages = {492–528},
   author = {Hennemann, M.},
   title = {{Freshness-aware Data Management in a Polystore System}},
   year = "2021",
+  month = "December",
   school    = {University of Basel},
   type = "Project Report"
 }
@@ -815,6 +810,7 @@ pages = {152-172},
 title = {{Concurrency Control in Hierarchical Multidatabase Systems.}},
 volume = {6},
 journal = {VLDB},
+number = {2},
 doi = {10.1007/s007780050038}
 }
 
