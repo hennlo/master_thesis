@@ -1625,6 +1625,10 @@ Despite that the operation-wise execution will gradually progress each state the
 However, the compound results shows that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of read and write-operations.
 Especially the partitioned cases showed promising results to optimize routing decisions to finally improve the overall performance.
 
+\todo{Since we only focuseed on the funcationality and the 
+suitable field of application we could Further extend this
+ to see the beahviour over a longer period of different degrees of freshnnes such as 1 minute second etc. to see how the system would behave}
+
 Although, the freshness queries provided promissing results, they still suffered from a rather static freshness specification. 
 Therefore it would make sense to extend and adapt the utilized benchmarks to adaptively adjust the degree of freshness during runtime
 as needed and still providing reproducible results.

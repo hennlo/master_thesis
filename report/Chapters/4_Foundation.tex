@@ -1,5 +1,5 @@
 % !TEX root = ../Thesis.tex
-\chapter{Foundations on Distributed Data Management}
+\chapter{Foundations of Distributed Data Management}
 \label{c:Foundation}
 
 This chapter describes concepts and general foundations, which are necessary to supplement 
@@ -16,21 +16,21 @@ and the different challenges that need to be considered.
 Beside the utilization of the correct storage engine, the used data model and structure 
 will also impact on the overall performance. Depending on the query or 
 how data is accessed, data partitioning can be used to increase the efficiency and 
-maintainability of the system ~\cite{Agrawal_2004}.\\
+maintainability of the system~\cite{Agrawal_2004}.\\
 The process of data partitioning refers to splitting the data into logically and sometimes even
 physically separated fragments that can be used independently.
 
 In general data partitioning can be distinguished into two variations.
-Since both of these split the data into multiple parts, it is often referred to as data fragmentation ~\cite{tamer:2005}. 
+Since both of these split the data into multiple parts, it is often referred to as data fragmentation~\cite{tamer:2005}. 
 
 \begin{description}
-    \item [Vertical Partitioning] is usually applied at designe-time of a data model inside a 
+    \item [Vertical Partitioning] is usually applied at design-time of a data model inside a 
     database. It involves the creation of tables with fewer columns and therefore using additional 
-    tables to store the remainder of columns ~\cite{vertical_1984, normalization_2012}.
+    tables to store the remainder of columns~\cite{vertical_1984, normalization_2012}.
     In order to combine and reconstruct these vertical partitions again there needs to be a logical reference,
     which assists to uniquely identify individual items. 
     \item [Horizontal Partitioning] refers to the partitioning of objects like tables 
-    into a disjoint set of rows. These benefit from being stored and accessed separately ~\cite{horizontal_1982}.
+    into a disjoint set of rows. These benefit from being stored and accessed separately~\cite{horizontal_1982}.
     To support this rather explicit form of partitioning, there exist various partition algorithms.
     These algorithms can be functionally applied to a table, based on an arbitrary column. 
     This results in a fragmentation of the table on the basis of the data values of the selected column.
@@ -40,13 +40,13 @@ Data partitioning generally enables a system to process data concurrently and
 to some extent even in parallel. Considering that access to data can be 
 efficiently load balanced and therefore enhances the throughput per query.\\
 
-Although data partitioning is often associated with the improvement of query performance.
+Although data partitioning is often associated with the improvement of query performance,
 It can be also be used to simplify the operating of a database cluster and therefore help 
 to increase the overall availability.
 Through the replication of partition fragments, the data resilience of the system
 can be improved. Even if part of the data storage nodes are temporarily not 
 reachable, your system still might be fully operational and available due to the 
-replication and distribution of data fragments ~\cite{dbre2017}.
+replication and distribution of data fragments~\cite{dbre2017}.
 
 
 
@@ -58,13 +58,13 @@ replication and distribution of data fragments ~\cite{dbre2017}.
 \section{CAP Theorem}
 \label{sec:cap}
 An essential part of distributed systems is the handling of failures or outages of participating components. 
-The \emph{CAP theorem} ~\cite{cap2002} introduced by E. Brewer ~\cite{brewer:2000} discusses these scenarios and states, that it is not possible 
+The \emph{CAP theorem}~\cite{cap2002} introduced by E. Brewer~\cite{brewer:2000} discusses these scenarios and states, that it is not possible 
 to keep the system available while providing global data consistency at the same time.
 This problem is driven by the claim that a node within a clustered system cannot identify whether another node or the 
 network connection in between has failed (network partitioning).\\
 Although this theorem was primarly introduced to support the differentiation between \emph{Availability} and \emph{Consistency}, 
 it only formulates the trade-off in case of a failure.
-Since this should rather be the exception, Abadi ~\cite{abadi2012} generalized the concepts of Brewer by introducing \emph{PACELC} as an extension to the CAP theorem.
+Since this should rather be the exception, Abadi~\cite{abadi2012} generalized the concepts of Brewer by introducing \emph{PACELC} as an extension to the CAP theorem.
 This essentially adds the more common non-failure case to the definition.
 He claims that it is not sufficient to reduce the decision on the occurrence of the failure alone. 
 Because even in high-available environments the data needs to be replicated to ensure availability and thus latency. 
@@ -78,35 +78,35 @@ Therefore, the possibility of failure alone, even in the absence of a failure, i
 \section{Data Replication}
 
 In distributed setups the utilization of data replication is crucial to improve the query performance
-by replicating certain partitions of data to where it is actually needed ~\cite{cloudpart_2012}.\\
+by replicating certain partitions of data to where it is actually needed~\cite{cloudpart_2012}.\\
 Furthermore, replication also increases the availability of the system and protects it against outages or performance mitigations,
-by allowing workload redirection and load balancing to healthy replicas in the cluster ~\cite{quorums:2003}.
+by allowing workload redirection and load balancing to healthy replicas in the cluster~\cite{quorums:2003}.
 However, maintaining the consistency of all available replicas, results in scalability problems.\\
-The author of ~\cite{abadi2012} summarizes "three alternatives for implementing data replication".
-He states that these different nuances inherently result in the aformentioned trade-offs between availability and consistency described in \ref{sec:cap}.
+Abadi summarizes ``three alternatives for implementing data replication''~\cite{abadi2012} in a distributed setup.
+He states that these different nuances inherently result in the aformentioned trade-offs between availability and consistency described in Section \ref{sec:cap}.
 
 The system can either choose to send the updates to all replicas at once, send updates to a predefined replica first or to a single arbitrary node.
  While the first approach can be directly applied to a system, the second and the third require the node that has received the initial modification to trigger an additional update operation.
 \\
-Generally the data replication approaches can be ultimately distinguished into two approaches ~\cite{gray:1996}.
+Generally the data replication approaches can be ultimately distinguished into two approaches~\cite{gray:1996}.
 
-\textbf{Eager Replication} provides a strong consistency among all replicas. Each modification will first be applied on all nodes
+\emph{Eager Replication} provides a strong consistency among all replicas. Each modification will first be applied on all nodes
 before the update transaction is considered to be successful. Hence, no stale data retrieval is possible, and users can choose to query any of the available nodes.
 Because the update is however applied synchronously, the transaction blocks until the last replica has finished the write-operation. 
 Since this is done within one global transaction, specifically in heterogeneous environments, the performance of an update is bound by the slowest performing node.\\
 
-In contrast to its strict counterpart, \textbf{Lazy Replication} decouples the primary update transaction from the update propagation to secondary nodes.
+In contrast to its strict counterpart, \emph{Lazy Replication} decouples the primary update transaction from the update propagation to secondary nodes.
 In its basic form it only supports weak consistency. Since updates only need to be acknowledged and executed by one store, 
-the update propagation to the remaining nodes is executed asynchronously ~\cite{fekete:2018}.
+the update propagation to the remaining nodes is executed asynchronously~\cite{fekete:2018}.
 Although, this improves parallel processing and increases the availability because only one node is blocked during the update. All other nodes can still serve incoming requests,
-which especially in increases the popularity for OLAP-based applications ~\cite{daudjee:2006}
+which especially in increases the popularity for OLAP-based applications~\cite{daudjee:2006}
 However, during the convergence period, until all changes have been replicated, the system is exposed to an inconsistent state.
-As pointed out by ~\cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
+As pointed out by~\cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
 This could result in retrieving outdated data, if the client contacts one of the outdated nodes.
 \\
-Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency} ~\cite{shapiro:2011}.
+Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency}~\cite{shapiro:2011}.
 Although not considered strong, this form of weak consistency guarantees, that if no further updates are made 
-during convergence, all accesses to these replicas will eventually see the same value and become uptodate. ~\cite{quorums:2003}
+during convergence, all accesses to these replicas will eventually see the same value and become uptodate~\cite{quorums:2003}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -115,15 +115,15 @@ during convergence, all accesses to these replicas will eventually see the same 
 \section{Concurrency Control}
 \label{sec:concurrency_control}
 
-A major topic in the context of distributed database systems is \emph{concurrency control} ~\cite{bernstein:1981}.
+A major topic in the context of distributed database systems is \emph{concurrency control}~\cite{bernstein:1981}.
 It is directly associated with the \emph{Isolation} criteria of the transactional \emph{ACID} properties.
-With associated locks of data items, it ensures the correct results and treatment of interleaving operations in a database system ~\cite{bernstein:1986}.
+With associated locks of data items, it ensures the correct results and treatment of interleaving operations in a database system~\cite{bernstein:1986}.
 \\
-As illustrated by the authors of \cite{} not solely the data replication will impact the trade-offs between latency and consistency \ref{sec:cap},
+As illustrated by the authors of~\cite{}\todoMissing{cite} not solely the data replication will impact the trade-offs between latency and consistency \ref{sec:cap},
 but so does the concurrency control.\\
 
 Despite the fact that there exists multiple protocols that handle concurrency control differently we will discuss two of the most common ones: 
-\emph{two-phase locking} (2PL) and multiversion concurrency protocol (MVCC).
+\emph{two-phase locking} (2PL) and \emph{multiversion concurrency protocol} (MVCC).
 
 
 
@@ -143,10 +143,10 @@ there are no more transactions in the list of the shared lock.
 Although this protocol is most commonly referred to as 2PL, it provides additional extensions and variants that are used in practice. 
 These variations only differ on the time when the second phase starts releasing the locks. 
 While \emph{2PL} releases locks once the operation has finished, this can lead to dirty 
-reads ~\cite{} since the transaction has not been committed yet and could still be rolled back.
-The more strict case \emph{strict two-phase locking}(S2PL) only releases the locks of write-operation as soon as the transaction ends.
+reads~\cite{}\todoMissing{cite}  since the transaction has not been committed yet and could still be rolled back.
+The more strict case \emph{strict two-phase locking} (S2PL) only releases the locks of write-operation as soon as the transaction ends.
 Shared-locks on the other hand are releases early.
-The most rigorous version is the \emph{strong strict two-phase locking}(SS2PL) which releases all locks when the transaction has ended.
+The most rigorous version is the \emph{strong strict two-phase locking} (SS2PL) which releases all locks when the transaction has ended.
 This is either at commit time or when the transaction is aborted.
 Although, This form of 2PL is effective to achieve distributed and global serializability and provides automatic deadlock detection and resolution.
 Due to its rather pessimistic blocking behaviour it negatively impacts the performance of the system.
@@ -155,16 +155,16 @@ Due to its rather pessimistic blocking behaviour it negatively impacts the perfo
 
 \subsection{Multiversion Concurrency Control}
 While \emph{SS2PL} suffers from lock contentions between long-running analytical reads and update transactions, it cannot support parallel writes and reads on the same object. 
-To solve this problem \emph{\textbf{MVCC}} \cite{bernstein:1981} was introduced by keeping multiple data copies per object and generally omitting locks.
+To solve this problem \emph{MVCC}~\cite{bernstein:1981} was introduced by keeping multiple data copies per object and generally omitting locks.
 It was originally established for multi-version databases that tried to extend the concept of shadow pages by keeping the complete history or at least multiple versions 
-of each object \cite{bernstein:1982, bernstein:1983}.\\
+of each object~\cite{bernstein:1982, bernstein:1983}.\\
 The idea is that every new write of an object \emph{x}, by transaction $T^k$ creates a new version $x_k$ for this object $x$.
 
-Most commonly MVCC provides a \emph{snapshot isolation} which was introduced by Berenson et al. ~\cite{berenson:1995}.
+Most commonly MVCC provides a \emph{snapshot isolation} which was introduced by Berenson et al.~\cite{berenson:1995}.
 This snapshot enables each transaction to see the state of the data at the time when the transaction has started.
-While this allows to compare and use different versions that are already considered to be outdated ~\cite{faleiro:2015}, 
+While this allows to compare and use different versions that are already considered to be outdated~\cite{faleiro:2015}, 
 hence providing more flexibility for concurring transactions. It is more difficult to find a corresponding non-conflicting 
-execution that is equal on all stores within a distributed setup ~\cite{fekete:2005, daudjee:2006}.\\
+execution that is equal on all stores within a distributed setup~\cite{fekete:2005, daudjee:2006}.\\
 
 Moreover, MVCC protocols are challenged with the decision how many version to retain and when old ones become obsolete and can be removed. 
 Generally this leads to a larger data footprint since objects are stored redundantly, natively increasing the size of the system. 

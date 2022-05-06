@@ -4,34 +4,34 @@
 
 
 In this chapter, we will define all functional requirements, necessary to establish freshness-aware data management in any system.
-We will therefore discuss the contents of Chapter \ref{c:related} and propose solutions how these approaches and techniques can be applied to polystore systems.
+We will therefore discuss the contents of Chapter~\ref{c:related} and propose solutions how these approaches and techniques can be applied to polystore systems.
 Hence, this chapter is separated into several sections where each represents a necessary building block to provide the notion of data freshness.
 
 
 \section{Functional Requirements}
 
-Based on the provided discussion in Chapter \ref{c:related} we have defined six fundamental functional
+Based on the provided discussion in Chapter~\ref{c:related} we have defined six fundamental functional
 requirements, which are necessary to provide the notion of freshness within a system.
 These prerequisites are however not unique to polystore systems and can be applied to any database system. 
 
 \begin{enumerate}[(i)]
-    \item Versioning -                      \textit{The existence of multiple versions per data object is necessary to distribute the workload 
-                                            and reduce the overall latency.}
+    \item \textit{Versioning} -                     The existence of multiple versions per data object is necessary to distribute the workload 
+                                                    and reduce the overall latency.
 
-    \item Metrics -                         \textit{Freshness Metrics are needed when comparing different versions against each other.
-                                            They are used to define the outdatedness per replica and help to analyze how much it deviates from an up-to-date version.}
+    \item \textit{Metrics} -                        Freshness Metrics are needed when comparing different versions against each other.
+                                                    They are used to define the outdatedness per replica and help to analyze how much it deviates from an up-to-date version.
 
-    \item Data Replication -                \textit{Data needs to be correctly replicated across the system to refresh a specific version.
-                                            All replicas should therefore be able to be updated independently.}
+    \item \textit{Data Replication} -               Data needs to be correctly replicated across the system to refresh a specific version.
+                                                    All replicas should therefore be able to be updated independently.
 
-    \item Version Consistency -             \textit{Ensure the consistency of participating stores. Regardless of the role, each version always needs 
-                                            to be consistent in regards to its primary. Even if the state of the versions defers, 
-                                            a given version must always be equivalent to the version the primary had at this time.}
+    \item \textit{Version Consistency} -            Ensure the consistency of participating stores. Regardless of the role, each version always needs 
+                                                    to be consistent in regards to its primary. Even if the state of the versions defers, 
+                                                    a given version must always be equivalent to the version the primary had at this time.
                                             
-    \item Freshness-aware Read-operation -  \textit{The tolerated level of freshness needs to be expressed and specified to retrieve relevant information.}
+    \item \textit{Freshness-aware Read-operation} - The tolerated level of freshness needs to be expressed and specified to retrieve relevant information.
     
-    \item Isolate Freshness -               \textit{Freshness related operations should not directly impact or interfere with the system, 
-                                            we need additional transactional semantics to shield them against regular operations.}                                    
+    \item \textit{Isolate Freshness} -              Freshness related operations should not directly impact or interfere with the system, 
+                                                    we need additional transactional semantics to shield them against regular operations.                                    
 
 \end{enumerate}
 
@@ -39,12 +39,12 @@ Since there might be several possible approaches to fulfil the requirements list
 we will define and conceptualize several possibilities in the subsequent sections tailored to be solved by polystore systems. 
 
 
-Except for the obvious existence of multiple replicas per data object ($\rightarrow$ \ref{sec:data_replicas}), 
+Except for the obvious existence of multiple replicas per data object ($\rightarrow$ Section~\ref{sec:data_replicas}), 
 there are several prerequisites and requirements to establish freshness-awareness. 
-We essentially have to consider how to express freshness and find suitable metrics to measure it ($\rightarrow$ \ref{sec:freshne_metrics})
-and further provide users with a possibility, to formulate an acceptable level of freshness ($\rightarrow$ \ref{sec:read_access}). 
+We essentially have to consider how to express freshness and find suitable metrics to measure it ($\rightarrow$ Section~\ref{sec:freshne_metrics})
+and further provide users with a possibility, to formulate an acceptable level of freshness ($\rightarrow$ Section~\ref{sec:read_access}). 
 Based on these fundamentals we need to consider how update transactions can be decoupled and defer the refresh of specific replicas 
-($\rightarrow$ \ref{sec:propagation}), all while ensuring the consistency of the entire system ($\rightarrow$ \ref{sec:consistency_concept}) to finally 
+($\rightarrow$ Section~\ref{sec:propagation}), all while ensuring the consistency of the entire system ($\rightarrow$ Section~\ref{sec:consistency_concept}) to finally 
 improve the query routing to identify freshness levels to increase the performance of read-only operations. 
 
 
@@ -69,8 +69,7 @@ we can simply use a lazy replication approach to propagate the updates asynchron
 By definition this solution automatically creates multiple versions by deferring the update propagation to secondaries.
 This immediately leverages the nature of polystore systems in such a way that no additional replicas have to be artificially created
 to support multiple versions for each data object \textit{(i)}, which will eventually converge. 
-The replication approaches are discussed in more detail in section \ref{sec:refresh_operations}.\\
-
+The replication approaches are discussed in more detail in section \ref{sec:refresh_operations}.
 
 Since we always need a foundation for all freshness-related comparisons we will need at least one up-to-date replica. 
 This replica should contain relevant information to illustrate the deviation from another possibly outdated version on a different node.
@@ -80,7 +79,6 @@ Based on these roles we are then able to decide which replicas to consider for w
 Alongside the idea of a polystore system, where each underlying engine has its own purpose, we can directly apply these roles 
 based on the provided use case. E.g. label those stores as up-to-date that support highly transactional workload and will therefore be considered for every update as OLTP nodes.
 And configure replicas as outdated, when they are rather suitable for analytical queries which implicitly harvests the benefits of the encompassed stores as OLAP nodes. \\
-
 To consequently, compare those replicas, they need to be equipped with metadata of at least two timestamps. 
 One is the update timestamp when the replica has been last modified,
 the other is the commit timestamp of the original transaction which has modified the replica.
@@ -96,7 +94,7 @@ to determine the freshness of an object.
 \section{Freshness Metrics}
 \label{sec:freshne_metrics}
 
-As discussed in \ref{r:express_freshness}, freshness can be considered with several indications and nuances.
+As discussed in Section \ref{r:express_freshness}, freshness can be considered with several indications and nuances.
 There is no unified definition of data freshness or common freshness metrics.
 These rather depend on specific use cases and system requirements.
 While freshness extractions on value-based divergence is only really suitable for numerical values,
@@ -106,9 +104,8 @@ Because the perception of freshness is rather subjective and depends on the use 
 updated replicas.
 The accuracy would differ greatly when one node has received an update within the last minute and might be considered fresh, but this one particular 
 update might have changed the entire table. 
-This would then rather reduce the freshness to a simple version-comparison and allow questions such as, \textit{"if it exists, how did the data item look like roughly one minute ago"}.
+This would then rather reduce the freshness to a simple version-comparison and allow questions such as, \textit{``if it exists, how did the data item look like roughly one minute ago''}.
 Admitting that this might be desirable for some use cases we want to extend this notion by considering deviations from the primary copy as well.\\
-
 Hence, we propose that users can specify their tolerated level of freshness in a variety of ways. 
 All proposed metrics will apply filters based on the abstract equation in \ref{eq:abstract_freshness}. 
 Which essentially validates per replica whether it can be used for the tolerated freshness-level $\delta$ regarding a given data object $d$.
@@ -215,7 +212,7 @@ We only require that $\delta$ and the return value of $f(d)$ are of comparable t
 \end{description}
 
 All the mentioned freshness metrics can be used to compare different replicas that contain a data object $d$ and filtering them based on the provided function $F(d, \delta)$.
-This allows to specify the tolerated level of freshness $\delta$ from a type $\tau \in \{TIMESTAMP, TIME-DELAY, INDEX\}$ to be used within the query specification.
+This allows to specify the tolerated level of freshness $\delta$ from a type $\tau \in \{TIMESTAMP, \:TIME-DELAY, \:INDEX\}$ to be used within the query specification.
 
 Although as mentioned in section \ref{sec:data_replicas} some engines within a polystore might be more suitable for up-to-date replicas than others,
 we don't limit the possibility of different freshness metrics to a subset of stores. Hence, every store can uniformly work with all levels of freshness.
@@ -463,7 +460,7 @@ Finally, to not interfere with the regular system operation we require that tran
 of primary nodes. Therefore no write-operations are allowed when specifying a freshness-level, transforming this transaction to a read-only transaction.
 This is necessary since we do not know during scheduling if the write operation has used results, obtained from an outdated replica.
 Analogously when a write-operation has already been executed within a transaction we can then no longer accept a freshness-aware query. 
-Therefore the system always has to make sure that the system executes freshness-aware read operations within read-only transactions \textit{(vi)}. 
+Therefore the system always has to make sure that the system executes freshness-aware read operations within read-only transactions~\textit{(vi)}. 
 
 
 
@@ -474,7 +471,7 @@ Therefore the system always has to make sure that the system executes freshness-
 \section{Freshness-aware Read Access}
 \label{sec:read_access}
 
-As mentioned in \ref{sec:tx_handling} update transactions can now only be executed by users and will always target the primary versions of an object.
+As mentioned in Section \ref{sec:tx_handling} update transactions can now only be executed by users and will always target the primary versions of an object.
 Hence, they do not allow the specification of any freshness constraints, to ensure the integrity and consistency of the system.
 Therefore Freshness-aware read-operations are restricted to be used within read-only transactions.\\
 Based on the provided freshness metrics considered in section \ref{sec:freshne_metrics} and the different available versions per data object (see \ref{sec:data_replicas})
