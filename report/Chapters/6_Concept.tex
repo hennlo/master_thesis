@@ -3,15 +3,17 @@
 \label{c:concept}
 
 
-In this chapter, we will define all functional requirements, necessary to establish freshness-aware data management in any system.
-Consequently we will discuss the contents of Chapter~\ref{c:related} and propose solutions how these approaches and techniques can then be applied to Polystore systems.
+In this chapter, we will define all functional requirements, necessary to establish freshness-aware data management in a PolyDBMS, as an enhanced Polystore system.
+Consequently we will discuss the contents of Chapter~\ref{c:related} and propose solutions how these approaches and techniques can then be applied to a PolyDBMS.
 Hence, this chapter is separated into several sections where each represents a necessary building block to provide the notion of data freshness.
 
 
+Since we will use PolyDBMSs as a specific form of Polystore systems, we will use the term Polystore and PolyDBMS interchangeably.
+
 \section{Functional Requirements}
 
-Based on the provided discussion in Chapter~\ref{c:related} we have defined six fundamental functional
-requirements, which are necessary to provide the notion of freshness within a system.
+Based on the provided discussion in Chapter~\ref{c:related} we have summarized and defined six fundamental functional
+requirements, which are necessary to  generally provide the notion of freshness within a system.
 These prerequisites are however not unique to Polystore systems and can be applied to any database system. 
 
 \begin{enumerate}[(i)]
@@ -36,7 +38,7 @@ These prerequisites are however not unique to Polystore systems and can be appli
 \end{enumerate}
 
 Since there might be several possible approaches to fulfil the requirements listed above, 
-we will define and conceptualize several possibilities in the subsequent sectionss, tailored to be solved by Polystore systems. 
+we will define and conceptualize several possibilities in the subsequent sections, tailored to be solved by a PolyDBMS. 
 
 
 Except for the obvious existence of multiple replicas per data object ($\rightarrow$ Section~\ref{sec:data_replicas}), 
@@ -63,7 +65,7 @@ and minimize update times overall.
 The related work clearly distinguished between primary-update nodes and read-only nodes, where 
 read-only nodes cannot be directly updated by the user and will only receive refresh updates internally from the primary nodes.
 
-Since Polystores inherently replicate or distribute their data across multiple stores we already have multiple replicas containing the data. 
+Since PolyDBMSs inherently replicate or distribute their data across multiple stores we already have multiple replicas containing the data. 
 Because we aim to reduce locking situations by decoupling primary updates from secondary transactions,
 we can simply use a lazy replication approach to propagate the updates asynchronously. 
 By definition this solution automatically creates multiple versions by deferring the update propagation to secondaries.
@@ -263,7 +265,7 @@ We, therefore, propose the following strategies to apply pending updates to the 
     
     \item[Load-aware] Although an automatically scheduled and a manual execution will serve most use cases, it might not be desirable to do so.
     Neither an immediate execution after a primary transaction nor an on-demand triggered refresh, take the system load into account.
-    Since Polystores consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
+    Since PolyDBMSs can consist of several potentially heterogeneous stores they might also differ in terms of their computing resources.
     So while most of the underlying stores could apply the pending changes immediately, some might currently not be capable on handling the additional load and have to 
     be deferred yet again. Despite that the approach might slow down the convergence speed of the updated nodes, 
     it will observe underlying stores and artificially limit the load on the system, introduced through the propagation of updates hence keeping the system stable and available.
@@ -395,9 +397,9 @@ Otherwise, we might need to define complex countermeasures to undo certain refre
 
 As suggested in Section \ref{r:replication} there exist several techniques how outdated nodes can be lazily updated in the context of freshness.
 Most of these presented distributed architectures follow a primary-copy approach for master-driven replication to all their secondary replicas.
-This eases the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly
+This eases the control and flow of data. Although in the proposed works some systems allowed to access read-only copies directly,
 with a Polystore, we always have a single point of entry which can vaguely be compared to the polylayer acting as a master node
-when distributing or even routing queries. However, since any requests have to pass through the Polylayer
+when distributing or even routing queries. However, since any requests have to pass through the polylayer,
 we have full control how and where queries need to be routed allowing us to selectively route read-operations to outdated and up-to-date stores alike.
 This enables the system to take full control how different levels of data freshness are being accessed and which queries are allowed to be executed or not.
 
@@ -488,7 +490,7 @@ This again harvests the benefits of Polystores and will reduce the latency of su
 As with most systems we might be exposed to different requirements to be even fulfilled by freshness related queries. 
 Although originally introduced to serve especially long-running analytical queries, they might be used in different contexts hence needing different constraints.
 One of this requirements is the usage of referential integrity.
-But despite that a Polystore system might enforce primary-key constraints and hence referential integrity at run time, the usage of multiple versions does not automatically
+But despite that a PolyDBMS system might enforce primary-key constraints and hence referential integrity at run time, the usage of multiple versions does not automatically
 ensure this for outdated versions as well. Although it might be possible to generate dependencies between data objects, such that they need to be refreshed jointly,
 it should not be generally enforced. Otherwise it will trigger cascading refresh operations of dependent data objects, neglecting the benefits of decoupling the transactions 
 in the first place. Furthermore, as previously stated, we do not require every data item to exist in several possibly outdated versions.  
