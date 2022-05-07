@@ -2,100 +2,60 @@
 \chapter{PolySQL Syntax - Freshness Extension}
 
 
-This chapter provides an in-depth extension to the existing PolySQL Syntax for freshness related queries.
-The original PolySQL Syntax will not be illustrated in this chapter.
-
-All valid extensions for Freshness must consequently begin with the keywords \emph{WITH FRESHNESS}.
-They are attached as an optional leaf expression for every \emph{SELECT} statement.
+This chapter provides an extension to the existing PolySQL Syntax, necessary to work with freshness.
+The original PolySQL\footnote{https://polypheny.org/documentation/PolySQL/} Syntax will not be illustrated in this chapter.
 
 \tocless\section{Freshness Specification}
 \label{a:syntax}
 
-
-\begin{lstlisting}[language=sql]
-    SELECT * FROM tableName 
-    [ WITH FRESHNESS 
-        [ 
-            ( 
-                TIMESTAMP 
-                | 
-                <DELAY> 
-                | 
-                <INDEX> 
-            )   
-        ]];
-\end{lstlisting}
+All valid extensions for freshness-related queries must consequently begin with the keywords \emph{WITH FRESHNESS}.
+They are attached as an optional leaf expression for every \emph{SELECT} statement.
 
 \tocless\subsection{Absolute Timestamp}
 
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS TIMESTAMP '2022-07-04 06:30';
+    SELECT * FROM tableName WITH FRESHNESS TIMESTAMP '2022-07-04 06:30';
 \end{lstlisting}
-
-
+\vspace*{-5mm}
 \tocless\subsection{Relative Timestamp - Absolute Delay}
 
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 SECOND ABSOLUTE;
-\end{lstlisting}
+    SELECT * FROM tableName WITH FRESHNESS 3 SECOND ABSOLUTE;
 
-\begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 HOUR ABSOLUTE;
-\end{lstlisting}
+    SELECT * FROM tableName WITH FRESHNESS 3 HOUR ABSOLUTE;
 
-\begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs ABSOLUTE;
+    SELECT * FROM tableName WITH FRESHNESS 3 MINUTE ABSOLUTE;
 \end{lstlisting}
-
 \tocless\subsection{Relative Delay}
-
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 SECOND RELATIVE;
+    SELECT * FROM tableName WITH FRESHNESS 3 SECOND RELATIVE;
+
+    SELECT * FROM tableName WITH FRESHNESS 3 HOUR RELATIVE;
+
+    SELECT * FROM tableName WITH FRESHNESS 3 MINUTE RELATIVE;
 \end{lstlisting}
-
-\begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 HOUR RELATIVE;
-\end{lstlisting}
-
-\begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 3 MINUTEs RELATIVE;
-\end{lstlisting}
-
-
-
 \tocless\subsection{Freshness Index}
-
 \begin{lstlisting}[language=sql]
-    SELECT * FROM dummy WITH FRESHNESS 0.6;
-
-    SELECT * FROM dummy WITH FRESHNESS 60%;
+    SELECT * FROM tableName WITH FRESHNESS 0.6;
 \end{lstlisting}
-
-
 \tocless\section{Replication Constraints}
-
+In order to use freshness-related queries, the system needs to be consequently altered.
+The following sections illustrate how to transform individual Data Placements.
 \tocless\subsection{Adapting the Replication Strategy}
-
 \begin{lstlisting}[language=sql]
-    ALTER TABLE dummy MODIFY PLACEMENT ON STORE storeName WITH REPLICATION EAGER;
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION EAGER;
 
-    ALTER TABLE dummy MODIFY PLACEMENT ON STORE storeName WITH REPLICATION LAZY;
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH REPLICATION LAZY;
 \end{lstlisting}
-
-
 \tocless\subsection{Adapting the Placement State}
-
 \begin{lstlisting}[language=sql]
-    ALTER TABLE dummy MODIFY PLACEMENT ON STORE storeName WITH STATE REFRESHABLE;
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH STATE REFRESHABLE;
 
-    ALTER TABLE dummy MODIFY PLACEMENT ON STORE storeName WITH STATE OUTDATED;
+    ALTER TABLE tableName MODIFY PLACEMENT ON STORE storeName WITH STATE OUTDATED;
 \end{lstlisting}
-
-
 \tocless\subsection{Refresh Operations}
-
 \begin{lstlisting}[language=sql]
-    ALTER TABLE dummy REFRESH ALL PLACEMENTS;
+    ALTER TABLE tableName REFRESH ALL PLACEMENTS;
 
-    ALTER TABLE dummy REFRESH ALL PLACEMENTS ON STORE storeName;
+    ALTER TABLE tableName REFRESH ALL PLACEMENTS ON STORE storeName;
 \end{lstlisting}
