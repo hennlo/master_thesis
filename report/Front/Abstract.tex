@@ -1,3 +1,40 @@
 % !TEX root = ../Thesis.tex
 \chapter{Abstract}
-We summarize the feature for freshness-awareness and exemplify the implementation on the basis of the polystore system Polypheny-DB.
+
+In recent years data has not only grown in volume and variety but also in importance.
+It has developed into an essential driver to advance industrial as well as scientific achievements.
+This influence elevated the need to store data reliably in different distributed locations,
+to ensure its availability even in the presence of partial failures.
+
+But, since the cost of maintaining several replicas per data object
+is rather high, systems often need to compromise between access times and consistency.
+Therefore they usually limit the number of synchronously updated replicas and lazily replicate
+the changes to the remaining nodes in a cluster.
+To cope with constantly varying requirements and the increased complexity of systems,
+efficient and cost-optimized data processing has become a crucial operational aspect 
+to allow access to distributed data.
+
+Consequently, to efficiently utilize all resources in a system, 
+various notions of freshness have been established, to allow a more flexible approach to
+access distributed data.
+These provide the possibility to specify freshness demands and define whether
+the most recent data is required or if a request can be satisfied with slightly outdated data as well.\\
+
+
+In this thesis, we summarize and define the fundamental features of freshness-awareness and exemplify the 
+implementation on the basis of the Polystore system, Polypheny-DB.
+
+We, therefore, establish a lazy replication algorithm to defer updates on selected replicas
+and propagate changes across the underlying stores, to create multiple versions of 
+data objects.
+Accompanied with individual query extensions and various freshness metrics, we allow to centrally process 
+these possibly outdated objects and leverage the key benefits of the encompassed stores,
+to increase the overall efficiency of the system.\\
+
+We will evaluate the individual functional building blocks, necessary to establish freshness-awareness,
+to identify the impact the implementation has on the system. Further, we want to observe how the
+key functionalities of the underlying stores, influence the behavior of the solution.
+
+The results show that although the solution is not 
+universally applicable to every scenario, it significantly improves 
+the overall execution, especially in distributed setups in a Polystore system.
