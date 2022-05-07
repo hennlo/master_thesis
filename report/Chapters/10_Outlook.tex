@@ -2,14 +2,19 @@
 \chapter{Outlook}
 \label{c:outlook}
 
-The introduced implementation offered a great foundation for additional future work.
+The introduction of freshness within a PolyDBMS generally allows utilizing the different capabilities
+of the underlying stores and harvest their individual benefits,
+while now being able to trade between availability and consistency.
+This allows to scale Polystores globally and use them to fulfill an even broader range of new requirements.
+
+The introduced implementation therefore already offers a great foundation for additional future work.
 Despite the proposed improvements of the current implementation, the notion of freshness can be extended even further to provide more dynamic approaches,
-moving the system towards a self-adjustable environement.
+moving the system toward a self-adjustable environment.
 
 
 
 
-\tocless\section{Tuneable Consistency}
+\tocless\section{Tunable Consistency}
 The introduced implementation sketched in Section \ref{c:implementation} reduces the overall consistency of the primary transaction,
 to improve the overall response time of the system.\\ 
 But since this trade-off between availability and consistency certainly depends on the use case or service requirements, it would be beneficial
@@ -18,23 +23,23 @@ schema to remain available or further allow to define a minimum number of stores
 Instead of labeling fixed data placements to receive updates eagerly, we could allow a more flexible approach that is sufficient if already a single placement 
 responds to the update, disregarding its role. 
 The predefined replication state can be therefore omitted. 
-Additionally this can also be adjusted with general freshness requirements, to automatically maintain different designated versions of data objects 
+Additionally, this can also be adjusted with general freshness requirements, to automatically maintain different designated versions of data objects 
 without having an administrator, manually managing the system.
-Hence, an extension to the described model could easily allow to adjust the required consistency as needed.
-Such approaches can then be easily combined with tuneable consistency to allow self adjusting data placements adapting to individual use cases.\\
+Hence, an extension to the described model could easily allow adjusting the required consistency as needed.
+Such approaches can then be easily combined with tunable consistency to allow self-adjusting data placements adapting to individual use cases.\\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \tocless\section{Global Replication Strategies}
 This implementation has only introduced the specification of table-level entities like entire data placements to be defined as eagerly or lazily replicated objects.
-Although, this introduces a high degree of flexibility, it still might be desirable to define certain policies, that entire schemas or even databases automatically 
+Although this introduces a high degree of flexibility, it still might be desirable to define certain policies, so that entire schemas or even databases automatically 
 receive updates lazily, while still ensuring the overall placement constraints.\\
 This concept could be extended even further by applying it to a distributed setup of Polypheny-DB, that replicates data autonomously to certain regions based on the given 
 configuration. 
 This extension could leverage the introduced freshness-awareness to consider off-site locations to be used for even more parallel workload.
-This could even include using a more adaptive freshness approach that evaluates the distance to a node to identify suitable locations for retireval.
-Since an outdated information fetched from a distant store, will become more outdated during transfer, we can
+This could even include using a more adaptive freshness approach that evaluates the distance to a node to identify suitable locations for retrieval.
+Since outdated information fetched from a distant store, will become more outdated during transfer, we can
 extend this further to even measure the common round trip time to that store and integrate it into the query specification to identify suitable placements.\\
 
  
@@ -46,14 +51,14 @@ extend this further to even measure the common round trip time to that store and
 
 \tocless\section{Adaptive Session-Wide Freshness}
 Another addition to freshness could be the extension to also allow the specification
-of freshness per session, which avoids specifiyng the freshness for individual statements.
-This can be especially useful if the freshness requirements do not really change over time, allowing a quick
-possibility to manifest the requirements. Although, they could be extented for individual statements,
-that indeed require a more strict form of freshness, it provides a good base line to operate using freshness.
-This is especially interesting for applications that usually establish one session, for the majority of its lifetime. 
+of freshness per session, which avoids specifying the freshness for individual statements.
+This can be especially useful if the freshness requirements do not change over time, allowing a quick
+possibility to manifest the requirements. Although they could be extended for individual statements,
+that indeed require a more strict form of freshness, it provides a good baseline to operate using freshness.
+This is especially interesting for applications that usually establish one session, for the majority of their lifetime. 
 Such applications currently have to internally define per statement what degree of freshness they might tolerate. 
 A session-wide freshness could therefore allow centrally adapting the freshness if the requirement changes, without having to recompile the application again.
-Together with adjustable freshness configurations that might automatically adapt towards recently provided freshness data it would allow
+Together with adjustable freshness configurations that might automatically adapt towards recently provided freshness data, it would allow
 to transform freshness-aware data management to a more adaptive configuration in general.
 
 

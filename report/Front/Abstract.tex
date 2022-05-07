@@ -8,7 +8,7 @@ to ensure its availability even in the presence of partial failures.
 
 But, since the cost of maintaining several replicas per data object
 is rather high, systems often need to compromise between access times and consistency.
-Therefore they usually limit the number of synchronously updated replicas and lazily replicate
+Therefore they usually limit the number of synchronously updated replicas, and lazily replicate
 the changes to the remaining nodes in a cluster.
 To cope with constantly varying requirements and the increased complexity of systems,
 efficient and cost-optimized data processing has become a crucial operational aspect 
@@ -37,4 +37,4 @@ key functionalities of the underlying stores, influence the behavior of the solu
 
 The results show that although the solution is not 
 universally applicable to every scenario, it significantly improves 
-the overall execution, especially in distributed setups in a Polystore system.
+the overall execution, especially in distributed Polystore systems.

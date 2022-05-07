@@ -1043,14 +1043,14 @@ considered to be immediately consistent and will not need to converge.
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Convergence Time Comparison on Different Store Constellations and Sizes (4 Stores $\rightarrow$ 1x Eager and 3x Lazy ) -- Mixed Workload.}
+    \caption{Convergence Time Comparison on Different Store Constellations and Sizes\\(4 Stores $\rightarrow$ 1x Eager and 3x Lazy ) -- Mixed Workload.}
     \label{fig:store_comparision}
 \end{figure}
 
 As we have seen before the versions can deviate quite heavily during a mixed workload. 
 Furthermore, we have already identified that configuring the faster perfoming store to be replicate eagerly, proofs that this will positiviely impact 
 the availability due to its lower repsonse time of the inital transaction.
-However as important as the throughput of initial transaction might be, choosing the faster node to be eagerly replicated intuitively leaves the slower node
+However as important as the throughput of the initial transaction might be, choosing the faster node to be eagerly replicated intuitively leaves the slower node
 to apply the updates asynchronously. 
 However, because it highly depends on the requirements which configuration to choose, we also want to establish a setup that focuses on quickly reaching
 a consistent state without using an eager-only replication setup.
@@ -1058,7 +1058,7 @@ a consistent state without using an eager-only replication setup.
 
 
 Therefore, we want to observe the actual replication time until two stores reach an equilibrium in terms of their received updates.\\
-The plot in \ref{fig:store_comparision} visualizes the comparison based on a different number of stores.
+The plot in Figure \ref{fig:store_comparision} visualizes the comparison based on a different number of stores.
 
 Due to the fact that HSQLDB was before identifed as the store with the better throughput, 
 it also generally manages to converge faster if configured to be the secondary store. 
@@ -1208,11 +1208,11 @@ and puts it into perspective along with the actual test execution. During these 
 the changes operation-wise. As illustrated in both cases the worker is not able to apply the changes faster than they are coming in.
 The breakeven point is reached as soon as the test execution has finished and the load on the system stops. For both configurations the algorithm can now quickly propagate all pending
 changes.
-Certainly this is caused by the different performance capabilities of the underlying stores. 
-While HSQLDB as a lazy replicated store can process and apply the events faster, 
+As mentioned before the accumulation of replication events is essentially caused by the different performance capabilities of the underlying stores. 
+While HSQLDB as a lazy replicated store would process and apply the events faster, 
 leaving the queue mostly empty, PostgreSQL is not able to match this performance applying the replication events slower than new ones
 are generated. This then causes the queue to grow until there is no more load on the system.
-Without a defined test enviornemnt in regular situations with continous load, this could cause severe problems,
+However, without a defined test enviornemnt in regular situations with continous load, this could cause severe problems,
 since the queue will grow without bound.
 
 \begin{figure}[t] 
@@ -1255,9 +1255,11 @@ since the queue will grow without bound.
 \end{figure}
 
 
-Because captured change operations are also transformed $1-n$ for $n$ lazy replicated stores, the size of the queues is essentially influenced by the number of replicas that
+Because captured change operations are also transformed $1-n$ for $n$ lazy replicated stores, the size of the queues is further influenced by the number of replicas that
 require the change. 
 As summarized in Figure \ref{fig:converge24} this directly influences the earlier described convergence time of our system and negativiely impacts the response time.
+While the configuration with two stores only needs an additional 30 seconds (~10\% of total execution time) to converge, a setup with four stores
+already needs 105 seconds (~35\%) to converge the remaining stores.
 Which makes the selected storage constellation crucial.
 
 
@@ -1271,7 +1273,7 @@ Which makes the selected storage constellation crucial.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Freshness Evaluation Type Filter} 
 
-The benchmarks so far merely focussed on the replication as well as the write operations.
+The benchmarks so far merely focussed on the replication as well as the write-operations.
 Therefore the next evaluations will concentrate on testing the introduced freshness capabilities.
 
 Despite the actual usage of freshness operations in general, also the chosen evaluation type will influence the performance.
@@ -1630,6 +1632,7 @@ but also extends it even further when ingesting freshness constraints.\\
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Workload Comparison}
 
 Concluding with the evaluations and as illustrated with the last examples and benchmarks, the results of freshness constraints, 
 inherently differs by means of the utilized workload.
@@ -1696,12 +1699,14 @@ This shows that freshness-aware data management can indeed improve mixed workloa
 \section{Discussion}
 \label{sec:discussion}
 
-The results generally show that although the replication will slightly mitigate the overall performance of the system, it still is able to correctly fulfil the 
+The results generally show that although the replication will slightly mitigate the overall performance of the system, it still is able to correctly fulfill the 
 requirements without largely interfering with the underlying systems. 
-Despite that the operation-wise execution will gradually progress each placement as intended, the capture-queue inherently impacts the performance of parallel workload.
+Despite that the operation-wise execution will gradually progress each placement as intended, the capture-queue inherently impacts the performance of parallel workload
+when using a lazy replicated approach.
 
-However, the compound results show that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of 
-read- and write-operations.
+While eagerly replicated setups generally performed better in write-heavy environements, 
+the compound results still show that freshness related queries are indeed suitable candidates when not focusing on a pure mixed-workload with equal amounts of 
+read- and write-operations. 
 Especially the partitioned cases showed promising results to optimize routing decisions to finally improve the overall performance.
 
 
