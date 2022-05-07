@@ -9,7 +9,7 @@ during execution as well as suitable failure handling scenarios.
 
 The second part of this chapter focuses on benchmarking the implementation on the basis of the individual building blocks itself.
 This is followed by comparing the performance of several scenarios to identify how the system will behave in certain situations.
-Further it will compare these executions to determine how the implementation affects the provided requirements.
+Further it will compare these executions to determine how the implementation fulfils the provided requirements.
 Finally the performance of the individual functionalities is benchmarked and compared jointly to give an comprehensive overview on possible performance impacts.
 
 
@@ -20,13 +20,12 @@ is identifying the impact freshness-aware aspects have on different workloads an
 We therefore want to verify and validate the correctness as well as the completeness of the implementation based on several characteristics.
 These include the correct execution of the automatic lazy replication procedure, the possibility to refresh statements on demand as well as correct freshness filtering.
 
-Since one of the main goals was to relax the consistency and allow parallel workloads,
+Since one of the main goals was to relax the consistency to allow parallel workloads,
 we want to identify possible impacts of the replication engine on the overall performance, if freshness indeed increases the possibility
 for parallel workload on the system. 
 Finally we want to observe if the solution allows harvesting benefits of the underlying stores to adapt to various situations
 to assess the benefits of the Polystore in general.
 We therefore focus on evaluating the essential functionalities to provide a foundation for future assessments.
-In general we aim to assess different situation to obtain a comprehensive insights on the introduced implementations.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -36,7 +35,7 @@ In general we aim to assess different situation to obtain a comprehensive insigh
 
 
 The correctness of the introduced solution mainly focuses on two parts. For one the replication behaviour, to verify if each replication is carried out correctly,
-and if not verify that reasonable counter measures are in place and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
+and if not verify that reasonable countermeasures are available and apply them. This is crucial since we do not compare the footprint or the integrity of the data after 
 a replication update. Rather we compare metadata of two replicas on a high level,
 i.e. if the number of modifications and the commit timestamp after the data replication are equal on primary and secondary node. 
 
@@ -48,11 +47,11 @@ We have e.g. established a dependency between the replication strategy as well a
 automatically ensure that the state is altered as well. This does not only ensure that the placements will be addressed correctly, but also ensures that no data is lost.
 For example it enforces that a lazy replicated placement, that still has pending replications, cannot be switched to now receive updates eagerly.
 
-Furthermore since we have to make sure that no data will be lost in general, we have established the strong dependency queue that will apply the update operation-wise in terms of the execution order.
+Furthermore since we have to make sure that no data is lost in general, we have established a strong dependency queue that will apply the update operation-wise in terms of the execution order.
 Since we cannot avoid that stores might fail, we have ensured that failing updates will not block the replicaiton queue or will be applied in a wrong order.
-Accompanied with a failure-threshols and the placement role \emph{INIFINITELY OUTDAED}, we can instruct the system to mark this placement as permanentely outdated 
+Accompanied with a failure-threshols and the placement role \emph{INIFINITELY OUTDATED}, we can instruct the system to mark this placement as permanentely outdated 
 avoiding further updates. 
-This ensures that all statements labeled as \emph{INIFINITELY OUTDAED} will always be treated correctly.
+This ensures that all statements labeled as \emph{INIFINITELY OUTDATED} will always be treated correctly.
 
 The freshness specification in general ensures that only acceptable values are considered for the respective evaluation type to propose the correct results and translate it into
 a given tolerance value.
@@ -74,7 +73,7 @@ The second part of this chapter focuses on the performance impacts of the introd
 The following steps outline the procedure for benchmarking data freshness within Polypheny-DB.\\
 Each evaluation step will subsequently address each required building block to provide data freshness.
 Each building block is checked separetely and then put into perspective of the entire context.
-These benchmark progressiviely build on top of each other and are finally summarized with a compound benchmark.\\
+These benchmark progressively build on top of each other and are finally summarized with a compound benchmark.\\
 
 
 
@@ -82,12 +81,47 @@ These benchmark progressiviely build on top of each other and are finally summar
 \subsection{Evaluation Environment}
 \label{sec:env}
 
-For all executed tests a base set of tools an functionality has been used to ensure the rerpoducibility of the benchmarks.
+For all executed tests a base set of tools n functionality has been used to ensure the reproducibility of the benchmarks.
 
 If not explicitly stated otherwise, the benchmarks will be executed using two underlying stores.
 For these stores HSQLDB and PostgreSQL are used. While HSQLDB will run nativiely on the system, PostgreSQL is configured within a virtualized
 container environment with limited resources immitating a weaker performing store.
 Although not explictly mentioned, each test will always be pre-configured to match the required replication strategy.
+
+
+%\begin{table}[h]
+    %\centering
+    %\def\arraystretch{1.5}
+    %\begin{tabular}{V{2} l V{2} c|c|c V{2}}
+    %\hlineB{3}
+    %\textbf{CPU}      & 0       \\ \hline
+    %\textbf{RAM}  & 60          \\ \hline
+    %\textbf{OS}       & 100     \\ \hline
+    %\end{tabular}
+    %\caption{Execution Environment Configuration}
+    %\label{tab:workload table}
+%\end{table}
+
+
+%docker engine v20.10.11
+
+
+%\begin{table}[h]
+    %\centering
+    %\def\arraystretch{1.5}
+    %\textbf{DBMS}        & \textbf{#Cores} & \textbf{RAM} & \textbf{Mode}  \\ \hlineB{2}
+    %\begin{tabular}{V{2} l V{2} c|c|c V{2}}
+    %\hlineB{3}
+    %\textbf{HSQLDB}      & 0                 \\ \hline
+    %\textbf{PostgreSQL}  & 60        \\ \hline
+    %\end{tabular}
+    %\caption{Store Configuration for one HSQLDB Store and PostgreSQL Store..}
+    %\label{tab:workload table}
+%\end{table}
+
+
+
+
 
 During the evaluation only a predefined set of workloads will be used to obtain insights on various setups.
 As suggested in Table \ref{tab:workload table} these inherently differ in terms of their focus on write- or read-operations as well the
@@ -113,11 +147,12 @@ degree of utilized freshness queries.\\
 
 
 
-To further assist the execution of the benchmark tests, a number of tools are used to standardize and ease the evaluation procedure.
+To further assist the execution of the benchmark tests, a number of tools are 
+used to standardize and ease the evaluation procedure. These tools are described in the following two sections.
 
 \subsubsection{Chronos}
 
-Chronos\footnote{https://chronos-eaas.org/} is a toolkit which enables users to define, 
+\textit{Chronos}\footnote{https://chronos-eaas.org/} is a toolkit which enables users to define, 
 monitor and analyze the results of an evaluation for several database systems~\cite{vogt_chronos_2020}.
 It encompasses several tests and evaluation steps, which will be accumulated in terms of the runtime 
 per target. This runtime information can then be used to compare and visualize the differences between different exectution environemnts.  
@@ -131,7 +166,7 @@ has been used. This benchmarking framework bundles several workload classes and
 encompasses multiple benchmarking tools to seamlessly provide benchmarking for various DBMS~\cite{oltp_2013}.\\
 To get a more in-depth view how the implementation affected the overall performance, all tests have been executed 
 using \textit{YCSB}\footnote{https://github.com/brianfrankcooper/YCSB}.
-YCSB not only offers a fundamental correctness test but additionally simulates workload on a single table to obtain essential performance baselines~\cite{ycsb_2010}.
+\textit{YCSB} not only offers a fundamental correctness test but additionally simulates workload on a single table to obtain essential performance baselines~\cite{ycsb_2010}.
 These can be used to retrieve performance metrics and obtain indications regarding correct statement execution and query handling.
 
 
@@ -193,11 +228,14 @@ Although, Polypheny-DB aims to provide cost- and workload-aware self-adaptivenes
 its internal processing is executed on top of the actual execution of the underlying store.
 This can have a crucial impact on the entire throughput of the system.\\
 Hence we used Chronos, a benchmarking tool that allows us to define several evaluation steps per storage engine,
-to measure the overhead. For this evaluation the introduced implementation is compared against the current state of Polypheny-DB.
+to measure the overhead. For this evaluation the introduced implementation is compared against the current version of Polypheny-DB (v0.7.0).
+This was executed using a fixed repeating number of operations, and measured based on the total execution time that it took each configuration
+to apply all steps.
 
 
-As depicted in Figure \ref{fig:overhead}, the results indeed show that the implementation introduced a little overhead for single store operations.
-However with multiple stores the actual average execution time was indeed slightly reduced. Although, single store executions should not be entirely neglected
+As depicted in Figure \ref{fig:overhead}, the results show that the new implementation introduced a little overhead of about 8\% for single store operations.
+However with multiple stores the actual execution time was indeed slightly reduced by 5\%. 
+Although, single store executions should not be entirely neglected
 they do not form the main pursuit of Polystore systems, which are more suitably visualized by the multistore runtime.
 
 
@@ -320,14 +358,14 @@ they do not form the main pursuit of Polystore systems, which are more suitably 
         \caption{Old vs. New Locking on a Single Store}
         \label{fig:oldandnewlock}
       \end{subfigure}
-    \caption{Impact of Locking on the Overall Throughput per Second.}
+    \caption{Impact of Locking Mechanism on the Overall Throughput per Second.}
     \label{fig:lock_comp}
 \end{figure}
 
 
 As described in Section \ref{sec:strategy}, one of the prerequisites to establish multiple refresh strategies and hence lazy replication,  
 was the refactoring of the locking mechanism. Although, not completely reworked, the locking-module of Polyphenys SS2PL 
-poses as a core component of the system. It therefore  impacts correct serializability treatement and is and inherent driver of 
+poses as a core component of the system. It therefore impacts correct serializability treatement and is an inherent driver of 
 the allowed concurrency which directly influences the overall performance of the system.\\
 For the evaluation again the current state of Polypheny-DB is compared against this implementation.
 Since the locking module was changed from a table-wise locking towards a partition-wise locking we will validate the impact on the basis of 
@@ -335,6 +373,7 @@ a single table using YCSB.
 The evaluation was executed with gradually increasing numbers of partitions, which are placed on one store or distributed across $n$-Stores 
 for $n$ partitions to observe any changes on the locking and therefore the throughput.
 To get a general overview of the impact, the benchmark was executed using a mixed workload on HSQLDB only.
+It is evaluated om the number of operations that can be applied to the system per second.
 
 
 
@@ -345,9 +384,9 @@ This behaviour is essentially caused by Polyphenys need to join and union severa
 Since more stores need to be connected and considered, it is a rather costly approach and as stated before gets increasingly harder the more stores are involved.
 
 Because the single store variations prove to be more reliable, they are summarized in \ref{fig:oldandnewlock}.
-We can observe that the new locking mechanism indeed proves to be slightly better in terms of the possible throughput.
-Furthermore it shows that again with a growing number of stores, the gap between the old and new locking extends even more, validating the benefits of the new locking mechanism, if used within strongly partitioned
-configurations.
+We can observe that the new locking mechanism, indeed proves to be perform around 9\% better in terms of the possible throughput, compared to the old implementation.
+Furthermore it shows that again with a growing number of partitions, the gap between the old and new locking extends even more, 
+validating the benefits of the new locking mechanism, if used within strongly partitioned configurations.
 
 
 
@@ -396,8 +435,8 @@ configurations.
     \label{fig:singlepsqlhsql}
 \end{figure}
 
-Since the Lazy Replication algorithm is not only fundamental to generate multiple versions to be used within freshness-awareness,
-but also a core functionality how data is propagated throughout the system. 
+The Lazy Replication algorithm is not only fundamental to generate multiple versions to be used within freshness-awareness,
+but it is also a core functionality how data is propagated throughout the system. 
 Hence, along with the newly introduced replication strategies, and \emph{Change Data Collection} it will have a major impact on the overall perfromance of the system.
 Since the replication solely focuses on replicating captured changes, the next benchmarks will be consequently executed using Write Only operations without any reads.
 
@@ -406,8 +445,9 @@ As stated in the evaluation environment \ref{sec:env}, these benchmarks will be 
 container environment. To have a general base line for comparison Figure \ref{fig:singlepsqlhsql} presents a single store execution, comparing theses two stores against each other.
 As motivated in the beginning, it is crucial for a Polystore system to utilize the key benefits of each store. For our scenario it is therefore, important to determine which 
 store configuration is more suitable to be used as an eagerly replicated primary placement, due to its lower latency and better reponse time.\\
-This illustrated comparison clearly shows that due to its limited resources the PostgreSQL store cannot directly compete with this HSQLDB store.
-This provides us with the intuitive decission to use HSQLDB for the primary transactions.
+This illustrated comparison clearly shows that due to its limited resources the PostgreSQL store
+performs on average 22\% slower and cannot directly compete with this HSQLDB store.
+This provides us with the intuitive decision to use HSQLDB for the primary transactions.
 
 
 
@@ -508,7 +548,7 @@ This provides us with the intuitive decission to use HSQLDB for the primary tran
 
 As previously stated, the replication strategies will impact the processing capability of the system immensly.
 A placement with a configured lazy replication strategy automatically enables the system, to start tracking changes for this entity, impacting the duration of a query.
-Therfore we want to compare how each store handles the replication differently. Consequently we want to benchmark and compare two equal placements that are eagerly replicated
+Therfore we want to compare how each store handles the replication. Consequently we want to benchmark and compare two equal placements that are eagerly replicated
 against the same two stores but one configured as \emph{lazy}.
 
 To extend the baseline discovered before, we again want to demonstrate the behaviour a purely sequential environment with only one client has, 
@@ -815,7 +855,7 @@ deviations are reasonable.\\
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Avg. Response Time Comparison of Different Store Sizes -- Write Only}
+    \caption{Avg. Response Time Comparison of Different Store Sizes (4 Stores $\rightarrow$ 1x Eager and 3x Lazy ) -- Write Only.}
     \label{fig:24storecomp_avg}
 \end{figure}
 
@@ -962,8 +1002,6 @@ considered to be immediately consistent and will not need to converge.
 
 \subsubsection{Replica Convergence} 
 
-\todoMissing{Story-concrete example}
-
 
 
 \begin{figure}[t] 
@@ -1005,7 +1043,7 @@ considered to be immediately consistent and will not need to converge.
             }
         \end{axis}
     \end{tikzpicture}
-    \caption{Convergence Time Comparison on Different Store Constellations and Sizes -- Mixed Workload.}
+    \caption{Convergence Time Comparison on Different Store Constellations and Sizes (4 Stores $\rightarrow$ 1x Eager and 3x Lazy ) -- Mixed Workload.}
     \label{fig:store_comparision}
 \end{figure}
 
@@ -1164,12 +1202,18 @@ the pending changes as fast as new ones are added to the queue.
 
 %%%% %% %%
 
-For this test we are using a Mixed Workload to allow permanent access to the primary node, while the lazy replicated nodes can solely concentrate on applying the queued changes.
+For this test we are using a Mixed Workload to allow permanent access to the primary node (HSQLDB), while the lazy replicated nodes (PostgreSQL) can solely concentrate on applying the queued changes.
 Figure \ref{fig:converge_24} visualizes the expansion- as well as the shrinking-phase of the replication queue
-and puts it into perspective along with the actual test execution. During theses tests one worker continuously processed the queue and replicated 
-the changes operation-wise. As illustrated in both cases the worker is not really able to apply the changes faster than they are coming in.
+and puts it into perspective along with the actual test execution. During these tests one worker continuously processed the queue and replicated 
+the changes operation-wise. As illustrated in both cases the worker is not able to apply the changes faster than they are coming in.
 The breakeven point is reached as soon as the test execution has finished and the load on the system stops. For both configurations the algorithm can now quickly propagate all pending
 changes.
+Certainly this is caused by the different performance capabilities of the underlying stores. 
+While HSQLDB as a lazy replicated store can process and apply the events faster, 
+leaving the queue mostly empty, PostgreSQL is not able to match this performance applying the replication events slower than new ones
+are generated. This then causes the queue to grow until there is no more load on the system.
+Without a defined test enviornemnt in regular situations with continous load, this could cause severe problems,
+since the queue will grow without bound.
 
 \begin{figure}[t] 
     \centering 
@@ -1211,8 +1255,12 @@ changes.
 \end{figure}
 
 
-Because captured change operations are transformed $1-n$ for $n$ lazy replicated stores, the size of the queues is essentially influenced by the number of replicas that
-require the change. As summarized in Figure \ref{fig:converge24} this directly influences the earlier described convergence time of our system and negativiely impacts the response time.
+Because captured change operations are also transformed $1-n$ for $n$ lazy replicated stores, the size of the queues is essentially influenced by the number of replicas that
+require the change. 
+As summarized in Figure \ref{fig:converge24} this directly influences the earlier described convergence time of our system and negativiely impacts the response time.
+Which makes the selected storage constellation crucial.
+
+
 
 
 
@@ -1227,7 +1275,7 @@ The benchmarks so far merely focussed on the replication as well as the write op
 Therefore the next evaluations will concentrate on testing the introduced freshness capabilities.
 
 Despite the actual usage of freshness operations in general, also the chosen evaluation type will influence the performance.
-Although, that the filter comparison itself is always executed equally, the filter generation itself can differ between the available types.
+Although, that the filter comparison itself is always executed equally, the filter generation can differ between the available types.
 
 \begin{figure}[t] 
     \centering 
@@ -1498,7 +1546,7 @@ Furthermore, the system performs best if it does not need to capture any changes
 which essentially corresponds to the observations we have described in Figure \ref{fig:write_decomposition}.
 Although this is rather a corner case, the replication suspension on the other hand is more likely to occur and still provide good response times.
 
-What is further interesting are the spikes on the active replication graph. While the graphs without replication and capture mechanisms are more narrow,
+Interestingly, we further observe peaks on the active replication graph. While the graphs without replication and capture mechanisms are more narrow,
 the active replication queue oscilates quite heavily, negativiely impacting the average response time.\\
 Further, we observe that these peaks start occuring after roughly one minute.
 Since we used a modification deviation for our freshness specification, the system is able to quickly identify suitable placements in the beginning of the benchmark.
@@ -1559,7 +1607,7 @@ However, so far all tests only really considered unpartitioned entities to visua
             }
     \end{axis}
 \end{tikzpicture}
-    \caption{Impact of Partitioning on Freshness, Across Lazy Replicated Stores -- Partial Freshness.}
+    \caption{Impact of Partitioning on Freshness (Index=0.7), Across Lazy Replicated Stores -- Partial Freshness.}
     \label{fig:partition_result}
 \end{figure}
 
@@ -1567,7 +1615,7 @@ Accompanied with the introduced locking changes and the promising results descri
 a partitioned environement. For one we will partition the table into four horizontal partitions. 
 For one scenario we place all partitions on the eager node and then each partition respectiviely on four lazy replicated stores to achieve a highly distributed setup as before.
 The second scenario will place all four partitions across two stores, where exactly one is eagerly and the other lazily replicated. 
-These two variations are ultimately compared against an entire unpartitioned setup across two stores which is visualized in \ref{fig:partition_result}.
+These two variations are ultimately compared against an entire unpartitioned setup across two HSQLDB stores which is visualized in Figure \ref{fig:partition_result}.
 
 
 Analogously, to the results obtained from the locking mechanism benchmarks, 
@@ -1585,7 +1633,7 @@ but also extends it even further when ingesting freshness constraints.\\
 
 Concluding with the evaluations and as illustrated with the last examples and benchmarks, the results of freshness constraints, 
 inherently differs by means of the utilized workload.
-On the basis of fully freshness optimized read-operations using an index of $0.7$, 
+On the basis of fully freshness optimized read-operations using an index of $0.7$, and two HSQLDB store,
 Figure \ref{fig:workload_comp} summarizes the impact of the individual workload classes on freshness-aware data management in general. 
 
 
@@ -1596,7 +1644,7 @@ which only partially focusses on reads.
 This essentially mimics a highly transactional workload using the reads mainly for analytical purposes.
 
 
-This shows that freshness-aware data management can indeed allow to improve mixed workloads during write-heavy situations.
+This shows that freshness-aware data management can indeed improve mixed workloads during write-heavy situations.
 
 \begin{figure}[t] 
     \centering 
@@ -1632,7 +1680,7 @@ This shows that freshness-aware data management can indeed allow to improve mixe
 
         \end{axis}
     \end{tikzpicture}
-    \caption{Workload Comparison of Freshness Related Queries.}
+    \caption{Workload Comparison of Freshness Related Queries (Index=0.7).}
     \label{fig:workload_comp}
 \end{figure}
 

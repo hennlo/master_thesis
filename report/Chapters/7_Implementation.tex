@@ -505,25 +505,25 @@ This allows us to reduce the data footprint by caching the replication data only
 queue registration. This consequently adds for each target placement a new entry into the global queue. Additonally, it also appends the corresponding replication ID to 
 the local queue of each Partition Placement. Once all replication objects have been added to the global queue the finalization phase ends.\\
 Since these capture objects have been added to the prelimiary capture-queue in their execution order, they are also passed on to the actual queue in this exact same order.
-This ensures the consistency among the different plaecments, and ensures that they uniformly progress towards a given state as its up-to-date counterpart has.
+This ensures the consistency among the different placements, and ensures that they uniformly progress towards a given state as its up-to-date counterpart has.
 
 Since this is all still done before the transaction has publicly finished, further operations are blocked until we have asured that all objects have been consequently 
 transformed and queued within the associated replication engine. Thus we can ensure the consistency of the secondary placements by waiting until all steps have finished 
 successfully. If something would have went wrong during queueing, we can still relabel those placments as \emph{INFINITELY OUTDATED}, marking them as not receiving any more updates 
 hence informing users and administrators that this placement will stay outdated until manually fixed.
 
-After the queing process has finsihed and the primary update transaction has returend, removing all locks, the \emph{Replication Workers} will eventually process the queued events.
+After the queing process has finsihed and the primary update transaction has returend, removing all locks, the \emph{Replication Workers} will eventually process the queued events as illustrated in Figure~\ref{fig:flow_worker}.
 As soon as a worker has free resources again, it will take the next item out of the global replication queue and starts analyzing it.
 For each item it will verify if this is indeed the next replication to be processed for this target, by obtaining the next item of this Partition Placements local queue.
 Additionally it verifies if the replication distribution has been suspended entirely. This will lead the worker to reschedule the replication
 and append it at the end of the global queue again, and moving on to the next item.\\
 However if this replication does not exist anymore or this target has been marked as \emph{INFINITELY OUTDATED}, avoiding additional replications to be applied,
-the worker automatically cleanses the queue from all remaining replications associated with this placement.\\
+the worker identifies it as invalid and automatically cleanses the queue from all remaining replications associated with this placement.\\
 Assuming that the currently proccessed event is indeed the next replication in line it will prepare the execution and start a new refresh transaction. 
 It is handed over to the \emph{Data Replicator}, which will now analyze the replication event, and ultiamtely reconstruct a new modification statement that will be routed internally towards 
 the designated Partition Placement.\\
 When the replication has finished the item is removed from the local queue. Additonally it removes itself from the dependency graph of the associated replication data.
-If the corresponding replication data does not have any dependencies left, it can also be savely removed to reduce the data footprint of the system again and freeing up resources.
+If the corresponding replication data does not have any dependencies left, it can also be savely removed to reduce the data footprint of the system and freeing up resources again.
 However, if the replication process for this target fails, the centrally defined fail count for this specific replication event is increased. 
 If it is above the configured threhold, the system will abort further replications of this target placement, labeling it as \emph{INFINITELY OUTDATED} and removing all pending
 replications of this replica. Otherwise the replication has been successfully executed.
@@ -544,10 +544,10 @@ This allows us to replicate data using the less strict 2PL approach, hence impro
 
 Although, the automatic refresh operation, based on the change data capture approach will continuously propagate incoming changes,
 it is not able to prioritize certain placements after they have been added to the queue proposed in \ref{sec:lazy:_engine}.
-However, users might need to be able to specifically prioritize Data Placements or entire tables to be updated faster than others. 
+Since, users might need to be able to specifically prioritize Data Placements or entire tables to be updated faster than others. 
 This could also be the case if one placement is currently marked as \emph{INFNITELY OUTDATED}.
 Either because of too many failed replications or because it was manually configured to remain in a given state. 
-As described in \ref{sec:refresh_operations} we need to be able to provide manual refreshes on the basis of primary snapshot copies.
+As described in \ref{sec:refresh_operations} we need to be able to provide manual refreshes on the basis of \emph{Primary Snapshot Copies}.
 This inherently uses the capabilities of Polyphenys existing \emph{Data Migrator}, which essentially queries a defined source entity on a given store. 
 Together with the current \emph{Update Metadata} of this placement, the extracted result of this query can be considered as a snapshot of a given replica.
 The contents of this result will be subsequently applied onto a targeted placement.\\
@@ -566,7 +566,7 @@ ALTER TABLE tableName REFRESH ( ALL PLACEMENTS
                               | PLACEMENT ON STORE outdated_store );
 \end{lstlisting}
 
-Although such refresh-transactions can be executed on any placement, it will have no effect on primaries. 
+Although such refresh-transactions can be executed on any placement, they will have no effect on primaries. 
 The same holds for placements that are already up-to-date with respect to their corresponding primary-version, where the execution will be simply omitted.
 
 
@@ -577,9 +577,9 @@ The same holds for placements that are already up-to-date with respect to their 
 \subsection{Placement Constraints}
 \label{sec:constraints}
 
-Since we are in a distributed setup, we always need to ensure that we do not lose any data, while transforming the indidivdual placements. 
+As Polypheny-DB is designed to be a distributed system, we always need to ensure that we do not lose any data, while transforming the indidivdual placements. 
 This already starts by defining the replicaiton strategy. Although Polypheny-DB allows to customly distribute an entity across several stores, we have to enforce that no 
-information is lost. This means that since we can arbitraly place any combination of columns and partitions of a given entity of any store, we need to make sure that at the end, 
+information is lost. This means that since we can arbitraly place any combination of columns and partitions of a given entity of any store, we need to make sure that in the end, 
 each column is represented by all available partitions at least once. Otherwise this would violate the integrity of our system. 
 This consequently needs to be considered for outdatedness as well. Since we have decoupled updates of eagerly and lazily replicated placements, we again could lose data. 
 Therefore we have to ensure that at least the eagerly replicated placements are sufficently configured such that each column is available for all partitions at least once.
@@ -592,12 +592,12 @@ Since this is merely done by setting a flag, the impact of the blocking behaviou
 Furthermore, as stated in \ref{sec:states} it is possible to switch the replication states of all Partition Placements of a given Data Placement from \emph{REFRESHABLE} to 
 \emph{INFINITELY OUTDATED} and vice versa.
 While the manual switch to \emph{INFINITELY OUTDATED} is an intentional suspension of the replication procedure, the other direction requires validating possible deviations.
-If this is not correctly ensured, and the replication starts propagting changes towards this placement again, we will lose data the data in between thos versions.
-In this scenario the system first will need to make sure that the placements on this store are all uptodate. If this is not the case the operation will fail. 
+If this is not correctly ensured, and the replication starts propagting changes towards this placement again, we will lose the data in between those versions.
+In this scenario the system first will need to make sure that the placements on this store are all up-to-date. If this is not the case the operation will fail. 
 This can be also be done manually by executing a \emph{Primary Snapshot Copy} as described in \ref{sec:manual_refresh}. A subsequent change of states will then be accepted.
 
 Finally, despite its ability to remain operational during failure situations, the utilzed queues within the engine are still only stored within main memory.
-Although this increases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
+Although this decreases the overall commit time of a transaction it results in a loss of all captured data that has not been applied yet, as soon as the system 
 shuts down for any reason. Since we rely on the fast registration process to commit the primary transaction as fast as possible we need to mitigate this behaviour.
 Since we always know which placments are updated lazily, the replication engine can immediately provide two different mechanisms that can be centrally configured. 
 The first approach is simple and fast to execute. It gathers inforamtion on all placements that need to be updated lazily. It can automatically mark them as 
@@ -620,9 +620,9 @@ The second approach however results in a much slower startup time by refreshing 
 
 With the Lazy Replication and the accompanied defferal of transactions prepared, we have already established a foundation to use those possibly outdated versions
 for freshness-awareness. This section therefore focusses on all aspects to establish the core aspects of freshness within Polypheny-DB,
-to allow users the specification of freshness and efificiently using those outdated placements to distribute the workload across the system.
-The actual freshness evaluation can therefore be separated into roughly two phases. While the first one uses the specified freshness tolerance to generate an 
-applicable filter to identify suitable candidates. Whereas the second phase is concerned with constructing and selecting possible combinations of outdated versions
+to allow users the specification of freshness and efficiently using those outdated placements to distribute the workload across the system.
+The actual freshness evaluation can therefore be separated roughly into two phases. While the first one uses the specified freshness tolerance to generate an 
+applicable filter to identify suitable candidates, whereas the second phase is concerned with constructing and selecting possible combinations of outdated versions
 to provide an efficient workflow.
 
 
@@ -645,7 +645,7 @@ We have summarized these possibilities and established three different evaluatio
     The time delay can be specified together with a time and an associated time unit to define an accetable delay for the desired freshness. 
     This will intuitively substract the specified \emph{Absolute Time Delay} from the current time generating a lower bound timestamp. 
     This again allows filtering all Partition Placements based on the age of their commit timestamp.
-    Again as described in Section \ref{sec:freshne_metrics}, an absolute time delay based on the current time is not always accurate or might even render wrong results.
+    As described in Section \ref{sec:freshne_metrics}, an absolute time delay based on the current time is not always accurate or might even render wrong results.
     Therefore, a \emph{Relative Time Delay} specification is provided as well. Allowing to specify the tolerated time deviation based on the commit of a primary placement 
     compared to an outdated placement. To differentiate those options, they are individually suffixed with either \emph{ABSOLUTE} or  \emph{RELATIVE}.
 
@@ -670,7 +670,7 @@ allow users to indicate their tolerated level of freshness, depending on their r
 \label{sec:fresh_spec}
 
 Equipped with the evaluation types, users now need to be able to define their intended level of freshness.
-Although that this could be centrally defined for an entire system, it is very subjective and often does not even depend on the user
+Although this could be centrally defined for an entire system, it is very subjective and often does not even depend on the user
 but is rather influenced by application-specific requirements.
 Therefore, the specification should be rather defined on a query level, to allow a more fine-grained definition.
 
@@ -721,7 +721,7 @@ Since the provided CDC approach is designed to continuously provide the placemen
 to the number of write-operations.
 With a \emph{Serializable} isolation level those replicas could not be used for freshness related queries after all. 
 This would completely mitigate the performance gained by decoupling the transactions in the first place. 
-Therefore, if not centrally configured or explicitly specified otherwise, every freshness query will natively omit the lock acquisition to provide even more parallel workload.
+Therefore, if not centrally configured or explicitly specified otherwise, every freshness query will natively omit the lock acquisition to provide even more parallel workload processing.
 
 
 %While this is not heavily impacted by consecutive write-operations that are lazily replicated onto this placement, it could return entirely inconsistent data when 
@@ -733,14 +733,14 @@ Therefore, if not centrally configured or explicitly specified otherwise, every 
 
 
 Although, not neccessary for all queries, users still might desire to read outdated data without having to fear that the data will be refreshed while reading.
-Since Polypheny-DB essentially uses 2PL, shared locks can be easily extended with more transactions adding themself to the list of already waiting transactions.
+Since Polypheny-DB essentially uses SS2PL, shared locks can be easily extended with more transactions adding themself to the list of already waiting transactions.
 Despite that this avoids \emph{Dirty Reads} and the results will stay stable and consistent, it will block further refresh operations on this placement entirely. 
 
 This however could then lead to starvation of the refresh transactions. 
 Therefore we embedded an extension to this locking approach especially for this use case, which does not interefere with 
 the locking mechanism that targets primary copies. When there is currently a shared lock on an object that is about to receive a manual refresh operation, 
 this disables the possibility for any new upcoming freshness transactions to add itself to the existing shared lock. Instead they are treated and added to the dependency graph 
-of the refresh operation an its Refresh-Lock, as if there would already be an exclusive lock in place. 
+of the refresh operation and its Refresh-Lock, as if there would already be an exclusive lock in place. 
 This would avoid starving the refresh operation while still being able to serve freshness queries on different placements.
 This can be further enhanced by centrally configuring a threshold, which defines after how many retries the refresh operation can finally force itself 
 to be executed.\\
@@ -752,7 +752,7 @@ However in our implemented scenario, other than in classical multi-version datab
 Therfore we require for such a query that all relevant placements need to be updated by the same original transaction in order to guarantee that this state is valid.
 However if there is doubt or no suitable combination of placements can fulfil this request,
 we always have the possibility to fallback to the primary nodes, which are guaranteed to support referential integrity.
-Allthough, this again will again block updates on the primary placements, it fulfils the constraints as it would have, when executing the same query without specifying a tolerated level of freshness.
+Allthough, this will again block updates on the primary placements, it fulfils the constraints as it would have, when executing the same query without specifying a tolerated level of freshness.
 
 
 
@@ -776,8 +776,8 @@ It aims to apply and analyze the freshness specification captured within the \em
 into a general filter condition (\emph{Freshness Filtering}). These filters will be directly derived from one of the selected evaluation types described in \ref{sec:eval_types}.
 Since this is done centrally during processing, it can be applied arbitrarly, disregarding the underlying stores.\\
 Initially the routing process will first assess which partitions of the requested entities are needed to provide a result.
-This is an independent step and will be done regardless, whether a regular or a freshness query ist processed. 
-A list of all required partitions is then passed on to the Freshness Manager, along with the associated Freshness Object. 
+This is an independent step and will be done regardless, whether a regular or a freshness query is processed. 
+A list of all required partitions is then passed on to the \emph{Freshness Manager}, along with the associated Freshness Object. 
 As already described above, we have applied our versioning on the basis of Partition Placements, since they represent the actual physical tables,
 the freshness filtering and evaluation is therefore always executed by comparing the \emph{Update Metadata} of individual Partition Placements. 
 Disregarding the actual type, the Manager then retrieves all Partition Placements for each required partition that are considered to be updated lazily.
@@ -795,18 +795,18 @@ Naively the filtering can then be done by ensuring that placments are only kept 
 a given tolerated threshold. However, for the deviation types we also allow to assess the freshness jointly among all possible candidate combinations.
 This means instead of filtering on the basis of single candidates we extend this notion to be able to filter based on their acccumulated freshness when combining the placements
 (see \ref{sec:fresh_select}).
-Since our query can require multiple partitions at once, we could now combine a very fresh placement with a placement that is by itself considered to be too outdated.
-While the individual placements might not fulfil the placement, their combination migth do. Allowing to consider more candidates, hence tolerating outliers.
+Since our query can require multiple partitions at once, we can now combine a very fresh placement with a placement that is by itself considered to be too outdated.
+While the individual placements might not fulfil the constraints, their combination might do, allowing to consider more candidates, hence tolerating outliers.
 Due to the possible strong fragementation of versions with this approach, it is not used by default and needs to be configured separately.
 Based on the final filter application or already on the intial pre-mapping of partitions we can resepctiviely identify if we have sufficiently collected Partition Placements 
 for all partitions.\\
 If one map should be empty, the freshness manager will halt and automatically fallback to a regular routing appoach, targeting only primary placments 
 as if freshness has never been specified.
-Although theoretically an empty partition mapping would not require the entire processing to fallback to the primary version, and 
+Since theoretically an empty partition mapping would not require the entire processing to fallback to the primary version, and 
 would be able to solely provide a primary copy for this partition alone and still allowing to construct the freshness, 
 for the remaining partitions. 
 However, we need the system to provide a seamless and reproducible approach for users, and strictly distinguish between regular and freshness operations. 
-Additioanlly as defined with requirement \textit{(vi)} we should not interfere with the primary versions of the system, resulting in a defined fallback scenario whenever the freshness
+Additionallly as defined with requirement \textit{(vi)} we should not interfere with the primary versions of the system, resulting in a defined fallback scenario whenever the freshness
 criteria cannot be uniquely fulfilled.
 
 
@@ -818,7 +818,7 @@ criteria cannot be uniquely fulfilled.
 \label{sec:fresh_select}
 
 The combination of possible candidates is also executed within the \emph{Freshness Manager} and builds on top of the candidates proposed by the \emph{Freshness Filter}.
-It tries to combine accepted candidates with each other, in order to provide possible executable plans, as visualized in figure \ref{fig:filter}.
+It tries to combine accepted candidates with each other, in order to provide possible executable plans, as visualized in Figure \ref{fig:filter}.
 While this step is trivial if we only have one possible candidate per partition, it becomes more complicated for entities containing multiple placements 
 with several partitions. This could easily result in large permutations and possibilities to combine the different placements with each other.
 Therefore, selecting a suitable combination is often time consuming and can lead to performance impacts, 
@@ -846,11 +846,11 @@ These could be allowing dirty reads, ergo allow refresh operations to be execute
 locking approach here as well. This would forbid reading from placements that are currently being updated or forbid updating placements that are currently being read.
 However this again reduces concurrent writes and reads on the store, imposing possible downtimes and reducing the availability trait.
 
-Since the Freshness Manager always identifies the given freshness first and gathers all possible placement distribution possibilities for a given freshness specififcation, 
+Since the \emph{Freshness Manager} always identifies the given freshness first and gathers all possible placement distribution possibilities for a given freshness specification, 
 we can validate if we have already cached a similiar query where we had the same placement distribution as input. 
-This allows us to use the cache, skip the planning phase and avoid generating possible combinations again, to again provide access to outdated data . 
+This allows us to use the cache, skip the planning phase and avoid generating possible combinations again, to provide access to outdated data . 
 
-This ultiamtely enables freshness-awarenss within Polypheny-DB to evaluate and utilize the freshness specififcation, to improve the inherently distributed 
+This ultimately enables freshness-awarenss within Polypheny-DB to evaluate and utilize the freshness specififcation, to improve the inherently distributed 
 architecture to decouple transactions and efficiently distribute workload to even utilize outdated replicas to enhance the entire processing capability of the system.
 
 
