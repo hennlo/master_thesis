@@ -6,7 +6,7 @@ Within the last decades, data has not only grown in volume and variety but also 
 Whereas data has so far only been considered a mere tool to assist certain tasks, it developed towards inherently
 driving new technologies and scientifc advancements, becoming an industry focus-point on its own~\cite{data-driven_2014}.\\
 To process the ever-increasing volume and complexity of the data, companies nowadays do not only rely on individual data silos by themselves, but utilize 
-all forms of data ingestion methods to extract and connect nested knowledge out of different sources 
+all forms of data ingestion methods to extract and connect nested knowledge out of different sources,
 to gain economical advantages by prediciting new trends~\cite{ingestion_2016}.
 However, this also increased the need to reliably store and rapidly access such information, along constantly varying requirements.
 Database management systems (DBMS) are therefore progressively challenged, to handle these swiftly growing heterogeneous datasets as efficiently as possible,
@@ -22,7 +22,7 @@ The access to these storages is provided according to the Service Level Agreemen
 Such quality guarantees usually include elastic up- and down-scaling of resources as well as a high degree of availability.
 This can ulitmately be achieved by replicating data throughout different regions, to provide resilient and fault tolerant architectures~\cite{brinkmann:2015, terry:2013}.\\
 However, in order to safely manage these large distributed volumes of data, they need to be replicated eagerly to 
-every particpating node to ensure a global data consistency and avoid losing data. 
+every participating node to ensure a global data consistency and avoid losing data. 
 Consequently this impacts the accessibility of a node and reduces the possibility to be parallelly used for read-operations.
 Therefore, cloud providers need to design their services 
 to balance between a sufficient protection against failures and still providing adequate response times to query the data~\cite{cap2002, levandowski2013}.
@@ -40,11 +40,11 @@ utilizing the remaining resources to be used for data retrieval.
 
 \section{Polystores}
 
-The decission which stucture to use for storing data, has a fundamental impact on the overall performance of a system~\cite{plattner2015}.
+The decision which stucture to use for storing data, has a fundamental impact on the overall performance of a system~\cite{plattner2015}.
 While row-oriented data stores might be useful and preferred for write-heavy transactional 
 workloads, they are rather insufficient for purely analytical workload which would rather benefit from a
 column-oriented data store with less write operations~\cite{sigmond2008}.\\
-Despite the fact that a variety of DBMS exist which were originally created with an intention to support specific scenarios,
+Despite the fact that a variety of DBMS exist, which were originally created with an intention to support specific scenarios,
 applications are getting more complex, influenced by various requirements and characteristics to serve multiple use cases at once.
 That is why modern day applications can not solely rely on one storage technology alone. 
 Consequently, Multi- and Polystore systems have emerged.
@@ -55,7 +55,7 @@ Polyglot persistence is a term which refers to a practice originated from the co
 of \textit{polyglot programming}, to utilize different 
 programming languages for different tasks~\cite{fowler2011}. \\
 Along this paradigm, Polystores want to utilize multiple data storage technologies to
-fulfill different needs for different application components in order to cope
+fulfill different needs for different application components, in order to cope
 with mixed and varying workloads.
 Although, possibly combining various DBMSs, Polystores generally still lack some features of a conventional DBMS.
 Therefore \emph{PolyDBMSs} have recently been introduced as an expanded specification to 
@@ -68,7 +68,7 @@ regular Polystore systems, extending their abilities and transforming them to fu
 Due to the growth in data and complexity, Polystore systems aim to provide fast response times for various use cases and applications of all kind.
 These systems natively encompass several different stores, where each is capable of fulfilling a different requirement. 
 This enables an application to harvest the best possible response times for different workloads.
-Because Polystore systems orginally were introduced to support heterogenous data, they mostly do this by utilizing different stores at once.
+Because Polystore systems were originally introduced to support heterogenous data, they mostly do this by utilizing different stores at once.
 Since these systems might be distributed, the data could exist redundantly across these stores. 
 In order for such systems to utilize the different underlying engines and consequently improve the read-performance, 
 the data also needs to be consistently written to all relevant stores to leverage their unique benefits.
@@ -115,8 +115,8 @@ This negativiely impacts the overall performance of such systems.
 Additionally this might also reduce the availability of the entire system, since it might not allow read-operations to be executed in parallel. 
 But because these stores differ in terms of there field of application, we cannot simply remove the slower performing stores to improve write-operations. 
 This would comprehensively neglect all benefits originally introduced by Polystore systems.
-Essentially the system needs to be able to allow transactional as well as analytical workload to be executed in parallel.\\
-This could be accomplished by decoupling updates on a system to only target specific stores. 
+Essentially, the system needs to be able to allow transactional as well as analytical workload to be executed in parallel.\\
+This could be accomplished by decoupling updates on a system, to only target specific stores. 
 These stores can then be used to asynchronously update
 the remaining stores without directly affecting the user with additional wait-situations.
 Although, reducing the consistency of the system, this approach intuitively generates multiple temporary versions per data object.
@@ -127,9 +127,9 @@ This specification could then be used to identify a well-suited location to retr
 This notion of freshness aids to efficiently use these temporary outdated versions for reads as well. 
 Hence, it allows the system to execute read- and write-operations in parallel.
 Further, it mitigates the need to immediately update every existing data replica to the most recent state.
-Such delayed updates now allow for a much higher throughput and increased performance in scenarios were also slightly 
+Such delayed updates now allow for a much higher throughput and increased performance in scenarios where also slightly 
 outdated data is acceptable.\\
-On the basis of Polystore systems we could now use this scenario to nativiely leverage the benefit of a heavily write-optimized store to 
+On the basis of Polystore systems, we could now use this scenario to natively leverage the benefit of a heavily write-optimized store to 
 primarly receive any write-operation, which then distributes the received changes asnychronously to the remaining stores. This
 would immediately allow, using the notion of freshness to be able to utilize outdated data.
 Ultimately this loosens the constraints and downsides of Polystore systems to efficiently utilize all available resources.
@@ -158,8 +158,8 @@ Chapter \ref{c:Foundation} visits existing fundamental concepts in the context o
 which are necessary for the remainder of this thesis. 
 This is followed by Chapter \ref{c:concept} which describes the functional requirements, necessary to introduce the notion of freshness inside a Polystore system. 
 Additionally, it discusses and proposes possible approaches how to implement them in a Polystore. 
-In Chapter \ref{c:implementation} these concepts including all requirements and building blocks will be applied to Polypheny-DB, a specific Polystore system.
-While Chapter \ref{c:evaluation} focuses on possibilities on how to ensure correctness and measure the performance of the implementation, including all necessary prerequisites.
+In Chapter \ref{c:implementation} these concepts including all requirements and building blocks will be applied to Polypheny-DB, a specific Polystore system,
+while Chapter \ref{c:evaluation} focuses on possibilities on how to ensure correctness and measure the performance of the implementation, including all necessary prerequisites.
 Finally, Chapter \ref{c:conclusion} concludes the thesis by summarizing the individual contributions according to the proposed
 implementations, while Chapter \ref{c:outlook} gives an outlook on future work and possible extensions to the presented work.
 

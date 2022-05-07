@@ -11,7 +11,7 @@ freshness-awareness inside a DBMS.
 This Chapter is therefore separated into seven sections, were each part contributes to a characteristic, needed to 
 provide the notion freshness. This includes a definition of Data Freshness in general ($\rightarrow$ Section \ref{sec:definition}), 
 possible metrics to define cost functions ($\rightarrow$ Section \ref{r:freshness_metrics}), which are used
-in the evaluation process to express and compare different freshness-levels ($\rightarrow$ Section \ref{r:express_freshness}) and
+in the evaluation process to express and compare different freshness-levels ($\rightarrow$ Section \ref{r:express_freshness}), and
 how to correctly involve different available versions of data objects ($\rightarrow$ Section \ref{sec:consistency}). 
 Furthermore, how to identify existing possibilities to replicate data ($\rightarrow$ Section \ref{r:replication}) 
 and propagate updates to outdated nodes in order to refresh them ($\rightarrow$ Section \ref{r:strategies}).
@@ -40,7 +40,7 @@ Finally, this is concluded by a discussion, how users can actually specify their
 \label{sec:definition}
 The consideration of data freshness is a widely used concept among database systems and intuitively introduces the idea of how old or stale data is.
 Nonetheless, there is no commonly agreed defintion, hence several different notions and interpretations exist, on how to characterize and measure data freshness.
-This was already described by Naumann et al.~\cite{naumann:1999} in 1999, which further state that despite these variations, it is strongly related to the concept of accuracy. 
+This was already described by Naumann et al.~\cite{naumann:1999} in 1999, which state that despite these variations, it is strongly related to the concept of accuracy. 
 The accuracy of a data object could therefore be loosely summarized as the percentage of objects without data change. 
 This thought was also shared by Redman who defined the data accuracy as ``the degree of agreement between 
 collection of data values and a source agreed to be correct''~\cite{redman:1996}.
@@ -49,7 +49,7 @@ Hence, it can be considered as the precision of such data elements in respect to
 
 
 Peralta \cite{peralta:2006} also summarized freshness as an implication of how old data is, and referred this to an user's expectation on the actuality of an object. 
-Consequently, using the last time objects were updated, to identify any accuracy measures. Peralta also distinguished between two data quality factors. 
+Consequently, using the last time objects were updated, to identify any accuracy measures. The author also distinguished between two data quality factors. 
 The \emph{currency factor} which expresses how stale data is after it has been extracted and finally been
 delivered to the user. This concept is often considered within data warehousing systems, when already extracted materialized data is processed and delivered to the user.
 Because the extracted source data might have already been updated after it has initially been extracted, consequently resulting in stale data to be delivered.
@@ -84,13 +84,13 @@ This is enriched further with the \emph{age-of-synchronization} (AoS) that corre
 \label{r:express_freshness}
 
 Along the various freshness metrics described in Section \ref{r:freshness_metrics}, essentially three types of freshness constraints
-suggesting a tolerated level of freshness can be summarized~\cite{tamer:2005, hennemann_sw_2021}.
+suggesting a tolerated level of freshness can be summarized~\cite{tamer:2005, hennemann_sw_2021}:
 \begin{itemize}
     \item \textbf{Time-bound constraints}: Are used as timestamps that accept values which have been updated by younger transactions. 
 
     \item \textbf{Value-bound constraints}: Are more commonly used with numbers than with text and considers the percentual deviations from the current value.
 
-    \item \textbf{Drift constraints on multiple data items}: Are especially relevant for transactions which read multiple data items. Tolerates if possible 
+    \item \textbf{Drift constraints on multiple data items}: Are especially relevant for transactions which read multiple data items. It considers if possible 
     update timestamps of all required data items are all within the same specified interval. Additionally, for aggregations, as long as a particular aggregate computation 
     is within a tolerable range it can be accepted. Even if some individual values of the data items are more out of sync than the compound operation.
 \end{itemize}
@@ -137,7 +137,7 @@ This imposes a huge performance mitigation and wastes ressources since the trans
 Psaroudakis et al. \cite{psaroudakis:2015} mention the existing design gaps between OLTP- and OLAP-oriented database management systems and describe the importance of 
 allowing workloads to be executed in parallel. However, they solely focus on a single table level rather than a replication scenario in a distributed 
 environment. Furthermore, they are interested in real-time processing and claim that even the slightest outdated data is unacceptable to provide real-time reporting.
-To fulfil these mixed workload requirements they summarized the idea of \emph{SAP HANA}\footnote{https://www.sap.com/products/hana.html}, which offers a main area that contains the base data and a delta area 
+To fulfil these mixed workload requirements they summarized the idea of \emph{SAP HANA}\footnote{https://www.sap.com/products/hana.html}, which offers a main area that contains the base data and a delta area, 
 which supports transactional operations and includes recently changed data. Read operations therefore need to query both main and delta area jointly to provide results. 
 Since the delta area could increase without bound, it is periodically merged into the main section. 
 
@@ -154,7 +154,7 @@ They discuss the idea of a \emph{Preventive Replication} algorithm by using an a
 strong consistency. This is achieved by utilizing a First-In First-Out (FIFO) queue to correctly serialize any updates which shall be delivered to secondary replicas.
 
 The authors in \cite{voicu:2010} propose several multi-tier layers to handle replication and freshness scores. 
-Nodes are classified into two categories either as updatable or read-only and placed onto three levels.
+Nodes are classified into two categories, either as updatable or read-only and placed onto three levels.
 Level-1 nodes receive all updates immediately acting as the primary servers, level-2 nodes are read-only nodes containing as up-to-date data as possible while the
 level-3 read-only nodes are updated rather infrequently. These layered levels are composed as a tree, receiving asynchronous updates from the lower level. 
 In this case the higher the level, the more outdated the data.
@@ -181,10 +181,10 @@ Röhm et al. \cite{rohm:2002} avoid scheduling such update propagations entirely
 and immediately executing the propagation afterwards. Although this aids the throughput of the initial update transactions, the secondaries 
 stay outdated for almost no time at all, leaving no room for possible outdated replicas with different versions to even exit. 
 Furthermore, such approaches as well as periodic scheduling completely neglect to verify the current load on the underlying system.
-Since this could unnecessarly cause performance mitigations on the replicas to be updated, it should always be accompanied by identifying the idle time of replicas as well 
+Since this could unnecessarly cause performance mitigations on the replicas to be updated, it should always be accompanied by identifying the idle time of replicas, as well 
 as ensuring that the current load on the replicas is within bound and is therefore able to endure such an update \cite{voicu:2010}.
 
-In contrast to \cite{peralta:2006} which determined the goal to identify the minimum set of refresh transactions, such that it is guaranteed that a node contains 
+In contrast \cite{peralta:2006} determined the goal to identify the minimum set of refresh transactions, such that it is guaranteed that a node contains 
 sufficiently fresh data with respect to the users requirements. Therefore, any outdated node will independently pull the number of updates which are necessary to 
 fulfil future requests along the requirements.
 
@@ -193,8 +193,8 @@ Wei et al. \cite{wei:2004} follow a different approach by analyzing the \emph{Ac
 AUR(d) := \frac{AccessFrequency(d)}{UpdateFrequency(d)}
 \end{equation}
 As depicted above, any item beyond an AUR of 1 is considered to be accessed at least as frequently as it is updated.
-Hence, it is considered as \emph{hot} and shall be updated as soon as possible for applications to receive the real-time value. 
-Whereas a ratio below this threshold refers to \emph{cold} data and establishes that this item is accessed comparably infrequently and thus needs no immediate refresh. 
+Hence, it is considered as \emph{hot} and shall be updated as soon as possible for applications to receive the real-time value, 
+whereas a ratio below this threshold refers to \emph{cold} data and establishes that this item is accessed comparably infrequently and thus needs no immediate refresh. 
 
 
 
@@ -206,7 +206,7 @@ Whereas a ratio below this threshold refers to \emph{cold} data and establishes 
 \label{sec:consistency}
 There are multiple constraints to enforce when trying to ensure the consistency in a distributed setup.
 The authors of \cite{wei:2004, xiang:2008} discussed data freshness together with the scheduling of update transactions from the 
-point of view of real time applications. They ellaborated the concept of temporal validity with respect to value-based freshness,
+point of view of real time applications. They elaborated the concept of temporal validity with respect to value-based freshness,
 such that specific values are only considered valid for a certain time interval before becoming outdated. Hence, they describe the necessity to classify objects into
 temporal data that can continuously change to reflect a real world state, and non-temporal objects that will not become outdated overtime like the validity of an ID-card.
 This concept essentially pursues the fundamentals of temporal databases, which keep historic values as well as their validity-intervals, to allow the reconstruction of any 
@@ -233,18 +233,18 @@ These locks aim to provide fast response times for analytical workload and essen
 \section{Freshness-aware Read Access}
 \label{r:read}
 The fundamental idea of data freshness aims to utilize all provided resources to improve the read access while transactional workload is being executed.
-Therefore the read access is a matter of efficiently routing any client request to a suitable replica in respect of the required level of freshness.
-According to \cite{rohm:2002, akal:2005} a router needs to utilize system state information on replicas to identify the best way to route a query.
+Therefore the read access is a matter of efficiently routing any client request, to a suitable replica in respect of the required level of freshness.
+According to \cite{rohm:2002, akal:2005}, a router needs to utilize system state information on replicas to identify the best way to route a query.
 
-In \cite{voicu:2010} clients are able to contact any read-only replica directly. For every read-only transaction they can as well specify
+In \cite{voicu:2010}, clients are able to contact any read-only replica directly. For every read-only transaction they can as well specify
 their tolerated freshness, by providing a timestamp which is internally converted to a freshness-index. If the replica is able to fulfil the request 
-it directly returns the response to the client. If it currently does not possess a sufficient freshness-level it routes the request to another node which can be identified 
+it directly returns the response to the client. If it currently does not possess a sufficient freshness-level, it routes the request to another node, which can be identified 
 by routing it towards the root of the tree. The parent is then able to identify which node is capable to fulfil the condition.  
 If none of the replicas are able to execute the request within this subtree, a refresh transaction is triggered, which will update and refresh all nodes before 
 processing the read operation.
 
 The authors \cite{huang:2020} introduce a central \emph{preference manager as a service} at the client site. This manager is able to suggest where to route queries 
-based on given cost metrics. By comparing individual latencies for any request they aim to improve the overall performance to deliberately choose if a request 
+based on given cost metrics. By comparing individual latencies for any request, they aim to improve the overall performance to deliberately choose if a request 
 shall be routed to a primary or secondary site. This analysis is influenced by the \emph{Replication Lag} inside a MongoDB cluster which refers to the average time 
 that passes before an update is propagated to the secondaries. 
 

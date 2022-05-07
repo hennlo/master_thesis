@@ -20,7 +20,7 @@ maintainability of the system~\cite{Agrawal_2004}.\\
 The process of data partitioning refers to splitting the data into logically and sometimes even
 physically separated fragments that can be used independently.
 
-In general data partitioning can be distinguished into two variations.
+In general, data partitioning can be distinguished into two variations.
 Since both of these split the data into multiple parts, it is often referred to as data fragmentation~\cite{tamer:2005}. 
 
 \begin{description}
@@ -37,7 +37,7 @@ Since both of these split the data into multiple parts, it is often referred to 
 \end{description}
 
 Data partitioning generally enables a system to process data concurrently and 
-to some extent even in parallel. Considering that access to data can be 
+to some extent even in parallel, considering that access to data can be 
 efficiently load balanced and therefore enhances the throughput per query.\\
 
 Although data partitioning is often associated with the improvement of query performance,
@@ -58,9 +58,9 @@ replication and distribution of data fragments~\cite{dbre2017}.
 \section{CAP Theorem}
 \label{sec:cap}
 An essential part of distributed systems is the handling of failures or outages of participating components. 
-The \emph{CAP theorem}~\cite{cap2002} introduced by E. Brewer~\cite{brewer:2000} discusses these scenarios and states, that it is not possible 
+The \emph{CAP theorem}~\cite{cap2002}, introduced by E. Brewer~\cite{brewer:2000}, discusses these scenarios and states, that it is not possible 
 to keep the system available while providing global data consistency at the same time.
-This problem is driven by the claim that a node within a clustered system cannot identify whether another node or the 
+This problem is driven by the claim that a node within a clustered system, cannot identify whether another node or the 
 network connection in between has failed (network partitioning).\\
 Although this theorem was primarly introduced to support the differentiation between \emph{Availability} and \emph{Consistency}, 
 it only formulates the trade-off in cases of failure.
@@ -77,7 +77,7 @@ Therefore, the possibility of failure alone, even in the absence of a failure, i
 
 \section{Data Replication}
 
-In distributed setups the utilization of data replication is crucial to improve the query performance
+In distributed setups, the utilization of data replication is crucial to improve the query performance
 by replicating certain partitions of data to where it is actually needed~\cite{cloudpart_2012}.
 Furthermore, replication also increases the availability of the system and protects it against outages or performance mitigations,
 by allowing workload redirection and load balancing to healthy replicas in the cluster~\cite{quorums:2003}.
@@ -94,12 +94,12 @@ Because the update is however applied synchronously, the transaction blocks unti
 Since this is done within one global transaction, specifically in heterogeneous environments, the performance of an update is bound by the slowest performing node.
 
 In contrast to its strict counterpart, \emph{Lazy Replication} decouples the primary update transaction from the update propagation to secondary nodes.
-In its basic form it only supports weak consistency. Since updates only need to be acknowledged and executed by one store, 
+In its basic form, it only supports weak consistency. Since updates only need to be acknowledged and executed by one store, 
 the update propagation to the remaining nodes is executed asynchronously~\cite{fekete:2018}.
-This improves parallel processing and increases the availability because only one node is blocked during the update. All other nodes can still serve incoming requests,
+This improves parallel processing and increases the availability, because only one node is blocked during the update. All other nodes can still serve incoming requests,
 which especially increases the popularity for analytical applications~\cite{daudjee:2006}.
 However, during the convergence period, until all changes have been replicated, the system is exposed to an inconsistent state.
-As pointed out by~\cite{cho:2000} utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
+As pointed out by~\cite{cho:2000}, utilizing a lazy propagation of updates, immediately leads to different versions of participating data items and thus also provides stale data.
 This could result in retrieving outdated data, if the client contacts one of the outdated nodes.
 
 Since the initial transaction defers the update propagation, this approach automatically results in \emph{Eventual Consistency}~\cite{shapiro:2011}.
@@ -117,7 +117,7 @@ A major topic in the context of distributed database systems is \emph{concurrenc
 It is directly associated with the \emph{Isolation} criteria of the transactional \emph{ACID} properties.
 With associated locks of data items, it ensures the correct results and treatment of interleaving operations in a database system~\cite{bernstein:1986}.
 \\
-As illustrated by the authors of~\cite{weikum:2001} not solely the data replication will impact the trade-offs between latency and consistency,
+As illustrated by the authors of~\cite{weikum:2001}, not solely the data replication will impact the trade-offs between latency and consistency,
 but so does the concurrency control.
 
 Despite the fact that there exists multiple protocols that handle concurrency control differently we will discuss two of the most common ones: 
@@ -128,11 +128,11 @@ Despite the fact that there exists multiple protocols that handle concurrency co
 
 \subsection{Two-phase Locking}
 
-As the name suggest the protocol itself is divided into two distinct phases. An \emph{expansion phase}, where locks on required objects are gradually acquired, 
+As the name suggest, the protocol itself is divided into two distinct phases. An \emph{expansion phase}, where locks on required objects are gradually acquired, 
 and no locks are released, and a \emph{shrinking phase} where locks are released, and no locks are acquired anymore.
-In summary no lock can be acquired as soon as some locks have already been released.
+In summary, no lock can be acquired as soon as some locks have already been released.
 
-The basic approach differentiates between exclusive locks, that can only be acquired by a single transaction at a time and shared locks that 
+The basic approach differentiates between exclusive locks, that can only be acquired by a single transaction at a time, and shared locks that 
 can be acquired by multiple transactions. While write modifications lead to an acquisition of a new lock, reads can attach itself to an existing shared lock 
 instead of acquiring a new lock~\cite{mehrotra:1997}. \\
 This however can lead to the starvation of write operations, since shared locks can be more easily extended with new transactions, leaving write transactions on wait until 
@@ -146,19 +146,19 @@ The more rigid case \emph{strict two-phase locking} (S2PL) only released the loc
 Shared-locks on the other hand are releases early.
 The most rigorous version is the \emph{strong strict two-phase locking} (SS2PL) which releases all locks when the transaction has ended.
 This is either at commit time or when the transaction is aborted.
-Although, This form of 2PL is effective to achieve distributed and global serializability and provides automatic deadlock detection and resolution.
-Due to its rather pessimistic blocking behaviour it negatively impacts the performance of the system.
+Although, this form of 2PL is effective to achieve distributed and global serializability, and provides automatic deadlock detection and resolution.
+Due to its rather pessimistic blocking behaviour, it negatively impacts the performance of the system.
 
 
 
 \subsection{Multiversion Concurrency Control}
 While \emph{SS2PL} suffers from lock contentions between long-running analytical reads and update transactions, it cannot support parallel writes and reads on the same object. 
-To solve this problem \emph{MVCC}~\cite{bernstein:1981} was introduced by keeping multiple data copies per object and generally omitting locks.
-It was originally established for multi-version databases that tried to extend the concept of shadow pages by keeping the complete history or at least multiple versions 
+To solve this problem \emph{MVCC}~\cite{bernstein:1981} was introduced, by keeping multiple data copies per object and generally omitting locks.
+It was originally established for multi-version databases that tried to extend the concept of shadow pages, by keeping the complete history or at least multiple versions 
 of each object~\cite{bernstein:1982, bernstein:1983}.
 The idea is that every new write of an object \emph{x}, by transaction $T^k$ creates a new version $x_k$ for this object $x$.
 
-Most commonly MVCC provides a \emph{snapshot isolation} which was introduced by Berenson et al.~\cite{berenson:1995}.
+Most commonly, MVCC provides a \emph{snapshot isolation}, which was introduced by Berenson et al.~\cite{berenson:1995}.
 This snapshot enables each transaction to see the state of the data at the time when the transaction has started.
 While this allows to compare and use different versions that are already considered to be outdated~\cite{faleiro:2015}, 
 hence providing more flexibility for concurring transactions. It is more difficult to find a corresponding non-conflicting 
